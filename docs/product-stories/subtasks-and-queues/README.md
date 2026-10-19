@@ -1,6 +1,6 @@
 # Subtasks and Queues - Implementation Stories
 
-This directory contains the product stories for implementing hierarchical task relationships (subtasks) and queue-based task organization in TinyTask MCP.
+This directory contains the product stories for implementing hierarchical task relationships (subtasks) and queue-based task organization in TKO MCP.
 
 ## Overview
 
@@ -11,7 +11,7 @@ These features enable:
 ## Implementation Stories
 
 ### Story 1: Database Schema and Type System Updates
-**Effort**: 2-3 hours  
+**Effort**: 2-3 hours
 **Dependencies**: None
 
 Add database columns for `parent_task_id` and `queue_name`, create indexes, and update TypeScript type definitions.
@@ -19,7 +19,7 @@ Add database columns for `parent_task_id` and `queue_name`, create indexes, and 
 [Read Story 1 →](./story-01-database-and-types.md)
 
 ### Story 2: Service Layer - Subtask Support
-**Effort**: 4-6 hours  
+**Effort**: 4-6 hours
 **Dependencies**: Story 1
 
 Implement service methods for creating, querying, and managing hierarchical task relationships with circular reference prevention.
@@ -27,7 +27,7 @@ Implement service methods for creating, querying, and managing hierarchical task
 [Read Story 2 →](./story-02-service-layer-subtasks.md)
 
 ### Story 3: Service Layer - Queue Management
-**Effort**: 4-6 hours  
+**Effort**: 4-6 hours
 **Dependencies**: Story 1
 
 Implement service methods for queue-based task organization, statistics, and workload visibility.
@@ -35,7 +35,7 @@ Implement service methods for queue-based task organization, statistics, and wor
 [Read Story 3 →](./story-03-service-layer-queues.md)
 
 ### Story 4: MCP Tools - Subtask Support
-**Effort**: 3-4 hours  
+**Effort**: 3-4 hours
 **Dependencies**: Story 1, Story 2
 
 Expose subtask functionality through MCP tools with proper validation and error handling.
@@ -43,7 +43,7 @@ Expose subtask functionality through MCP tools with proper validation and error 
 [Read Story 4 →](./story-04-mcp-tools-subtasks.md)
 
 ### Story 5: MCP Tools - Queue Management
-**Effort**: 3-4 hours  
+**Effort**: 3-4 hours
 **Dependencies**: Story 1, Story 3
 
 Expose queue management through MCP tools for team-based task organization.
@@ -51,7 +51,7 @@ Expose queue management through MCP tools for team-based task organization.
 [Read Story 5 →](./story-05-mcp-tools-queues.md)
 
 ### Story 6: MCP Resources - Subtasks and Queues
-**Effort**: 2-3 hours  
+**Effort**: 2-3 hours
 **Dependencies**: Story 2, Story 3
 
 Provide MCP resources for efficient read access to hierarchical and queue-organized data.
@@ -59,7 +59,7 @@ Provide MCP resources for efficient read access to hierarchical and queue-organi
 [Read Story 6 →](./story-06-mcp-resources.md)
 
 ### Story 7: Testing and Documentation
-**Effort**: 3-4 hours  
+**Effort**: 3-4 hours
 **Dependencies**: Stories 1-6
 
 Comprehensive integration tests, performance tests, and user documentation.

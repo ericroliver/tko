@@ -4,8 +4,8 @@
 Add database schema support for hierarchical tasks (subtasks) and queue management, along with corresponding TypeScript type definitions.
 
 ## User Story
-**As a** TinyTask developer  
-**I want** the database schema to support parent-child task relationships and queue assignments  
+**As a** TKO developer
+**I want** the database schema to support parent-child task relationships and queue assignments
 **So that** tasks can be organized hierarchically and grouped by team/functional area
 
 ## Business Value

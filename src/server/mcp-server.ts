@@ -20,7 +20,7 @@ export function createMcpServer(
   // Create server with capabilities
   const server = new Server(
     {
-      name: 'tinytask-mcp',
+      name: 'tko-mcp',
       version: '1.0.0',
     },
     {

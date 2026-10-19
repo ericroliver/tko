@@ -2,7 +2,7 @@
 
 ## Issue Summary
 
-The tinytask MCP server was experiencing hanging behavior during `update_task` operations, specifically when called immediately after `add_comment` operations. The hang would timeout after exactly 300 seconds (5 minutes).
+The tko MCP server was experiencing hanging behavior during `update_task` operations, specifically when called immediately after `add_comment` operations. The hang would timeout after exactly 300 seconds (5 minutes).
 
 **Affected Operations:**
 - ❌ `update_task` - Would hang indefinitely
@@ -82,7 +82,7 @@ private configure(): void {
 
   // Set busy timeout to 30 seconds to prevent premature timeouts
   this.db.pragma('busy_timeout = 30000');  // Increased from 5000
-  
+
   // Set WAL autocheckpoint to prevent WAL from growing too large
   this.db.pragma('wal_autocheckpoint = 1000');  // NEW
 }
@@ -197,6 +197,6 @@ npm run lint   # ✅ No errors
 
 ---
 
-**Fix Date**: 2025-12-28  
-**Issue Priority**: HIGH - Blocked critical workflow  
+**Fix Date**: 2025-12-28
+**Issue Priority**: HIGH - Blocked critical workflow
 **Status**: ✅ Resolved and tested

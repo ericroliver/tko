@@ -17,7 +17,10 @@ export class Logger {
   private enableTimestamp: boolean;
 
   private constructor() {
-    const levelStr = (process.env.TINYTASK_LOG_LEVEL || 'info').toLowerCase();
+    const levelStr = (
+      (process.env.TKO_LOG_LEVEL ?? process.env.TINYTASK_LOG_LEVEL) ||
+      'info'
+    ).toLowerCase();
     this.level = this.parseLevel(levelStr);
     this.enableTimestamp = true;
   }

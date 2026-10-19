@@ -3,72 +3,72 @@ name: task-management
 description: Use the task management skill to check your queue for work, create tasks for others, reassign, etc.
 ---
 
-We use the `tinytask` CLI and it is typically in your path.
+We use the `tko` CLI and it is typically in your path.
 
 ### Task Commands
 
 #### Create Task
 
 ```bash
-tinytask task create "Task title"
-tinytask task create "Task title" -d "Description" -a alice -p 5
-tinytask task create "Task title" --assigned-to bob --priority 8 --tags "bug,urgent"
+tko task create "Task title"
+tko task create "Task title" -d "Description" -a alice -p 5
+tko task create "Task title" --assigned-to bob --priority 8 --tags "bug,urgent"
 
 # Create as subtask
-tinytask task create "Write tests" --parent 5 --assigned-to alice
+tko task create "Write tests" --parent 5 --assigned-to alice
 
 # Create and assign to queue
-tinytask task create "Fix bug" --queue dev --priority 8
+tko task create "Fix bug" --queue dev --priority 8
 ```
 
 #### Get Task
 
 ```bash
-tinytask task get 1
-tinytask task get 1 --json
+tko task get 1
+tko task get 1 --json
 ```
 
 #### Update Task
 
 ```bash
-tinytask task update 1 --status working
-tinytask task update 1 --title "New title" --priority 9
-tinytask task update 1 --assigned-to charlie --tags "feature,ui"
+tko task update 1 --status working
+tko task update 1 --title "New title" --priority 9
+tko task update 1 --assigned-to charlie --tags "feature,ui"
 
 # Change parent or make top-level
-tinytask task update 10 --parent 5
-tinytask task update 10 --parent null
+tko task update 10 --parent 5
+tko task update 10 --parent null
 
 # Change queue
-tinytask task update 1 --queue qa
+tko task update 1 --queue qa
 ```
 
 #### List Tasks
 
 ```bash
-tinytask task list
-tinytask task ls
-tinytask task list --assigned-to alice
-tinytask task list --status working --limit 10
-tinytask task list --include-archived
+tko task list
+tko task ls
+tko task list --assigned-to alice
+tko task list --status working --limit 10
+tko task list --include-archived
 
 # Filter by queue or parent
-tinytask task list --queue dev
-tinytask task list --parent 5
-tinytask task list --exclude-subtasks
+tko task list --queue dev
+tko task list --parent 5
+tko task list --exclude-subtasks
 ```
 
 #### Delete Task
 
 ```bash
-tinytask task delete 1
-tinytask task delete 1 --yes
+tko task delete 1
+tko task delete 1 --yes
 ```
 
 #### Archive Task
 
 ```bash
-tinytask task archive 1
+tko task archive 1
 ```
 
 ### Subtask Commands
@@ -78,24 +78,24 @@ Manage task hierarchies and break down complex work into subtasks.
 #### Create Subtask
 
 ```bash
-tinytask subtask create 5 "Design database schema"
-tinytask st create 5 "Write tests" -d "Unit and integration tests" -a alice
-tinytask st create 5 "Deploy feature" -p 8 -q qa
+tko subtask create 5 "Design database schema"
+tko st create 5 "Write tests" -d "Unit and integration tests" -a alice
+tko st create 5 "Deploy feature" -p 8 -q qa
 ```
 
 #### List Subtasks
 
 ```bash
-tinytask subtask list 5
-tinytask st list 5 --recursive
-tinytask st list 5 --include-archived
+tko subtask list 5
+tko st list 5 --recursive
+tko st list 5 --include-archived
 ```
 
 #### View Task Tree
 
 ```bash
-tinytask subtask tree 5
-tinytask st tree 5 --recursive
+tko subtask tree 5
+tko st tree 5 --recursive
 ```
 
 Output displays hierarchical task structure:
@@ -111,10 +111,10 @@ Task #5: User Authentication [dev] (alice)
 
 ```bash
 # Move to different parent
-tinytask subtask move 10 5
+tko subtask move 10 5
 
 # Make top-level task
-tinytask st move 10
+tko st move 10
 ```
 
 ### Queue Management Commands
@@ -124,15 +124,15 @@ Organize tasks into team queues (dev, product, qa, etc.).
 #### List All Queues
 
 ```bash
-tinytask queue list
-tinytask queue ls
+tko queue list
+tko queue ls
 ```
 
 #### View Queue Statistics
 
 ```bash
-tinytask queue stats dev
-tinytask queue stats qa --json
+tko queue stats dev
+tko queue stats qa --json
 ```
 
 Output displays queue metrics:
@@ -154,34 +154,34 @@ Agents:          alice, bob, charlie
 #### View Tasks in Queue
 
 ```bash
-tinytask queue tasks dev
-tinytask queue tasks dev --status idle
-tinytask queue tasks dev --assigned-to alice
-tinytask queue tasks qa --exclude-subtasks
+tko queue tasks dev
+tko queue tasks dev --status idle
+tko queue tasks dev --assigned-to alice
+tko queue tasks qa --exclude-subtasks
 ```
 
 #### Add Task to Queue
 
 ```bash
-tinytask queue add 5 dev
+tko queue add 5 dev
 ```
 
 #### Remove Task from Queue
 
 ```bash
-tinytask queue remove 5
+tko queue remove 5
 ```
 
 #### Move Task Between Queues
 
 ```bash
-tinytask queue move 5 qa
+tko queue move 5 qa
 ```
 
 #### Clear Queue
 
 ```bash
-tinytask queue clear dev --yes
+tko queue clear dev --yes
 ```
 
 ### Agent Workflow Commands
@@ -189,23 +189,23 @@ tinytask queue clear dev --yes
 #### View Agent Queue
 
 ```bash
-tinytask queue view alice
-tinytask queue view --mine
+tko queue view alice
+tko queue view --mine
 ```
 
 #### Signup for Task
 
 ```bash
-tinytask signup
-tinytask signup --agent alice
+tko signup
+tko signup --agent alice
 ```
 
 #### Move Task Between Agents
 
 ```bash
-tinytask move 1 bob
-tinytask move 1 bob --from alice
-tinytask move 1 bob --comment "Transferring to Bob"
+tko move 1 bob
+tko move 1 bob --from alice
+tko move 1 bob --comment "Transferring to Bob"
 ```
 
 ### Comment Commands
@@ -213,28 +213,28 @@ tinytask move 1 bob --comment "Transferring to Bob"
 #### Add Comment
 
 ```bash
-tinytask comment add 1 "This is a comment"
-tinytask c add 1 "Comment text" --created-by alice
+tko comment add 1 "This is a comment"
+tko c add 1 "Comment text" --created-by alice
 ```
 
 #### List Comments
 
 ```bash
-tinytask comment list 1
-tinytask c list 1 --json
+tko comment list 1
+tko c list 1 --json
 ```
 
 #### Update Comment
 
 ```bash
-tinytask comment update 10 "Updated comment text"
+tko comment update 10 "Updated comment text"
 ```
 
 #### Delete Comment
 
 ```bash
-tinytask comment delete 10
-tinytask c delete 10 --yes
+tko comment delete 10
+tko c delete 10 --yes
 ```
 
 ### Link Commands
@@ -242,77 +242,77 @@ tinytask c delete 10 --yes
 #### Add Link
 
 ```bash
-tinytask link add 1 "https://github.com/user/repo/pull/123"
-tinytask l add 1 "https://docs.example.com" -d "Documentation"
+tko link add 1 "https://github.com/user/repo/pull/123"
+tko l add 1 "https://docs.example.com" -d "Documentation"
 ```
 
 #### List Links
 
 ```bash
-tinytask link list 1
-tinytask l list 1 --json
+tko link list 1
+tko l list 1 --json
 ```
 
 #### Update Link
 
 ```bash
-tinytask link update 5 --url "https://new-url.com"
-tinytask l update 5 --description "New description"
+tko link update 5 --url "https://new-url.com"
+tko l update 5 --description "New description"
 ```
 
 #### Delete Link
 
 ```bash
-tinytask link delete 5
-tinytask l delete 5 --yes
+tko link delete 5
+tko l delete 5 --yes
 ```
 
 ### Configuration Commands
 
-> **Agent identity:** Set `TKO_AGENT` in your environment. Used as `created_by` for tasks, comments, links. Alternatively, pass `--created-by <agent>` per command, or `tinytask config set agent <your-agent>`. `assigned_to` has no default — tasks are unassigned unless explicitly assigned.
+> **Agent identity:** Set `TKO_AGENT` in your environment. Used as `created_by` for tasks, comments, links. Alternatively, pass `--created-by <agent>` per command, or `tko config set agent <your-agent>`. `assigned_to` has no default — tasks are unassigned unless explicitly assigned.
 
 #### Initialize Config
 
 ```bash
-tinytask config init
-tinytask config init --force
+tko config init
+tko config init --force
 ```
 
 #### Show Config
 
 ```bash
-tinytask config show
+tko config show
 ```
 
 #### Set Config Value
 
 ```bash
-tinytask config set url http://localhost:3000/mcp
-tinytask config set agent alice
-tinytask config set outputFormat json
+tko config set url http://localhost:3000/mcp
+tko config set agent alice
+tko config set outputFormat json
 ```
 
 #### Get Config Value
 
 ```bash
-tinytask config get url
-tinytask config get agent
+tko config get url
+tko config get agent
 ```
 
 #### Profile Management
 
 ```bash
 # Add profile
-tinytask config profile add staging --url https://staging.example.com/mcp --agent staging-bot
+tko config profile add staging --url https://staging.example.com/mcp --agent staging-bot
 
 # List profiles
-tinytask config profile list
+tko config profile list
 
 # Use profile
-tinytask config profile use staging
+tko config profile use staging
 
 # Remove profile
-tinytask config profile remove staging
+tko config profile remove staging
 ```
 
 ## Output Formats
@@ -322,7 +322,7 @@ tinytask config profile remove staging
 Human-readable table output with colors:
 
 ```bash
-tinytask task list
+tko task list
 ```
 
 ### JSON Format
@@ -330,8 +330,8 @@ tinytask task list
 Machine-parseable JSON:
 
 ```bash
-tinytask task list --json
-tinytask task get 1 --json
+tko task list --json
+tko task get 1 --json
 ```
 
 ### CSV Format
@@ -339,7 +339,7 @@ tinytask task get 1 --json
 Spreadsheet-compatible CSV:
 
 ```bash
-tinytask task list --output csv > tasks.csv
+tko task list --output csv > tasks.csv
 ```
 
 ### Compact Format
@@ -347,7 +347,7 @@ tinytask task list --output csv > tasks.csv
 One-line summary per task:
 
 ```bash
-tinytask task list --output compact
+tko task list --output compact
 ```
 
 ### Tree Format
@@ -355,7 +355,7 @@ tinytask task list --output compact
 Hierarchical tree display for subtasks:
 
 ```bash
-tinytask subtask tree 5
+tko subtask tree 5
 ```
 
 ### Stats Format
@@ -363,7 +363,7 @@ tinytask subtask tree 5
 Formatted statistics for queue metrics:
 
 ```bash
-tinytask queue stats dev
+tko queue stats dev
 ```
 
 ## Examples
@@ -372,28 +372,28 @@ tinytask queue stats dev
 
 ```bash
 # Create a new task
-tinytask create "Implement feature X" -d "Add the new feature" -a alice -p 7
+tko create "Implement feature X" -d "Add the new feature" -a alice -p 7
 
 # View your queue
-tinytask queue alice
+tko queue alice
 
 # Claim next task
-tinytask signup --agent alice
+tko signup --agent alice
 
 # Update task status
-tinytask update 1 --status working
+tko update 1 --status working
 
 # Add a comment
-tinytask comment add 1 "Started working on this"
+tko comment add 1 "Started working on this"
 
 # Add a link
-tinytask link add 1 "https://github.com/org/repo/pull/42"
+tko link add 1 "https://github.com/org/repo/pull/42"
 
 # Complete the task
-tinytask update 1 --status complete
+tko update 1 --status complete
 
 # Archive completed task
-tinytask archive 1
+tko archive 1
 ```
 
 ### Scripting Example
@@ -401,11 +401,11 @@ tinytask archive 1
 ```bash
 #!/bin/bash
 # Get all idle tasks assigned to alice in JSON format
-TASKS=$(tinytask list --assigned-to alice --status idle --json)
+TASKS=$(tko list --assigned-to alice --status idle --json)
 
 # Process each task
 echo "$TASKS" | jq -r '.[] | .id' | while read task_id; do
   echo "Processing task $task_id"
-  tinytask comment add "$task_id" "Auto-processed by script"
+  tko comment add "$task_id" "Auto-processed by script"
 done
 ```

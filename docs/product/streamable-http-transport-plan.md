@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This plan outlines the implementation of Streamable HTTP as the new default HTTP transport for TinyTask MCP, replacing SSE while maintaining **100% backward compatibility** through runtime configuration.
+This plan outlines the implementation of Streamable HTTP as the new default HTTP transport for TKO MCP, replacing SSE while maintaining **100% backward compatibility** through runtime configuration.
 
 ### Key Changes
 - ✨ **New Default**: Streamable HTTP transport (more efficient, simpler)
@@ -25,11 +25,11 @@ graph TB
         C1[Client]
         GET[GET /mcp<br/>Event Stream]
         POST[POST /mcp<br/>Messages]
-        
+
         C1 -->|Long-lived connection| GET
         C1 -->|Request/Response| POST
     end
-    
+
     style GET fill:#ff9999
     style POST fill:#ff9999
 ```
@@ -47,10 +47,10 @@ graph TB
     subgraph "New Streamable HTTP Architecture"
         C2[Client]
         MCP[Unified /mcp Endpoint<br/>Handles Both Directions]
-        
+
         C2 <-->|Single Connection<br/>Optional Streaming| MCP
     end
-    
+
     style MCP fill:#99ff99
 ```
 
@@ -71,18 +71,18 @@ graph TB
 ```mermaid
 graph TB
     START[Application Start]
-    
-    START --> MODE{TINYTASK_MODE?}
-    
+
+    START --> MODE{TKO_MODE?}
+
     MODE -->|stdio| STDIO[Stdio Transport Only]
-    MODE -->|http or both| SSE_CHECK{TINYTASK_ENABLE_SSE?}
+    MODE -->|http or both| SSE_CHECK{TKO_ENABLE_SSE?}
     MODE -->|sse<br/>deprecated| LEGACY[Set SSE flag + warn]
-    
+
     LEGACY --> SSE_CHECK
-    
+
     SSE_CHECK -->|true| SSE[SSE Transport<br/>Legacy Mode]
     SSE_CHECK -->|false or unset| SHTTP[Streamable HTTP<br/>Default/New]
-    
+
     style SHTTP fill:#4CAF50
     style SSE fill:#FF9800
     style STDIO fill:#2196F3
@@ -107,35 +107,35 @@ src/server/
 
 | Variable | Values | Default | Description |
 |----------|--------|---------|-------------|
-| `TINYTASK_MODE` | `stdio`, `http`, `both` | `both` | Server mode |
-| `TINYTASK_ENABLE_SSE` | `true`, `false` | `false` | Enable legacy SSE (new) |
-| `TINYTASK_PORT` | number | `3000` | HTTP server port |
-| `TINYTASK_HOST` | string | `0.0.0.0` | HTTP server host |
+| `TKO_MODE` | `stdio`, `http`, `both` | `both` | Server mode |
+| `TKO_ENABLE_SSE` | `true`, `false` | `false` | Enable legacy SSE (new) |
+| `TKO_PORT` | number | `3000` | HTTP server port |
+| `TKO_HOST` | string | `0.0.0.0` | HTTP server host |
 
 ### Configuration Examples
 
 #### Default (Streamable HTTP)
 ```bash
-TINYTASK_MODE=http
-TINYTASK_PORT=3000
+TKO_MODE=http
+TKO_PORT=3000
 ```
 
 #### Legacy SSE Mode (Backward Compatible)
 ```bash
-TINYTASK_MODE=http
-TINYTASK_ENABLE_SSE=true
-TINYTASK_PORT=3000
+TKO_MODE=http
+TKO_ENABLE_SSE=true
+TKO_PORT=3000
 ```
 
 #### Both Transports with Streamable HTTP
 ```bash
-TINYTASK_MODE=both
-TINYTASK_PORT=3000
+TKO_MODE=both
+TKO_PORT=3000
 ```
 
 #### Old Configuration (Still Works)
 ```bash
-TINYTASK_MODE=sse  # Logs deprecation warning, maps to http+SSE
+TKO_MODE=sse  # Logs deprecation warning, maps to http+SSE
 ```
 
 ---
@@ -146,24 +146,24 @@ TINYTASK_MODE=sse  # Logs deprecation warning, maps to http+SSE
 Existing configurations continue to work exactly as before:
 ```bash
 # This still works, no changes needed
-TINYTASK_MODE=sse
+TKO_MODE=sse
 ```
 ⚠️ Will see deprecation warning in logs
 
 ### Option 2: Explicit SSE (Recommended if staying with SSE)
 ```bash
 # Before
-TINYTASK_MODE=sse
+TKO_MODE=sse
 
 # After (clearer intent)
-TINYTASK_MODE=http
-TINYTASK_ENABLE_SSE=true
+TKO_MODE=http
+TKO_ENABLE_SSE=true
 ```
 
 ### Option 3: Migrate to Streamable HTTP (Get Benefits)
 ```bash
 # Simply remove SSE flag or use new default
-TINYTASK_MODE=http
+TKO_MODE=http
 ```
 
 **Benefits:** Better performance, simpler setup, future-proof
@@ -194,21 +194,21 @@ TINYTASK_MODE=http
 gantt
     title Streamable HTTP Implementation Timeline
     dateFormat  YYYY-MM-DD
-    
+
     section Core Implementation
     Streamable HTTP Module     :a1, 2026-01-13, 2d
     HTTP Router               :a2, after a1, 1d
     Entry Point Updates       :a3, after a2, 1d
-    
+
     section Testing
     Integration Tests         :b1, after a3, 2d
     Config Tests              :b2, after a3, 1d
     Backward Compat Tests     :b3, after b1, 1d
-    
+
     section Documentation
     Documentation Updates     :c1, after a3, 2d
     Docker Updates            :c2, after a3, 1d
-    
+
     section Validation
     Performance Testing       :d1, after b1, 1.5d
 ```
@@ -234,7 +234,7 @@ export async function startStreamableHttpServer(
   // Unified MCP endpoint
   app.use('/mcp', async (req, res) => {
     let sessionId = req.headers['mcp-session-id'] as string;
-    
+
     // Create or retrieve session
     let session = sessions.get(sessionId);
     if (!session) {
@@ -246,7 +246,7 @@ export async function startStreamableHttpServer(
       sessions.set(sessionId, session);
       res.setHeader('Mcp-Session-Id', sessionId);
     }
-    
+
     // Handle request
     await session.transport.handleRequest(req, res);
   });
@@ -264,8 +264,8 @@ export async function startHttpServer(
   linkService: LinkService,
   options?: HttpServerOptions
 ): Promise<void> {
-  const enableSse = process.env.TINYTASK_ENABLE_SSE === 'true';
-  
+  const enableSse = process.env.TKO_ENABLE_SSE === 'true';
+
   if (enableSse) {
     logger.info('🔄 Using SSE transport (legacy mode)');
     return startSseServer(taskService, commentService, linkService, options);
@@ -289,20 +289,20 @@ graph TB
         U2[Request Handling]
         U3[Transport Selection]
     end
-    
+
     subgraph "Integration Tests"
         I1[Full MCP Tool Flow]
         I2[Resource Access]
         I3[Multi-Client Sessions]
         I4[Configuration Matrix]
     end
-    
+
     subgraph "Performance Tests"
         P1[Throughput Comparison]
         P2[Concurrent Connections]
         P3[Memory Usage]
     end
-    
+
     subgraph "Compatibility Tests"
         C1[Existing SSE Mode]
         C2[Stdio Mode]
@@ -375,7 +375,7 @@ graph TB
 
 If critical issues are discovered after deployment:
 
-1. **Immediate Action**: Advise users to set `TINYTASK_ENABLE_SSE=true`
+1. **Immediate Action**: Advise users to set `TKO_ENABLE_SSE=true`
 2. **No Code Rollback Needed**: Backward compatibility means SSE is always available
 3. **Fix Issues**: Address Streamable HTTP implementation bugs
 4. **Re-enable**: Remove SSE flag after fixes are verified

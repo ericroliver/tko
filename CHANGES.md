@@ -44,7 +44,7 @@ This branch (`ragnar/refinements-20260219`) adds parent task status auto-propaga
 - Long task titles automatically wrap to multiple lines within the cell
 
 **File Modified:**
-- [`tinytask-cli/src/formatters/table.ts`](tinytask-cli/src/formatters/table.ts)
+- [`tko-cli/src/formatters/table.ts`](tko-cli/src/formatters/table.ts)
 
 ## Testing
 
@@ -64,12 +64,12 @@ npm test -- task-blocking parent-status
 npm run build
 
 # Build CLI
-cd tinytask-cli
+cd tko-cli
 npm run build
 cd ..
 
 # Test formatting with real data
-./tinytask-cli/dist/index.js list
+./tko-cli/dist/index.js list
 ```
 
 ## Migration Notes

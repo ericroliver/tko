@@ -45,16 +45,16 @@ describe('Backward Compatibility', () => {
   });
 
   describe('Existing Configuration Support', () => {
-    it('should support legacy TINYTASK_MODE=sse', async () => {
+    it('should support legacy TKO_MODE=sse', async () => {
       // Simulate the mode normalization that happens in index.ts
       let mode = 'sse';
       if (mode === 'sse') {
         mode = 'http';
-        if (!process.env.TINYTASK_ENABLE_SSE) {
-          process.env.TINYTASK_ENABLE_SSE = 'true';
+        if (!process.env.TKO_ENABLE_SSE) {
+          process.env.TKO_ENABLE_SSE = 'true';
         }
       }
-      process.env.TINYTASK_MODE = mode;
+      process.env.TKO_MODE = mode;
 
       const port = PORTS.SSE_LEGACY;
       const server = await startHttpServer(
@@ -79,8 +79,8 @@ describe('Backward Compatibility', () => {
     });
 
     it('should support explicit SSE configuration', async () => {
-      process.env.TINYTASK_MODE = 'http';
-      process.env.TINYTASK_ENABLE_SSE = 'true';
+      process.env.TKO_MODE = 'http';
+      process.env.TKO_ENABLE_SSE = 'true';
 
       const port = PORTS.SSE_EXPLICIT;
       const server = await startSseServer(
@@ -102,9 +102,9 @@ describe('Backward Compatibility', () => {
       expect(health.timestamp).toBeDefined();
     });
 
-    it('should support TINYTASK_MODE=both', async () => {
-      process.env.TINYTASK_MODE = 'both';
-      delete process.env.TINYTASK_ENABLE_SSE;
+    it('should support TKO_MODE=both', async () => {
+      process.env.TKO_MODE = 'both';
+      delete process.env.TKO_ENABLE_SSE;
 
       const port = PORTS.MODE_BOTH;
       // Test only the HTTP portion of 'both' mode
@@ -128,9 +128,9 @@ describe('Backward Compatibility', () => {
 
     it('should maintain stdio configuration unchanged', () => {
       // Stdio mode doesn't involve HTTP server, so we just verify the mode is valid
-      process.env.TINYTASK_MODE = 'stdio';
+      process.env.TKO_MODE = 'stdio';
       
-      const mode = process.env.TINYTASK_MODE;
+      const mode = process.env.TKO_MODE;
       expect(mode).toBe('stdio');
       expect(['stdio', 'http', 'both']).toContain(mode);
     });
@@ -142,7 +142,7 @@ describe('Backward Compatibility', () => {
 
     beforeEach(async () => {
       port = PORTS.SSE_TOOLS;
-      process.env.TINYTASK_ENABLE_SSE = 'true';
+      process.env.TKO_ENABLE_SSE = 'true';
       
       server = await startSseServer(
         client.taskService,
@@ -239,7 +239,7 @@ describe('Backward Compatibility', () => {
 
     beforeEach(async () => {
       port = PORTS.SSE_RESOURCES;
-      process.env.TINYTASK_ENABLE_SSE = 'true';
+      process.env.TKO_ENABLE_SSE = 'true';
       
       server = await startSseServer(
         client.taskService,
@@ -327,11 +327,11 @@ describe('Backward Compatibility', () => {
       });
 
       // Create via SSE-configured client
-      process.env.TINYTASK_ENABLE_SSE = 'true';
+      process.env.TKO_ENABLE_SSE = 'true';
       const sseTask = client.taskService.createTask(taskData);
 
       // Create via Streamable HTTP-configured client (different env)
-      delete process.env.TINYTASK_ENABLE_SSE;
+      delete process.env.TKO_ENABLE_SSE;
       const httpTask = client.taskService.createTask({
         ...taskData,
         title: 'Cross-transport test 2',
@@ -453,52 +453,52 @@ describe('Backward Compatibility', () => {
   });
 
   describe('Environment Variable Handling', () => {
-    it('should handle missing TINYTASK_ENABLE_SSE gracefully', () => {
-      delete process.env.TINYTASK_ENABLE_SSE;
+    it('should handle missing TKO_ENABLE_SSE gracefully', () => {
+      delete process.env.TKO_ENABLE_SSE;
       
       // Should default to Streamable HTTP without errors
-      const enableSse = process.env.TINYTASK_ENABLE_SSE === 'true';
+      const enableSse = process.env.TKO_ENABLE_SSE === 'true';
       expect(enableSse).toBe(false);
     });
 
-    it('should handle TINYTASK_ENABLE_SSE=false explicitly', () => {
-      process.env.TINYTASK_ENABLE_SSE = 'false';
+    it('should handle TKO_ENABLE_SSE=false explicitly', () => {
+      process.env.TKO_ENABLE_SSE = 'false';
       
-      const enableSse = process.env.TINYTASK_ENABLE_SSE === 'true';
+      const enableSse = process.env.TKO_ENABLE_SSE === 'true';
       expect(enableSse).toBe(false);
     });
 
-    it('should handle TINYTASK_ENABLE_SSE=true explicitly', () => {
-      process.env.TINYTASK_ENABLE_SSE = 'true';
+    it('should handle TKO_ENABLE_SSE=true explicitly', () => {
+      process.env.TKO_ENABLE_SSE = 'true';
       
-      const enableSse = process.env.TINYTASK_ENABLE_SSE === 'true';
+      const enableSse = process.env.TKO_ENABLE_SSE === 'true';
       expect(enableSse).toBe(true);
     });
 
-    it('should normalize legacy TINYTASK_MODE=sse', () => {
+    it('should normalize legacy TKO_MODE=sse', () => {
       // Simulate normalization
       let mode = 'sse';
       if (mode === 'sse') {
         mode = 'http';
-        if (!process.env.TINYTASK_ENABLE_SSE) {
-          process.env.TINYTASK_ENABLE_SSE = 'true';
+        if (!process.env.TKO_ENABLE_SSE) {
+          process.env.TKO_ENABLE_SSE = 'true';
         }
       }
 
       expect(mode).toBe('http');
-      expect(process.env.TINYTASK_ENABLE_SSE).toBe('true');
+      expect(process.env.TKO_ENABLE_SSE).toBe('true');
     });
   });
 
   describe('Error Handling Consistency', () => {
     it('should handle invalid task operations consistently across transports', () => {
       // SSE transport
-      process.env.TINYTASK_ENABLE_SSE = 'true';
+      process.env.TKO_ENABLE_SSE = 'true';
       const result1 = client.taskService.getTask(999999);
       expect(result1).toBeNull();
 
       // Streamable HTTP transport
-      delete process.env.TINYTASK_ENABLE_SSE;
+      delete process.env.TKO_ENABLE_SSE;
       const result2 = client.taskService.getTask(999999);
       expect(result2).toBeNull();
     });
@@ -519,7 +519,7 @@ describe('Backward Compatibility', () => {
 
   describe('Performance Characteristics', () => {
     it('should create tasks with acceptable performance via SSE', () => {
-      process.env.TINYTASK_ENABLE_SSE = 'true';
+      process.env.TKO_ENABLE_SSE = 'true';
 
       const start = Date.now();
       for (let i = 0; i < 10; i++) {
@@ -534,7 +534,7 @@ describe('Backward Compatibility', () => {
     });
 
     it('should create tasks with acceptable performance via Streamable HTTP', () => {
-      delete process.env.TINYTASK_ENABLE_SSE;
+      delete process.env.TKO_ENABLE_SSE;
 
       const start = Date.now();
       for (let i = 0; i < 10; i++) {
@@ -551,7 +551,7 @@ describe('Backward Compatibility', () => {
 
   describe('Health Endpoint Consistency', () => {
     it('should return healthy status via SSE', async () => {
-      process.env.TINYTASK_ENABLE_SSE = 'true';
+      process.env.TKO_ENABLE_SSE = 'true';
 
       const port = PORTS.SSE_HEALTH_1;
       startSseServer(
@@ -572,7 +572,7 @@ describe('Backward Compatibility', () => {
     });
 
     it('should return healthy status via Streamable HTTP', async () => {
-      delete process.env.TINYTASK_ENABLE_SSE;
+      delete process.env.TKO_ENABLE_SSE;
 
       const port = PORTS.STREAMABLE_COMPARE;
       startHttpServer(

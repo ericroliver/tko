@@ -33,8 +33,9 @@ export async function startSseServer(
   options?: SseServerOptions
 ): Promise<HttpServer> {
   const app = express();
-  const port = options?.port ?? parseInt(process.env.TINYTASK_PORT || '3000');
-  const host = options?.host ?? process.env.TINYTASK_HOST ?? '0.0.0.0';
+  const port =
+    options?.port ?? parseInt((process.env.TKO_PORT ?? process.env.TINYTASK_PORT) || '3000');
+  const host = options?.host ?? process.env.TKO_HOST ?? process.env.TINYTASK_HOST ?? '0.0.0.0';
 
   // Store active transports by session ID - each session gets its own MCP Server instance
   const sessions = new Map<string, { transport: SSEServerTransport; server: Server }>();
@@ -423,10 +424,12 @@ export async function startSseServer(
 
   // Start server
   const httpServer = app.listen(port, host, () => {
-    logger.info('TinyTask MCP server running on SSE');
+    logger.info('TKO MCP server running on SSE');
     logger.info(`URL: http://${host}:${port}/mcp`);
     logger.info(`Health: http://${host}:${port}/health`);
-    logger.info(`Database: ${process.env.TINYTASK_DB_PATH || './data/tinytask.db'}`);
+    logger.info(
+      `Database: ${(process.env.TKO_DB_PATH ?? process.env.TINYTASK_DB_PATH) || './data/tinytask.db'}`
+    );
     logger.info('Mode: SSE');
     logger.info('Press Ctrl+C to stop');
   });

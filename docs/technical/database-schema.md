@@ -1,4 +1,4 @@
-# TinyTask Database Schema
+# TKO Database Schema
 
 ## Overview
 SQLite database with 4 main tables: tasks, comments, links, and task_history (for audit trail).
@@ -104,7 +104,7 @@ Tracks significant task state changes. Populated on every mutation path since v2
 creation, field updates (status, assignee, queue, priority, tags, parent, blocked-by,
 auto_promote), agent transfers, archive, and automatic parent promotion (actor `system`).
 Read via `GET /api/v1/tasks/{id}/history` (REST) or the `get_task_history` MCP tool
-(CLI: `tinytask task history <id>`).
+(CLI: `tko task history <id>`).
 
 ```sql
 CREATE TABLE task_history (
@@ -143,8 +143,8 @@ Since this is MVP, no formal migrations yet. Schema changes will require:
 
 ### Agent Queue Query
 ```sql
-SELECT * FROM tasks 
-WHERE assigned_to = ? 
+SELECT * FROM tasks
+WHERE assigned_to = ?
   AND status IN ('idle', 'working')
   AND archived_at IS NULL
 ORDER BY priority DESC, created_at ASC;
@@ -164,7 +164,7 @@ SELECT * FROM links WHERE task_id = ? ORDER BY created_at ASC;
 
 ### Archive Query
 ```sql
-UPDATE tasks 
-SET archived_at = CURRENT_TIMESTAMP 
+UPDATE tasks
+SET archived_at = CURRENT_TIMESTAMP
 WHERE id = ?;
 ```

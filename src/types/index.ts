@@ -1,5 +1,5 @@
 /**
- * Core type definitions for TinyTask
+ * Core type definitions for TKO
  */
 
 export type TaskStatus = 'idle' | 'working' | 'complete';

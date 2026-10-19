@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Starting TinyTask MCP container..."
+echo "Starting TKO MCP container..."
 
 # Create data directory if it doesn't exist
 mkdir -p ./data

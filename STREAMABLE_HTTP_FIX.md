@@ -2,7 +2,7 @@
 
 ## Issue Summary
 
-**Error**: `HTTP status client error (400 Bad Request)` when MCP clients attempt to connect to TinyTask via Streamable HTTP transport.
+**Error**: `HTTP status client error (400 Bad Request)` when MCP clients attempt to connect to TKO via Streamable HTTP transport.
 
 **Root Cause**: The `StreamableHTTPServerTransport.handleRequest()` method was attempting to parse the request body internally, but Express's `express.json()` middleware had already consumed and parsed the body stream. This caused a "Parse error: Invalid JSON" when the SDK tried to read from an already-consumed stream.
 
@@ -72,7 +72,7 @@ The server should now correctly handle MCP requests without parse errors.
 
 ## Impact
 
-This fix enables MCP clients to successfully connect to TinyTask using the Streamable HTTP transport. Without this fix, all Streamable HTTP connections would fail with 400 Bad Request errors.
+This fix enables MCP clients to successfully connect to TKO using the Streamable HTTP transport. Without this fix, all Streamable HTTP connections would fail with 400 Bad Request errors.
 
 ## Related Documentation
 

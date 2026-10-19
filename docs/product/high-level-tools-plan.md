@@ -31,24 +31,24 @@ sequenceDiagram
     participant Agent
     participant MCP Server
     participant Database
-    
+
     Agent->>MCP Server: 1. get_my_queue(agent_name)
     MCP Server->>Database: Query all agent's tasks
     Database-->>MCP Server: Return all tasks
     MCP Server-->>Agent: Full queue with all tasks (~800 tokens)
-    
+
     Note over Agent: Parse queue, find first idle task
-    
+
     Agent->>MCP Server: 2. update_task(id, {status: 'working'})
     MCP Server->>Database: Update task status
     Database-->>MCP Server: Task updated
     MCP Server-->>Agent: Task updated (~400 tokens)
-    
+
     Agent->>MCP Server: 3. get_task(id)
     MCP Server->>Database: Get task with relations
     Database-->>MCP Server: Full task data
     MCP Server-->>Agent: Complete task (~500 tokens)
-    
+
     Note over Agent: Total: ~1700 tokens, 3 round-trips
 ```
 
@@ -59,22 +59,22 @@ sequenceDiagram
     participant Agent A
     participant MCP Server
     participant Database
-    
+
     Agent A->>MCP Server: 1. update_task(id, {assigned_to: AgentB, status: 'idle'})
     MCP Server->>Database: Update task
     Database-->>MCP Server: Updated
     MCP Server-->>Agent A: Task updated (~400 tokens)
-    
+
     Agent A->>MCP Server: 2. add_comment(id, "Transferring because...")
     MCP Server->>Database: Insert comment
     Database-->>MCP Server: Comment added
     MCP Server-->>Agent A: Comment added (~300 tokens)
-    
+
     Agent A->>MCP Server: 3. get_task(id)
     MCP Server->>Database: Get task with relations
     Database-->>MCP Server: Full task data
     MCP Server-->>Agent A: Complete task (~500 tokens)
-    
+
     Note over Agent A: Total: ~1200 tokens, 3 round-trips
 ```
 
@@ -91,7 +91,7 @@ sequenceDiagram
     participant Agent
     participant MCP Server
     participant Database
-    
+
     Agent->>MCP Server: signup_for_task(agent_name)
     activate MCP Server
     MCP Server->>Database: BEGIN TRANSACTION
@@ -103,7 +103,7 @@ sequenceDiagram
     MCP Server->>Database: COMMIT
     deactivate MCP Server
     MCP Server-->>Agent: Task claimed (~600 tokens)
-    
+
     Note over Agent: Total: ~600 tokens, 1 round-trip<br/>SAVINGS: ~65% fewer tokens
 ```
 
@@ -151,7 +151,7 @@ sequenceDiagram
     participant MCP Server
     participant Database
     participant Agent B
-    
+
     Agent A->>MCP Server: move_task(id, AgentA, AgentB, "Context...")
     activate MCP Server
     MCP Server->>Database: BEGIN TRANSACTION
@@ -164,9 +164,9 @@ sequenceDiagram
     MCP Server->>Database: COMMIT
     deactivate MCP Server
     MCP Server-->>Agent A: Task transferred (~600 tokens)
-    
+
     Note over Agent A: Total: ~600 tokens, 1 round-trip<br/>SAVINGS: ~50% fewer tokens
-    
+
     Note over Agent B: AgentB can now see transferred<br/>task in their queue with context
 ```
 
@@ -213,7 +213,7 @@ sequenceDiagram
 
 ### Layered Design
 
-Following existing TinyTask patterns:
+Following existing TKO patterns:
 
 ```mermaid
 graph TD
@@ -225,11 +225,11 @@ graph TD
     F --> C
     C --> B
     B --> A
-    
+
     style D fill:#90EE90
     style C fill:#87CEEB
     style B fill:#FFB6C1
-    
+
     Note1[Atomicity guaranteed<br/>Auto-rollback on error]
     Note1 -.-> D
 ```
@@ -243,23 +243,23 @@ signupForTask(agentName: string): TaskWithRelations | null {
   return this.db.transaction(() => {
     // 1. Query for first idle task
     const task = this.db.queryOne<Task>(
-      `SELECT * FROM tasks 
+      `SELECT * FROM tasks
        WHERE assigned_to = ? AND status = 'idle' AND archived_at IS NULL
        ORDER BY priority DESC, created_at ASC LIMIT 1`,
       [agentName]
     );
-    
+
     if (!task) return null;
-    
+
     // 2. Update status
     this.db.execute(
       'UPDATE tasks SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
       ['working', task.id]
     );
-    
+
     // 3. Get complete task with relations
     return this.get(task.id, true);
-    
+
     // Auto-commit on success, auto-rollback on any error
   });
 }
@@ -279,7 +279,7 @@ graph LR
     D[Tool Registration] --> D1[tool-handlers.ts<br/>+2 cases]
     E[Type Definitions] --> E1[handler-types.ts<br/>+2 interfaces]
     F[Tests] --> F1[integration/<br/>+20 test cases]
-    
+
     style A1 fill:#90EE90
     style B1 fill:#90EE90
     style C1 fill:#90EE90
@@ -367,12 +367,12 @@ graph TD
     A --> C[Integration Tests]
     A --> D[Workflow Tests]
     A --> E[Performance Tests]
-    
+
     B --> B1[Service methods in isolation<br/>Mock database]
     C --> C1[Full MCP tool calls<br/>Real database]
     D --> D1[Multi-agent scenarios<br/>Complete workflows]
     E --> E1[Load testing<br/>Token measurements]
-    
+
     style B1 fill:#90EE90
     style C1 fill:#87CEEB
     style D1 fill:#FFB6C1
@@ -489,8 +489,8 @@ if (task) {
 **Before (3 calls):**
 ```typescript
 // 1. Update assignment
-await update_task({ 
-  id: taskId, 
+await update_task({
+  id: taskId,
   assigned_to: "agent-2",
   status: 'idle'
 });
@@ -570,7 +570,7 @@ graph LR
     G --> H[Monitor Metrics]
     H --> I[Gather Feedback]
     I --> J[Plan Phase 2]
-    
+
     style A fill:#90EE90
     style G fill:#FFD700
     style J fill:#87CEEB

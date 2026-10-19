@@ -176,7 +176,7 @@ Each request gets a unique UUID for correlation:
 For even more detailed diagnostics, set log level to DEBUG:
 
 ```bash
-export TINYTASK_LOG_LEVEL=debug
+export TKO_LOG_LEVEL=debug
 ```
 
 This logs:

@@ -4,8 +4,8 @@
 Implement service layer methods to support queue-based task organization, enabling team-level task management and workload visibility.
 
 ## User Story
-**As a** TinyTask API consumer  
-**I want** service methods to organize and query tasks by queue  
+**As a** TKO API consumer
+**I want** service methods to organize and query tasks by queue
 **So that** I can manage tasks at the team level and track workload distribution
 
 ## Business Value
@@ -49,10 +49,10 @@ Implement service layer methods to support queue-based task organization, enabli
 
 ```typescript
 export class TaskService {
-  
+
   // Get all tasks in a queue
   getQueueTasks(
-    queueName: string, 
+    queueName: string,
     filters?: {
       assigned_to?: string;
       status?: TaskStatus;
@@ -64,7 +64,7 @@ export class TaskService {
     // Apply additional filters
     // Optionally exclude subtasks if include_subtasks=false
   }
-  
+
   // Get queue statistics
   getQueueStats(queueName: string): QueueStats {
     // Count tasks by status
@@ -72,19 +72,19 @@ export class TaskService {
     // Get unique agent list
     // Calculate averages
   }
-  
+
   // Get unassigned tasks in queue
   getUnassignedInQueue(queueName: string, filters?: {
     status?: TaskStatus;
     parent_task_id?: number | null;
   }): ParsedTask[] {
-    // SELECT * FROM tasks 
+    // SELECT * FROM tasks
     // WHERE queue_name = ? AND assigned_to IS NULL
   }
-  
+
   // List all active queues
-  listQueues(includeStats = false): Array<{ 
-    queue_name: string; 
+  listQueues(includeStats = false): Array<{
+    queue_name: string;
     task_count: number;
     stats?: QueueStats;
   }> {
@@ -92,7 +92,7 @@ export class TaskService {
     // FROM tasks WHERE queue_name IS NOT NULL
     // GROUP BY queue_name
   }
-  
+
   // Get agents working in queue
   getQueueAgents(queueName: string): Array<{
     agent_name: string;
@@ -104,7 +104,7 @@ export class TaskService {
     // FROM tasks WHERE queue_name = ?
     // GROUP BY assigned_to
   }
-  
+
   // Enhanced getQueue with queue filter
   getQueue(agentName: string, queueName?: string): ParsedTask[] {
     // SELECT * FROM tasks
@@ -118,13 +118,13 @@ export class TaskService {
 
 ```sql
 -- Get all tasks in queue
-SELECT * FROM tasks 
-WHERE queue_name = ? 
+SELECT * FROM tasks
+WHERE queue_name = ?
 AND archived_at IS NULL
 ORDER BY priority DESC, created_at ASC;
 
 -- Get queue statistics
-SELECT 
+SELECT
   queue_name,
   COUNT(*) as total,
   SUM(CASE WHEN status = 'idle' THEN 1 ELSE 0 END) as idle,
@@ -134,13 +134,13 @@ SELECT
   SUM(CASE WHEN assigned_to IS NOT NULL THEN 1 ELSE 0 END) as assigned,
   AVG(priority) as avg_priority
 FROM tasks
-WHERE queue_name = ? 
+WHERE queue_name = ?
 AND archived_at IS NULL;
 
 -- Get unique agents in queue
 SELECT DISTINCT assigned_to
 FROM tasks
-WHERE queue_name = ? 
+WHERE queue_name = ?
 AND assigned_to IS NOT NULL
 AND archived_at IS NULL
 ORDER BY assigned_to;
@@ -153,7 +153,7 @@ AND archived_at IS NULL
 ORDER BY priority DESC, created_at ASC;
 
 -- List all queues with counts
-SELECT 
+SELECT
   queue_name,
   COUNT(*) as task_count
 FROM tasks
@@ -163,7 +163,7 @@ GROUP BY queue_name
 ORDER BY queue_name;
 
 -- Get agent task breakdown by queue
-SELECT 
+SELECT
   assigned_to,
   COUNT(*) as total,
   SUM(CASE WHEN status = 'idle' THEN 1 ELSE 0 END) as idle,

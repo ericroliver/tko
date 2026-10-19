@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**TinyTask MCP** is a minimal task management system designed for LLM agent collaboration, exposed as a Model Context Protocol (MCP) server.
+**TKO MCP** is a minimal task management system designed for LLM agent collaboration, exposed as a Model Context Protocol (MCP) server.
 
 ### Technology Stack
 - **Runtime**: Node.js with TypeScript
@@ -216,7 +216,7 @@ describe('TaskService', () => {
     it('should create a task with valid data', async () => {
       // test implementation
     });
-    
+
     it('should throw error with invalid data', async () => {
       // test implementation
     });
@@ -235,15 +235,15 @@ The project uses ESLint with TypeScript support. Key rules:
 ## Environment Variables
 
 
-- `TINYTASK_MODE`: Server mode (`stdio`, `http`, or `both`) - default: `both`
-- `TINYTASK_ENABLE_SSE`: Enable legacy SSE transport when `true` - default: `false`
-- `TINYTASK_PORT`: HTTP server port - default: `3000`
-- `TINYTASK_DB_PATH`: Path to SQLite database file - default: `./data/tinytask.db`
-- `TINYTASK_SIGNALR_HUB_URL`: SignalR hub URL for event broadcasting (e.g., `http://localhost:8080/messagehub`). If unset, broadcasting is disabled.
-- `TINYTASK_SIGNALR_GROUP`: Optional group name. If set, events are sent via `SendToGroup` instead of `BroadcastMessage`.
-- `TINYTASK_SIGNALR_LOG_LEVEL`: SignalR client log level (`Information`, `Warning`, or `Error`) - default: `Information`
-- `TINYTASK_SIGNALR_MAX_QUEUE`: Max buffered events when disconnected or rate-limited - default: `500`
-- `TINYTASK_SIGNALR_RECONNECT_DELAY`: Retry delay in ms for initial connection failure - default: `5000`
+- `TKO_MODE`: Server mode (`stdio`, `http`, or `both`) - default: `both`
+- `TKO_ENABLE_SSE`: Enable legacy SSE transport when `true` - default: `false`
+- `TKO_PORT`: HTTP server port - default: `3000`
+- `TKO_DB_PATH`: Path to SQLite database file - default: `./data/tinytask.db`
+- `TKO_SIGNALR_HUB_URL`: SignalR hub URL for event broadcasting (e.g., `http://localhost:8080/messagehub`). If unset, broadcasting is disabled.
+- `TKO_SIGNALR_GROUP`: Optional group name. If set, events are sent via `SendToGroup` instead of `BroadcastMessage`.
+- `TKO_SIGNALR_LOG_LEVEL`: SignalR client log level (`Information`, `Warning`, or `Error`) - default: `Information`
+- `TKO_SIGNALR_MAX_QUEUE`: Max buffered events when disconnected or rate-limited - default: `500`
+- `TKO_SIGNALR_RECONNECT_DELAY`: Retry delay in ms for initial connection failure - default: `5000`
 
 ## MCP Protocol Considerations
 
@@ -318,7 +318,7 @@ How would you like me to proceed?
 
 ### Server Deployment (blue-remote)
 
-The TinyTask MCP server runs in a Docker container on `blue-remote.tail79f797.ts.net`.
+The TKO MCP server runs in a Docker container on `blue-remote.tail79f797.ts.net`.
 
 **Steps to deploy:**
 
@@ -331,7 +331,7 @@ The TinyTask MCP server runs in a Docker container on `blue-remote.tail79f797.ts
 
 2. **Update the repo on blue-remote:**
    ```bash
-   ssh eo@blue-remote.tail79f797.ts.net "cd ~/config/tinytask/tinytask-mcp && \
+   ssh eo@blue-remote.tail79f797.ts.net "cd ~/config/tko/tko-mcp && \
      git fetch origin && \
      git checkout <branch-name> && \
      git pull origin <branch-name>"
@@ -339,13 +339,13 @@ The TinyTask MCP server runs in a Docker container on `blue-remote.tail79f797.ts
 
 3. **Rebuild the Docker image (use `--no-cache` to pick up code changes):**
    ```bash
-   ssh eo@blue-remote.tail79f797.ts.net "cd ~/config/tinytask/tinytask-mcp && \
+   ssh eo@blue-remote.tail79f797.ts.net "cd ~/config/tko/tko-mcp && \
      docker compose build --no-cache"
    ```
 
 4. **Restart the container:**
    ```bash
-   ssh eo@blue-remote.tail79f797.ts.net "cd ~/config/tinytask/tinytask-mcp && \
+   ssh eo@blue-remote.tail79f797.ts.net "cd ~/config/tko/tko-mcp && \
      docker compose down && \
      docker compose up -d"
    ```
@@ -366,7 +366,7 @@ The CLI deploy script builds standalone executables for 3 architectures and depl
 
 **To run:**
 ```bash
-cd /enigma-home/repos/tinytask/tinytask-cli
+cd /enigma-home/repos/tko/tko-cli
 BRANCH=<branch-name> bash deploy.sh
 ```
 
@@ -377,7 +377,7 @@ BRANCH=<branch-name> bash deploy.sh
 
 **Check current versions on all machines:**
 ```bash
-cd /enigma-home/repos/tinytask/tinytask-cli
+cd /enigma-home/repos/tko/tko-cli
 bash deploy.sh --check
 ```
 

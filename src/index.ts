@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * TinyTask MCP Server
+ * TKO MCP Server
  *
  * A minimal task management system for LLM agents exposed as an MCP server.
  */
@@ -19,25 +19,24 @@ import type { SignalRBroadcaster } from './events/signalr-broadcaster.js';
 let signalrBroadcaster: SignalRBroadcaster | null = null;
 
 /**
- * Main entry point for TinyTask MCP Server
+ * Main entry point for TKO MCP Server
  */
 async function main() {
   try {
     // Load configuration from environment variables
-    let mode = process.env.TINYTASK_MODE || 'both';
-    const dbPath = process.env.TINYTASK_DB_PATH || './data/tinytask.db';
-    const port = parseInt(process.env.TINYTASK_PORT || '3000', 10);
-    const host = process.env.TINYTASK_HOST || '0.0.0.0';
-    const logLevelEnv = process.env.TINYTASK_LOG_LEVEL || 'info';
+    let mode = (process.env.TKO_MODE ?? process.env.TINYTASK_MODE) || 'both';
+    const dbPath =
+      (process.env.TKO_DB_PATH ?? process.env.TINYTASK_DB_PATH) || './data/tinytask.db';
+    const port = parseInt((process.env.TKO_PORT ?? process.env.TINYTASK_PORT) || '3000', 10);
+    const host = (process.env.TKO_HOST ?? process.env.TINYTASK_HOST) || '0.0.0.0';
+    const logLevelEnv = (process.env.TKO_LOG_LEVEL ?? process.env.TINYTASK_LOG_LEVEL) || 'info';
 
     // Mode normalization - handle legacy 'sse' mode
     if (mode === 'sse') {
-      logger.warn(
-        '⚠️  TINYTASK_MODE=sse is deprecated. Use TINYTASK_MODE=http with TINYTASK_ENABLE_SSE=true'
-      );
+      logger.warn('⚠️  TKO_MODE=sse is deprecated. Use TKO_MODE=http with TKO_ENABLE_SSE=true');
       mode = 'http';
-      if (!process.env.TINYTASK_ENABLE_SSE) {
-        process.env.TINYTASK_ENABLE_SSE = 'true';
+      if (!(process.env.TKO_ENABLE_SSE ?? process.env.TINYTASK_ENABLE_SSE)) {
+        process.env.TKO_ENABLE_SSE = 'true';
       }
     }
 
@@ -52,16 +51,18 @@ async function main() {
     }
 
     // Determine actual transport for display
-    const enableSse = process.env.TINYTASK_ENABLE_SSE === 'true';
+    const enableSse = (process.env.TKO_ENABLE_SSE ?? process.env.TINYTASK_ENABLE_SSE) === 'true';
     const httpTransport = enableSse ? 'SSE (legacy)' : 'Streamable HTTP';
 
     // SignalR config (for banner display — broadcaster created after DB init)
-    const signalrHubUrl = process.env.TINYTASK_SIGNALR_HUB_URL || '';
-    const signalrGroup = process.env.TINYTASK_SIGNALR_GROUP || '';
+    const signalrHubUrl =
+      (process.env.TKO_SIGNALR_HUB_URL ?? process.env.TINYTASK_SIGNALR_HUB_URL) || '';
+    const signalrGroup =
+      (process.env.TKO_SIGNALR_GROUP ?? process.env.TINYTASK_SIGNALR_GROUP) || '';
 
     // Print startup banner
     logger.info('='.repeat(50));
-    logger.info('TinyTask MCP Server');
+    logger.info('TKO MCP Server');
     logger.info('='.repeat(50));
     logger.info(`Mode: ${mode}`);
     if (mode === 'http' || mode === 'both') {
@@ -94,11 +95,17 @@ async function main() {
     console.error('✓ Database initialized');
 
     // Read remaining SignalR configuration
-    const signalrLogLevel = process.env.TINYTASK_SIGNALR_LOG_LEVEL || 'Information';
-    const parsedMaxQueue = Number.parseInt(process.env.TINYTASK_SIGNALR_MAX_QUEUE || '500', 10);
+    const signalrLogLevel =
+      (process.env.TKO_SIGNALR_LOG_LEVEL ?? process.env.TINYTASK_SIGNALR_LOG_LEVEL) ||
+      'Information';
+    const parsedMaxQueue = Number.parseInt(
+      (process.env.TKO_SIGNALR_MAX_QUEUE ?? process.env.TINYTASK_SIGNALR_MAX_QUEUE) || '500',
+      10
+    );
     const signalrMaxQueue = Number.isFinite(parsedMaxQueue) ? parsedMaxQueue : 500;
     const parsedReconnectDelay = Number.parseInt(
-      process.env.TINYTASK_SIGNALR_RECONNECT_DELAY || '5000',
+      (process.env.TKO_SIGNALR_RECONNECT_DELAY ?? process.env.TINYTASK_SIGNALR_RECONNECT_DELAY) ||
+        '5000',
       10
     );
     const signalrReconnectDelay = Number.isFinite(parsedReconnectDelay)
@@ -126,7 +133,7 @@ async function main() {
       await signalrBroadcaster.start();
       console.error('✓ SignalR broadcaster started');
     } else {
-      console.error('SignalR broadcasting disabled (TINYTASK_SIGNALR_HUB_URL not set)');
+      console.error('SignalR broadcasting disabled (TKO_SIGNALR_HUB_URL not set)');
     }
 
     // Create services

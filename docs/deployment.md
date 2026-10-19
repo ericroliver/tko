@@ -1,6 +1,6 @@
-# TinyTask MCP Deployment Guide
+# TKO MCP Deployment Guide
 
-This guide covers deploying TinyTask MCP in various environments.
+This guide covers deploying TKO MCP in various environments.
 
 ## Table of Contents
 
@@ -26,7 +26,7 @@ This guide covers deploying TinyTask MCP in various environments.
 ```bash
 # Clone repository
 git clone <repository-url>
-cd tinytask-mcp
+cd tko-mcp
 
 # Install dependencies
 npm install
@@ -46,9 +46,9 @@ npm run start:http
 Create a `.env` file for local development:
 
 ```bash
-TINYTASK_MODE=both
-TINYTASK_PORT=3000
-TINYTASK_DB_PATH=./data/tinytask.db
+TKO_MODE=both
+TKO_PORT=3000
+TKO_DB_PATH=./data/tinytask.db
 ```
 
 ---
@@ -61,25 +61,25 @@ TINYTASK_DB_PATH=./data/tinytask.db
 
 ```bash
 # Build the image
-docker build -t tinytask-mcp .
+docker build -t tko-mcp .
 
 # Run the container (Streamable HTTP default)
 docker run -d \
-  --name tinytask-mcp \
+  --name tko-mcp \
   -p 3000:3000 \
   -v $(pwd)/data:/app/data \
-  -e TINYTASK_MODE=http \
-  -e TINYTASK_PORT=3000 \
-  tinytask-mcp
+  -e TKO_MODE=http \
+  -e TKO_PORT=3000 \
+  tko-mcp
 
 # Legacy SSE mode
 docker run -d \
-  --name tinytask-mcp-sse \
+  --name tko-mcp-sse \
   -p 3000:3000 \
   -v $(pwd)/data:/app/data \
-  -e TINYTASK_MODE=http \
-  -e TINYTASK_ENABLE_SSE=true \
-  tinytask-mcp
+  -e TKO_MODE=http \
+  -e TKO_ENABLE_SSE=true \
+  tko-mcp
 ```
 
 #### Using Docker Compose (Recommended)
@@ -106,15 +106,15 @@ docker-compose down -v
 version: '3.8'
 
 services:
-  tinytask:
+  tko:
     build: .
-    container_name: tinytask-mcp
+    container_name: tko-mcp
     ports:
       - "3000:3000"
     environment:
-      - TINYTASK_MODE=http
-      - TINYTASK_PORT=3000
-      - TINYTASK_DB_PATH=/app/data/tinytask.db
+      - TKO_MODE=http
+      - TKO_PORT=3000
+      - TKO_DB_PATH=/app/data/tinytask.db
     volumes:
       - ./data:/app/data
     restart: unless-stopped
@@ -134,18 +134,18 @@ services:
 version: '3.8'
 
 services:
-  tinytask:
+  tko:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: tinytask-mcp-dev
+    container_name: tko-mcp-dev
     ports:
       - "3000:3000"
     environment:
-      - TINYTASK_MODE=both
-      - TINYTASK_ENABLE_SSE=false
-      - TINYTASK_PORT=3000
-      - DEBUG=tinytask:*
+      - TKO_MODE=both
+      - TKO_ENABLE_SSE=false
+      - TKO_PORT=3000
+      - DEBUG=tko:*
     volumes:
       - ./data:/app/data
       - ./src:/app/src
@@ -198,8 +198,8 @@ sudo sh get-docker.sh
 sudo apt install docker-compose-plugin
 
 # Create application directory
-sudo mkdir -p /opt/tinytask-mcp
-cd /opt/tinytask-mcp
+sudo mkdir -p /opt/tko-mcp
+cd /opt/tko-mcp
 ```
 
 #### 2. Deploy Application
@@ -226,15 +226,15 @@ Edit `docker-compose.prod.yml`:
 version: '3.8'
 
 services:
-  tinytask:
-    image: tinytask-mcp:latest
-    container_name: tinytask-mcp
+  tko:
+    image: tko-mcp:latest
+    container_name: tko-mcp
     restart: always
     ports:
       - "127.0.0.1:3000:3000"  # Only expose locally
     environment:
-      - TINYTASK_MODE=http
-      - TINYTASK_PORT=3000
+      - TKO_MODE=http
+      - TKO_PORT=3000
       - NODE_ENV=production
     volumes:
       - ./data:/app/data
@@ -265,19 +265,19 @@ services:
 sudo apt install nginx -y
 
 # Create nginx config
-sudo nano /etc/nginx/sites-available/tinytask
+sudo nano /etc/nginx/sites-available/tko
 ```
 
 **nginx configuration:**
 
 ```nginx
-upstream tinytask {
+upstream tko {
     server 127.0.0.1:3000;
 }
 
 server {
     listen 80;
-    server_name tinytask.example.com;
+    server_name tko.example.com;
 
     # Redirect HTTP to HTTPS
     return 301 https://$server_name$request_uri;
@@ -285,11 +285,11 @@ server {
 
 server {
     listen 443 ssl http2;
-    server_name tinytask.example.com;
+    server_name tko.example.com;
 
     # SSL Configuration (use certbot for Let's Encrypt)
-    ssl_certificate /etc/letsencrypt/live/tinytask.example.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/tinytask.example.com/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/tko.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/tko.example.com/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
 
@@ -300,13 +300,13 @@ server {
 
     # Health check endpoint
     location /health {
-        proxy_pass http://tinytask;
+        proxy_pass http://tko;
         access_log off;
     }
 
     # MCP endpoint
     location /mcp {
-        proxy_pass http://tinytask;
+        proxy_pass http://tko;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -323,10 +323,10 @@ server {
     }
 
     # Rate limiting
-    limit_req_zone $binary_remote_addr zone=tinytask_limit:10m rate=10r/s;
+    limit_req_zone $binary_remote_addr zone=tko_limit:10m rate=10r/s;
     location / {
-        limit_req zone=tinytask_limit burst=20 nodelay;
-        proxy_pass http://tinytask;
+        limit_req zone=tko_limit burst=20 nodelay;
+        proxy_pass http://tko;
     }
 }
 ```
@@ -335,7 +335,7 @@ Enable the site:
 
 ```bash
 # Enable site
-sudo ln -s /etc/nginx/sites-available/tinytask /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/tko /etc/nginx/sites-enabled/
 
 # Test configuration
 sudo nginx -t
@@ -351,7 +351,7 @@ sudo systemctl reload nginx
 sudo apt install certbot python3-certbot-nginx -y
 
 # Get certificate
-sudo certbot --nginx -d tinytask.example.com
+sudo certbot --nginx -d tko.example.com
 
 # Auto-renewal is configured automatically
 # Test renewal
@@ -376,22 +376,22 @@ docker-compose -f docker-compose.prod.yml logs -f
 If not using Docker, create a systemd service:
 
 ```bash
-sudo nano /etc/systemd/system/tinytask.service
+sudo nano /etc/systemd/system/tko.service
 ```
 
 ```ini
 [Unit]
-Description=TinyTask MCP Server
+Description=TKO MCP Server
 After=network.target
 
 [Service]
 Type=simple
-User=tinytask
-WorkingDirectory=/opt/tinytask-mcp
-Environment="TINYTASK_MODE=http"
-Environment="TINYTASK_PORT=3000"
+User=tko
+WorkingDirectory=/opt/tko-mcp
+Environment="TKO_MODE=http"
+Environment="TKO_PORT=3000"
 Environment="NODE_ENV=production"
-ExecStart=/usr/bin/node /opt/tinytask-mcp/build/index.js
+ExecStart=/usr/bin/node /opt/tko-mcp/build/index.js
 Restart=always
 RestartSec=10
 
@@ -403,9 +403,9 @@ Enable and start:
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable tinytask
-sudo systemctl start tinytask
-sudo systemctl status tinytask
+sudo systemctl enable tko
+sudo systemctl start tko
+sudo systemctl status tko
 ```
 
 ---
@@ -439,11 +439,11 @@ ssh -i key.pem ubuntu@<instance-ip>
 
 ```bash
 # Build and push to GCR
-gcloud builds submit --tag gcr.io/PROJECT_ID/tinytask-mcp
+gcloud builds submit --tag gcr.io/PROJECT_ID/tko-mcp
 
 # Deploy to Cloud Run
-gcloud run deploy tinytask-mcp \
-  --image gcr.io/PROJECT_ID/tinytask-mcp \
+gcloud run deploy tko-mcp \
+  --image gcr.io/PROJECT_ID/tko-mcp \
   --platform managed \
   --region us-central1 \
   --allow-unauthenticated \
@@ -474,17 +474,17 @@ Use the web interface or doctl CLI:
 
 ```yaml
 # app.yaml
-name: tinytask-mcp
+name: tko-mcp
 services:
   - name: web
     github:
-      repo: your-username/tinytask-mcp
+      repo: your-username/tko-mcp
       branch: main
     build_command: npm run build
     run_command: npm start
     environment_slug: node-js
     envs:
-      - key: TINYTASK_MODE
+      - key: TKO_MODE
         value: sse
     instance_count: 1
     instance_size_slug: basic-xxs
@@ -496,7 +496,7 @@ services:
 
 ### Authentication
 
-TinyTask MCP doesn't include built-in authentication. For production:
+TKO MCP doesn't include built-in authentication. For production:
 
 1. **Use a reverse proxy with authentication:**
    - nginx with basic auth
@@ -518,7 +518,7 @@ sudo htpasswd -c /etc/nginx/.htpasswd admin
 location /mcp {
     auth_basic "Restricted";
     auth_basic_user_file /etc/nginx/.htpasswd;
-    proxy_pass http://tinytask;
+    proxy_pass http://tko;
 }
 ```
 
@@ -527,17 +527,17 @@ location /mcp {
 ```bash
 # Set appropriate file permissions
 chmod 600 data/tinytask.db
-chown tinytask:tinytask data/tinytask.db
+chown tko:tko data/tinytask.db
 
 # Regular backups
-0 2 * * * /opt/tinytask-mcp/backup.sh
+0 2 * * * /opt/tko-mcp/backup.sh
 ```
 
 ### Transport Troubleshooting
 
 - **Verify transport:** `curl http://localhost:3000/health` returns `{ transport: "streamable-http" }` by default or `"sse"` when legacy flag is enabled.
-- **Unexpected SSE:** Ensure `TINYTASK_ENABLE_SSE` isn't set to `true` via Docker or host environment.
-- **Need SSE temporarily:** Add `TINYTASK_ENABLE_SSE=true`, redeploy, and monitor logs for deprecation warnings.
+- **Unexpected SSE:** Ensure `TKO_ENABLE_SSE` isn't set to `true` via Docker or host environment.
+- **Need SSE temporarily:** Add `TKO_ENABLE_SSE=true`, redeploy, and monitor logs for deprecation warnings.
 - **Client mismatch:** Streamable HTTP consolidates GET/POST into a single `/mcp` endpoint; keep legacy clients on SSE until upgraded.
 
 ---
@@ -548,7 +548,7 @@ chown tinytask:tinytask data/tinytask.db
 
 ```bash
 # Add to cron
-*/5 * * * * curl -f http://localhost:3000/health || systemctl restart tinytask
+*/5 * * * * curl -f http://localhost:3000/health || systemctl restart tko
 ```
 
 ### Logging
@@ -558,7 +558,7 @@ chown tinytask:tinytask data/tinytask.db
 docker-compose logs -f --tail=100
 
 # Or for systemd
-journalctl -u tinytask -f
+journalctl -u tko -f
 ```
 
 ### Monitoring Tools
@@ -573,24 +573,24 @@ journalctl -u tinytask -f
 #!/bin/bash
 # backup.sh
 DATE=$(date +%Y%m%d_%H%M%S)
-BACKUP_DIR="/opt/tinytask-mcp/backups"
+BACKUP_DIR="/opt/tko-mcp/backups"
 mkdir -p $BACKUP_DIR
 
 # Backup database
-cp /opt/tinytask-mcp/data/tinytask.db $BACKUP_DIR/tinytask_$DATE.db
+cp /opt/tko-mcp/data/tinytask.db $BACKUP_DIR/tko_$DATE.db
 
 # Keep only last 7 days
-find $BACKUP_DIR -name "tinytask_*.db" -mtime +7 -delete
+find $BACKUP_DIR -name "tko_*.db" -mtime +7 -delete
 
 # Optional: Upload to S3
-# aws s3 cp $BACKUP_DIR/tinytask_$DATE.db s3://your-bucket/backups/
+# aws s3 cp $BACKUP_DIR/tko_$DATE.db s3://your-bucket/backups/
 ```
 
 Make it executable and add to cron:
 ```bash
 chmod +x backup.sh
 crontab -e
-# Add: 0 2 * * * /opt/tinytask-mcp/backup.sh
+# Add: 0 2 * * * /opt/tko-mcp/backup.sh
 ```
 
 ---
@@ -615,7 +615,7 @@ docker-compose up -d
 
 ```bash
 # Stop service
-sudo systemctl stop tinytask
+sudo systemctl stop tko
 
 # Update code
 git pull
@@ -627,7 +627,7 @@ npm install
 npm run build
 
 # Start service
-sudo systemctl start tinytask
+sudo systemctl start tko
 ```
 
 ---
@@ -644,7 +644,7 @@ docker-compose build
 docker-compose up -d
 
 # Or restore database backup
-cp backups/tinytask_YYYYMMDD.db data/tinytask.db
+cp backups/tko_YYYYMMDD.db data/tinytask.db
 docker-compose up -d
 ```
 
@@ -657,7 +657,7 @@ docker-compose up -d
 ```yaml
 # docker-compose.yml
 services:
-  tinytask:
+  tko:
     deploy:
       replicas: 3
       resources:

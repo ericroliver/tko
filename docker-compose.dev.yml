@@ -3,11 +3,11 @@ version: '3.8'
 services:
   # Primary development service using Streamable HTTP (default transport)
   # This is the recommended transport for new development and testing
-  tinytask-dev:
+  tko-dev:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: tinytask-mcp-dev
+    container_name: tko-mcp-dev
     ports:
       - "3000:3000"
       - "9229:9229"  # Debug port
@@ -17,24 +17,24 @@ services:
       - /app/node_modules
     environment:
       # Uses Streamable HTTP by default (modern, efficient transport)
-      TINYTASK_MODE: http
-      TINYTASK_PORT: 3000
-      TINYTASK_HOST: 0.0.0.0
-      TINYTASK_DB_PATH: /data/tinytask.db
-      TINYTASK_LOG_LEVEL: debug
+      TKO_MODE: http
+      TKO_PORT: 3000
+      TKO_HOST: 0.0.0.0
+      TKO_DB_PATH: /data/tinytask.db
+      TKO_LOG_LEVEL: debug
       NODE_ENV: development
     command: npm run dev
     networks:
-      - tinytask-network
+      - tko-network
 
   # Legacy SSE development service for backward compatibility testing
   # Use this service to test with the legacy SSE transport
   # Note: Uses port 3001 to avoid conflicts if both services run simultaneously
-  tinytask-dev-sse:
+  tko-dev-sse:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: tinytask-mcp-dev-sse
+    container_name: tko-mcp-dev-sse
     ports:
       - "3001:3001"
       - "9230:9229"  # Debug port (different from main service)
@@ -44,19 +44,19 @@ services:
       - /app/node_modules
     environment:
       # Enable legacy SSE transport for backward compatibility
-      TINYTASK_MODE: http
-      TINYTASK_ENABLE_SSE: 'true'
-      TINYTASK_PORT: 3001
-      TINYTASK_HOST: 0.0.0.0
-      TINYTASK_DB_PATH: /data/tinytask-sse.db
-      TINYTASK_LOG_LEVEL: debug
+      TKO_MODE: http
+      TKO_ENABLE_SSE: 'true'
+      TKO_PORT: 3001
+      TKO_HOST: 0.0.0.0
+      TKO_DB_PATH: /data/tinytask-sse.db
+      TKO_LOG_LEVEL: debug
       NODE_ENV: development
     command: npm run dev
     networks:
-      - tinytask-network
+      - tko-network
     profiles:
       - legacy  # Only starts when explicitly requested: docker-compose --profile legacy up
 
 networks:
-  tinytask-network:
+  tko-network:
     driver: bridge

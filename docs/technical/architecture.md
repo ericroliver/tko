@@ -1,7 +1,7 @@
-# TinyTask System Architecture
+# TKO System Architecture
 
 ## Overview
-TinyTask is an MCP server that provides task management for LLM agent collaboration. It supports stdio (local) plus HTTP-based transports where Streamable HTTP is the default and SSE remains as a legacy option.
+TKO is an MCP server that provides task management for LLM agent collaboration. It supports stdio (local) plus HTTP-based transports where Streamable HTTP is the default and SSE remains as a legacy option.
 
 ## High-Level Architecture
 
@@ -14,25 +14,25 @@ graph TB
         A4[Review Agent]
         A5[QA Agent]
     end
-    
+
     subgraph "Docker Container"
-        MCP[TinyTask MCP Server]
+        MCP[TKO MCP Server]
         DB[(SQLite DB)]
         MCP --> DB
     end
-    
+
     subgraph "Persistent Storage"
         VOL[Docker Volume<br/>Mounted to Host]
     end
-    
+
     A1 -.->|MCP Protocol<br/>stdio/HTTP| MCP
     A2 -.->|MCP Protocol<br/>stdio/HTTP| MCP
     A3 -.->|MCP Protocol<br/>stdio/HTTP| MCP
     A4 -.->|MCP Protocol<br/>stdio/HTTP| MCP
     A5 -.->|MCP Protocol<br/>stdio/HTTP| MCP
-    
+
     DB --> VOL
-    
+
     style MCP fill:#4CAF50
     style DB fill:#2196F3
     style VOL fill:#FF9800
@@ -48,45 +48,45 @@ graph TB
         HTTP_ROUTER[HTTP Transport Router]
         STREAMABLE[Streamable HTTP]
         SSE[SSE Transport (Legacy)]
-        
+
         subgraph "API Layer"
             TOOLS[Tools Handler]
             RESOURCES[Resources Handler]
         end
-        
+
         subgraph "Business Logic"
             TASK_SVC[Task Service]
             COMMENT_SVC[Comment Service]
             LINK_SVC[Link Service]
         end
-        
+
         subgraph "Data Layer"
             DB_CLIENT[Database Client]
             SCHEMA[Schema Manager]
         end
-        
+
         SERVER --> STDIO
         SERVER --> HTTP_ROUTER
         HTTP_ROUTER --> STREAMABLE
         HTTP_ROUTER --> SSE
         SERVER --> TOOLS
         SERVER --> RESOURCES
-        
+
         TOOLS --> TASK_SVC
         TOOLS --> COMMENT_SVC
         TOOLS --> LINK_SVC
-        
+
         RESOURCES --> TASK_SVC
         RESOURCES --> COMMENT_SVC
         RESOURCES --> LINK_SVC
-        
+
         TASK_SVC --> DB_CLIENT
         COMMENT_SVC --> DB_CLIENT
         LINK_SVC --> DB_CLIENT
-        
+
         DB_CLIENT --> SCHEMA
     end
-    
+
     SCHEMA --> SQLITE[(SQLite DB)]
 ```
 
@@ -97,46 +97,46 @@ graph TB
 ```mermaid
 sequenceDiagram
     participant PA as Product Agent
-    participant MCP as TinyTask MCP
+    participant MCP as TKO MCP
     participant DB as SQLite
     participant AA as Architect Agent
     participant CA as Code Agent
-    
+
     PA->>MCP: create_task(title, desc, assigned_to=AA)
     MCP->>DB: INSERT task
     DB-->>MCP: task_id
     MCP-->>PA: Task created
-    
+
     AA->>MCP: get_my_queue(agent_name=AA)
     MCP->>DB: SELECT tasks WHERE assigned_to=AA
     DB-->>MCP: [task]
     MCP-->>AA: Queue with 1 task
-    
+
     AA->>MCP: update_task(id, status=working)
     MCP->>DB: UPDATE task
     MCP-->>AA: Task updated
-    
+
     AA->>MCP: add_comment(task_id, "Analyzing...")
     MCP->>DB: INSERT comment
     MCP-->>AA: Comment added
-    
+
     AA->>MCP: add_link(task_id, "/docs/design.md")
     MCP->>DB: INSERT link
     MCP-->>AA: Link added
-    
+
     AA->>MCP: update_task(id, assigned_to=CA, status=idle)
     MCP->>DB: UPDATE task
     MCP-->>AA: Task reassigned
-    
+
     CA->>MCP: get_my_queue(agent_name=CA)
     MCP->>DB: SELECT tasks WHERE assigned_to=CA
     DB-->>MCP: [task]
     MCP-->>CA: Queue with 1 task
-    
+
     CA->>MCP: update_task(id, status=complete)
     MCP->>DB: UPDATE task
     MCP-->>CA: Task completed
-    
+
     CA->>MCP: archive_task(id)
     MCP->>DB: UPDATE task SET archived_at
     MCP-->>CA: Task archived
@@ -148,7 +148,7 @@ The HTTP transport layer is orchestrated by [`src/server/http.ts`](src/server/ht
 
 ```mermaid
 flowchart LR
-    ENV[TINYTASK_MODE +\nTINYTASK_ENABLE_SSE]
+    ENV[TKO_MODE +\nTKO_ENABLE_SSE]
     ROUTER[HTTP Router\n(src/server/http.ts)]
     STREAMABLE[Streamable HTTP\n(src/server/streamable-http.ts)]
     SSE[SSE Transport\n(src/server/sse.ts)]
@@ -159,7 +159,7 @@ flowchart LR
 ```
 
 - **Default path**: Streamable HTTP provides a unified `/mcp` endpoint and session management.
-- **Legacy path**: When `TINYTASK_ENABLE_SSE=true`, the router starts the SSE transport for backward compatibility.
+- **Legacy path**: When `TKO_ENABLE_SSE=true`, the router starts the SSE transport for backward compatibility.
 - **Safety**: Prevents dual HTTP transports from running simultaneously.
 
 ## Transport Modes
@@ -184,10 +184,10 @@ graph TB
     A2[Agent 2] -->|HTTP| LB
     A3[Agent 3] -->|HTTP| LB
     A4[Agent 4] -->|HTTP| LB
-    
+
     LB -->|/mcp| MCP1[Streamable HTTP Server]
     LB -->|/mcp| MCP2[Streamable HTTP Server]
-    
+
     MCP1 --> DB[(Shared SQLite<br/>or PostgreSQL upgrade)]
     MCP2 --> DB
 ```
@@ -207,7 +207,7 @@ graph TB
 
 **Use Case:** Backward compatibility until all clients migrate
 **Connection:** Server-Sent Events stream + POST messages
-**Activation:** Set `TINYTASK_ENABLE_SSE=true`
+**Activation:** Set `TKO_ENABLE_SSE=true`
 
 ## Database Architecture
 
@@ -306,24 +306,24 @@ If needed beyond MVP:
 
 ```bash
 # Server mode
-TINYTASK_MODE=stdio|http|both  # Default: both
+TKO_MODE=stdio|http|both  # Default: both
 
 # HTTP transport selection
-TINYTASK_ENABLE_SSE=true|false  # Default: false (Streamable HTTP)
+TKO_ENABLE_SSE=true|false  # Default: false (Streamable HTTP)
 
 # HTTP configuration
-TINYTASK_PORT=3000  # Default: 3000
-TINYTASK_HOST=0.0.0.0  # Default: 0.0.0.0
+TKO_PORT=3000  # Default: 3000
+TKO_HOST=0.0.0.0  # Default: 0.0.0.0
 
 # Database
-TINYTASK_DB_PATH=/data/tinytask.db  # Default: /data/tinytask.db
+TKO_DB_PATH=/data/tinytask.db  # Default: /data/tinytask.db
 
 # Optional features
-TINYTASK_ENABLE_HISTORY=true|false  # Default: false
-TINYTASK_LOG_LEVEL=debug|info|warn|error  # Default: info
+TKO_ENABLE_HISTORY=true|false  # Default: false
+TKO_LOG_LEVEL=debug|info|warn|error  # Default: info
 ```
 
-| Scenario | `TINYTASK_MODE` | `TINYTASK_ENABLE_SSE` | Result |
+| Scenario | `TKO_MODE` | `TKO_ENABLE_SSE` | Result |
 | --- | --- | --- | --- |
 | Stdio only | `stdio` | any | Stdio transport only |
 | Default HTTP | `http` | _unset_ / `false` | Streamable HTTP |
@@ -344,7 +344,7 @@ TINYTASK_LOG_LEVEL=debug|info|warn|error  # Default: info
 ## Project Structure
 
 ```
-tinytask-mcp/
+tko-mcp/
 ├── src/
 │   ├── index.ts              # Entry point, mode selection
 │   ├── server/
@@ -383,12 +383,12 @@ tinytask-mcp/
 ```json
 {
   "mcpServers": {
-    "tinytask": {
+    "tko": {
       "command": "node",
-      "args": ["/path/to/tinytask-mcp/build/index.js"],
+      "args": ["/path/to/tko-mcp/build/index.js"],
       "env": {
-        "TINYTASK_MODE": "stdio",
-        "TINYTASK_DB_PATH": "/path/to/data/tinytask.db"
+        "TKO_MODE": "stdio",
+        "TKO_DB_PATH": "/path/to/data/tinytask.db"
       }
     }
   }
@@ -399,7 +399,7 @@ tinytask-mcp/
 ```json
 {
   "mcpServers": {
-    "tinytask": {
+    "tko": {
       "url": "http://localhost:3000/mcp"
     }
   }
@@ -411,7 +411,7 @@ tinytask-mcp/
 docker run -d \
   -p 3000:3000 \
   -v /host/data:/data \
-  -e TINYTASK_MODE=http \
-  tinytask-mcp:latest
+  -e TKO_MODE=http \
+  tko-mcp:latest
 ```
-Add `-e TINYTASK_ENABLE_SSE=true` only if the deployment must stay on SSE.
+Add `-e TKO_ENABLE_SSE=true` only if the deployment must stay on SSE.

@@ -29,7 +29,7 @@ The tester (`tko-shield`) or any agent acting in the QA role. The reporter is re
 
 ### Prerequisites
 
-- The `tinytask` CLI is installed and configured.
+- The `tko` CLI is installed and configured.
 - You have reproduced the defect and can describe the steps.
 - You know which component or endpoint is affected.
 
@@ -51,7 +51,7 @@ Before filing, ensure you can reliably reproduce the issue. Document:
 Create a task with a clear, action-oriented title and a detailed description:
 
 ```bash
-tinytask task create "BUG: POST /api/auth/login returns 500 on valid credentials when password contains special characters" \
+tko task create "BUG: POST /api/auth/login returns 500 on valid credentials when password contains special characters" \
   -d "When a user submits a login request with a password containing characters like '+' or '&', the server returns HTTP 500 instead of 200 with a valid session token.
 
 Steps to reproduce:
@@ -75,13 +75,13 @@ The CLI returns the created task with its auto-generated ID (e.g., `20260724_30`
 Move the defect to the queue monitored by developers:
 
 ```bash
-tinytask queue add 20260724_30 ready-for-development
+tko queue add 20260724_30 ready-for-development
 ```
 
 Or use the update command:
 
 ```bash
-tinytask task update 20260724_30 --queue ready-for-development
+tko task update 20260724_30 --queue ready-for-development
 ```
 
 #### Step 4: Link to Related Tasks (Optional but Recommended)
@@ -90,10 +90,10 @@ If the bug is related to a feature task, a previous fix, or a duplicate report, 
 
 ```bash
 # Link to the original feature task
-tinytask link add 20260724_30 "tasks/20260724_10" -d "Related feature: user authentication implementation"
+tko link add 20260724_30 "tasks/20260724_10" -d "Related feature: user authentication implementation"
 
 # Link to a PR or external issue tracker
-tinytask link add 20260724_30 "https://github.com/org/tinytask/issues/77" -d "External issue tracker entry"
+tko link add 20260724_30 "https://github.com/org/tko/issues/77" -d "External issue tracker entry"
 ```
 
 #### Step 5: Add a Filing Comment
@@ -101,13 +101,13 @@ tinytask link add 20260724_30 "https://github.com/org/tinytask/issues/77" -d "Ex
 Provide context for the developer who will pick this up:
 
 ```bash
-tinytask comment add 20260724_30 "Filed by QA during auth endpoint testing. Reproduced 3 times consistently. See description for exact steps. This is high priority — it blocks a subset of users from logging in. Assignee should check URL encoding in the login handler."
+tko comment add 20260724_30 "Filed by QA during auth endpoint testing. Reproduced 3 times consistently. See description for exact steps. This is high priority — it blocks a subset of users from logging in. Assignee should check URL encoding in the login handler."
 ```
 
 #### Step 6: Verify
 
 ```bash
-tinytask task get 20260724_30
+tko task get 20260724_30
 ```
 
 Confirm: `status` = `idle`, `assigned_to` = `tko-sword`, `queue_name` = `ready-for-development`, `tags` include `bug`.
@@ -119,7 +119,7 @@ Confirm: `status` = `idle`, `assigned_to` = `tko-sword`, `queue_name` = `ready-f
 If an automated test suite catches the defect, include the test name and output in the description:
 
 ```bash
-tinytask task create "BUG: Integration test 'should handle concurrent logins' fails intermittently" \
+tko task create "BUG: Integration test 'should handle concurrent logins' fails intermittently" \
   -d "Test: tests/integration/auth.test.ts > 'should handle concurrent logins'
 
 Failure output:
@@ -137,12 +137,12 @@ This test passes in isolation but fails ~30% of the time under concurrent load. 
 If you know which developer implemented the affected code, assign directly to them:
 
 ```bash
-tinytask task create "BUG: DELETE /api/organizations/{id} returns 500 instead of 204" \
+tko task create "BUG: DELETE /api/organizations/{id} returns 500 instead of 204" \
   -d "DELETE /api/organizations/123 returns HTTP 500 with 'FOREIGN KEY constraint failed'. Expected 204 No Content per API spec." \
   --assigned-to tko-sword \
   --priority 9 \
   --tags "bug,api,organizations"
-tinytask queue add 20260724_31 ready-for-development
+tko queue add 20260724_31 ready-for-development
 ```
 
 #### Filing a Regression Bug
@@ -150,8 +150,8 @@ tinytask queue add 20260724_31 ready-for-development
 If the defect is a regression (something that previously worked is now broken), reference the task or PR that introduced the change:
 
 ```bash
-tinytask comment add 20260724_30 "Regression: This was working in build f1e0d2a. Broke after PR #42 (login endpoint refactor). The refactored password validation no longer handles URL-encoded special characters."
-tinytask link add 20260724_30 "https://github.com/org/tinytask/pull/42" -d "PR that introduced the regression"
+tko comment add 20260724_30 "Regression: This was working in build f1e0d2a. Broke after PR #42 (login endpoint refactor). The refactored password validation no longer handles URL-encoded special characters."
+tko link add 20260724_30 "https://github.com/org/tko/pull/42" -d "PR that introduced the regression"
 ```
 
 ### Common Mistakes to Avoid
@@ -185,7 +185,7 @@ The developer assigned to the defect task (e.g., `tko-sword`).
 #### Step 1: Check Your Queue for Defects
 
 ```bash
-tinytask queue view --mine
+tko queue view --mine
 ```
 
 Look for tasks tagged `bug` or with titles starting with `BUG:`. These are defects that need fixing.
@@ -195,9 +195,9 @@ Look for tasks tagged `bug` or with titles starting with `BUG:`. These are defec
 Read the task details, reproduction steps, and any comments or links:
 
 ```bash
-tinytask task get 20260724_30 --json
-tinytask comment list 20260724_30
-tinytask link list 20260724_30
+tko task get 20260724_30 --json
+tko comment list 20260724_30
+tko link list 20260724_30
 ```
 
 Pay special attention to:
@@ -223,7 +223,7 @@ curl -X POST http://localhost:3000/api/auth/login \
 If you cannot reproduce the bug, add a comment and ask the reporter for clarification:
 
 ```bash
-tinytask comment add 20260724_30 "Unable to reproduce locally with the given steps. Using build a3f2b1c, same as reported. @tko-shield — can you confirm the environment and provide any additional context (headers, auth state, etc.)?"
+tko comment add 20260724_30 "Unable to reproduce locally with the given steps. Using build a3f2b1c, same as reported. @tko-shield — can you confirm the environment and provide any additional context (headers, auth state, etc.)?"
 ```
 
 Do not set the task to `working` until you can reproduce or have enough context to investigate.
@@ -233,8 +233,8 @@ Do not set the task to `working` until you can reproduce or have enough context 
 Once you've confirmed the issue and are ready to implement a fix:
 
 ```bash
-tinytask task update 20260724_30 --status working
-tinytask comment add 20260724_30 "Confirmed reproduction. The password validation handler doesn't URL-decode the input before checking. Starting fix on branch fix/login-special-chars."
+tko task update 20260724_30 --status working
+tko comment add 20260724_30 "Confirmed reproduction. The password validation handler doesn't URL-decode the input before checking. Starting fix on branch fix/login-special-chars."
 ```
 
 #### Step 5: Implement the Fix
@@ -247,7 +247,7 @@ Add a test that covers the specific defect scenario:
 
 ```bash
 # Example: add a test case for special character passwords
-tinytask comment add 20260724_30 "Added integration test: 'should handle passwords with special characters (+, &, =)'. Test fails before fix, passes after."
+tko comment add 20260724_30 "Added integration test: 'should handle passwords with special characters (+, &, =)'. Test fails before fix, passes after."
 ```
 
 #### Step 7: Verify the Fix Locally
@@ -276,7 +276,7 @@ npm test
 Intermittent bugs (e.g., race conditions) require more investigation. Document your findings:
 
 ```bash
-tinytask comment add 20260724_30 "Root cause: session token generation uses a non-atomic read-modify-write sequence. Under concurrent load, two requests can read the same counter value and generate duplicate tokens. Fix: use an atomic increment (SQLite UPDATE ... RETURNING) for the counter."
+tko comment add 20260724_30 "Root cause: session token generation uses a non-atomic read-modify-write sequence. Under concurrent load, two requests can read the same counter value and generate duplicate tokens. Fix: use an atomic increment (SQLite UPDATE ... RETURNING) for the counter."
 ```
 
 #### Fixing a Bug That Requires Architectural Changes
@@ -284,7 +284,7 @@ tinytask comment add 20260724_30 "Root cause: session token generation uses a no
 If the fix requires significant changes, decompose it into subtasks (see [B1: Subtask Decomposition](./02-Scenario-Group-B-Development-Workflows.md#b1-subtask-decomposition)):
 
 ```bash
-tinytask subtask create 20260724_30 "Refactor session token generation to use atomic increment" \
+tko subtask create 20260724_30 "Refactor session token generation to use atomic increment" \
   -d "Replace the read-modify-write counter with an atomic SQLite UPDATE...RETURNING operation." \
   --assigned-to tko-sword
 ```
@@ -294,11 +294,11 @@ tinytask subtask create 20260724_30 "Refactor session token generation to use at
 If investigation reveals the reported behavior is actually correct (e.g., a misunderstanding of the spec):
 
 ```bash
-tinytask comment add 20260724_30 "Investigated: this is expected behavior per the API spec (section 4.2). The endpoint correctly returns 422 for passwords exceeding 128 characters. Not a defect. Recommending closure."
-tinytask task update 20260724_30 --status idle
-tinytask queue move 20260724_30 ready-for-testing
-tinytask task update 20260724_30 --assigned-to tko-shield
-tinytask comment add 20260724_30 "Reassigning to @tko-shield for review. Please verify against the spec and close if confirmed not a bug."
+tko comment add 20260724_30 "Investigated: this is expected behavior per the API spec (section 4.2). The endpoint correctly returns 422 for passwords exceeding 128 characters. Not a defect. Recommending closure."
+tko task update 20260724_30 --status idle
+tko queue move 20260724_30 ready-for-testing
+tko task update 20260724_30 --assigned-to tko-shield
+tko comment add 20260724_30 "Reassigning to @tko-shield for review. Please verify against the spec and close if confirmed not a bug."
 ```
 
 ### Common Mistakes to Avoid
@@ -342,7 +342,7 @@ Before handing off, ensure:
 Document what was wrong, what was changed, and how it was tested:
 
 ```bash
-tinytask comment add 20260724_30 "Fix complete. Root cause: the login handler was not URL-decoding the password field before validation, causing special characters (+, &, =) to trigger a parser error in the SQL query builder.
+tko comment add 20260724_30 "Fix complete. Root cause: the login handler was not URL-decoding the password field before validation, causing special characters (+, &, =) to trigger a parser error in the SQL query builder.
 
 Changes:
 1. Added URL decoding in the login request handler (src/api/auth/login.ts:42)
@@ -362,7 +362,7 @@ Commit: d4e8a7f"
 #### Step 3: Add the PR Link (if applicable)
 
 ```bash
-tinytask link add 20260724_30 "https://github.com/org/tinytask/pull/55" -d "Fix PR: URL-decode password field in login handler"
+tko link add 20260724_30 "https://github.com/org/tko/pull/55" -d "Fix PR: URL-decode password field in login handler"
 ```
 
 #### Step 4: Set Status Back to Idle
@@ -370,7 +370,7 @@ tinytask link add 20260724_30 "https://github.com/org/tinytask/pull/55" -d "Fix 
 Per the Foundation rules, developers never mark tasks `complete`. Set back to `idle`:
 
 ```bash
-tinytask task update 20260724_30 --status idle
+tko task update 20260724_30 --status idle
 ```
 
 #### Step 5: Move to the Verification Queue
@@ -378,7 +378,7 @@ tinytask task update 20260724_30 --status idle
 Defect fixes go to `ready-for-testing` (not `ready-for-qa`), because they need re-verification by the original reporter:
 
 ```bash
-tinytask queue move 20260724_30 ready-for-testing
+tko queue move 20260724_30 ready-for-testing
 ```
 
 #### Step 6: Reassign to the Original Reporter
@@ -387,22 +387,22 @@ Per Foundation rules, defect fixes are reassigned to the task creator (e.g., `tk
 
 ```bash
 # Check who created the task if unsure
-tinytask task get 20260724_30 --json
+tko task get 20260724_30 --json
 
 # Reassign to the creator
-tinytask task update 20260724_30 --assigned-to tko-shield
+tko task update 20260724_30 --assigned-to tko-shield
 ```
 
 Or use the move command with a comment:
 
 ```bash
-tinytask move 20260724_30 tko-shield --comment "Defect fixed. Please re-test using the original reproduction steps and verify the fix. See my fix summary comment for details."
+tko move 20260724_30 tko-shield --comment "Defect fixed. Please re-test using the original reproduction steps and verify the fix. See my fix summary comment for details."
 ```
 
 #### Step 7: Verify the Handoff
 
 ```bash
-tinytask task get 20260724_30
+tko task get 20260724_30
 ```
 
 Confirm: `status` = `idle`, `queue_name` = `ready-for-testing`, `assigned_to` = `tko-shield` (the creator/reporter).
@@ -413,15 +413,15 @@ The tester (`tko-shield`) follows the standard pickup process:
 
 ```bash
 # Tester checks their queue
-tinytask queue view tko-shield
+tko queue view tko-shield
 
 # Tester reviews the fix
-tinytask task get 20260724_30 --json
-tinytask comment list 20260724_30
+tko task get 20260724_30 --json
+tko comment list 20260724_30
 
 # Tester starts verification
-tinytask task update 20260724_30 --status working
-tinytask comment add 20260724_30 "Starting verification. Will re-run original reproduction steps against the fix branch."
+tko task update 20260724_30 --status working
+tko comment add 20260724_30 "Starting verification. Will re-run original reproduction steps against the fix branch."
 ```
 
 #### Step 9: Tester Verifies the Fix
@@ -442,8 +442,8 @@ curl -X POST http://staging.example.com/api/auth/login \
 If verification passes, the tester marks the defect as complete:
 
 ```bash
-tinytask comment add 20260724_30 "Verified. Original reproduction steps now return 200 OK with valid session token. Special character passwords (+, &, =) are handled correctly. New integration test confirmed. Closing this defect."
-tinytask task update 20260724_30 --status complete
+tko comment add 20260724_30 "Verified. Original reproduction steps now return 200 OK with valid session token. Special character passwords (+, &, =) are handled correctly. New integration test confirmed. Closing this defect."
+tko task update 20260724_30 --status complete
 ```
 
 ### Variations
@@ -453,7 +453,7 @@ tinytask task update 20260724_30 --status complete
 If the fix addresses the primary issue but has a known limitation, document it:
 
 ```bash
-tinytask comment add 20260724_30 "Fix complete with known limitation: passwords with Unicode characters above U+007F are not yet handled (tracked separately in #20260724_35). The fix covers the reported ASCII special characters (+, &, =, %). Please verify against the original steps."
+tko comment add 20260724_30 "Fix complete with known limitation: passwords with Unicode characters above U+007F are not yet handled (tracked separately in #20260724_35). The fix covers the reported ASCII special characters (+, &, =, %). Please verify against the original steps."
 ```
 
 #### Verification on a Specific Environment
@@ -461,8 +461,8 @@ tinytask comment add 20260724_30 "Fix complete with known limitation: passwords 
 If the bug only manifests in a specific environment (staging, production), note this:
 
 ```bash
-tinytask comment add 20260724_30 "Fix deployed to staging (build d4e8a7f). Please verify against staging URL: https://staging.example.com. Use the same reproduction steps from the bug report."
-tinytask link add 20260724_30 "https://staging.example.com/api/auth/login" -d "Staging endpoint for verification"
+tko comment add 20260724_30 "Fix deployed to staging (build d4e8a7f). Please verify against staging URL: https://staging.example.com. Use the same reproduction steps from the bug report."
+tko link add 20260724_30 "https://staging.example.com/api/auth/login" -d "Staging endpoint for verification"
 ```
 
 #### Multiple Defects Fixed in One Batch
@@ -471,11 +471,11 @@ If fixing multiple related defects, hand them all off together with a summary:
 
 ```bash
 for task_id in 20260724_30 20260724_31 20260724_32; do
-  tinytask task update "$task_id" --status idle
-  tinytask queue move "$task_id" ready-for-testing
-  tinytask task update "$task_id" --assigned-to tko-shield
+  tko task update "$task_id" --status idle
+  tko queue move "$task_id" ready-for-testing
+  tko task update "$task_id" --assigned-to tko-shield
 done
-tinytask comment add 20260724_30 "Batch fix: #20260724_30, #20260724_31, and #20260724_32 all fixed in the same PR (#55). Please verify all three against staging."
+tko comment add 20260724_30 "Batch fix: #20260724_30, #20260724_31, and #20260724_32 all fixed in the same PR (#55). Please verify all three against staging."
 ```
 
 ### Common Mistakes to Avoid
@@ -512,7 +512,7 @@ The tester (`tko-shield`) initiates the kickback. The developer (`tko-sword`) pe
 The tester adds a detailed comment explaining what didn't work:
 
 ```bash
-tinytask comment add 20260724_30 "Verification FAILED. The fix addresses the '+' character, but the '&' character still causes a 500 error.
+tko comment add 20260724_30 "Verification FAILED. The fix addresses the '+' character, but the '&' character still causes a 500 error.
 
 Re-tested:
 1. POST /api/auth/login with password 'p@ss+word&123'
@@ -529,13 +529,13 @@ Also noticed: passwords with '=' are also still failing. The fix appears to only
 #### Step 2: Tester Sets Status Back to Idle
 
 ```bash
-tinytask task update 20260724_30 --status idle
+tko task update 20260724_30 --status idle
 ```
 
 #### Step 3: Tester Moves Back to Development Queue
 
 ```bash
-tinytask queue move 20260724_30 ready-for-development
+tko queue move 20260724_30 ready-for-development
 ```
 
 #### Step 4: Tester Reassigns to the Developer
@@ -543,19 +543,19 @@ tinytask queue move 20260724_30 ready-for-development
 Per Foundation rules, the tester reassigns the kicked-back task to the developer:
 
 ```bash
-tinytask task update 20260724_30 --assigned-to tko-sword
+tko task update 20260724_30 --assigned-to tko-sword
 ```
 
 Or use the move command with a comment:
 
 ```bash
-tinytask move 20260724_30 tko-sword --comment "Kickback: fix is incomplete. '&' and '=' characters still cause 500 errors. See my verification comment for details. Please re-fix and re-submit."
+tko move 20260724_30 tko-sword --comment "Kickback: fix is incomplete. '&' and '=' characters still cause 500 errors. See my verification comment for details. Please re-fix and re-submit."
 ```
 
 #### Step 5: Verify the Kickback State
 
 ```bash
-tinytask task get 20260724_30
+tko task get 20260724_30
 ```
 
 Confirm: `status` = `idle`, `queue_name` = `ready-for-development`, `assigned_to` = `tko-sword`.
@@ -566,11 +566,11 @@ The developer reviews the tester's feedback and resumes work:
 
 ```bash
 # Review the verification failure comment
-tinytask comment list 20260724_30
+tko comment list 20260724_30
 
 # Set back to working
-tinytask task update 20260724_30 --status working
-tinytask comment add 20260724_30 "Picking up kickback. The URL-decode only handled '+' because I used decodeURIComponent which converts '+' to space. Need to use a proper URL-decode that handles all reserved characters (&, =, %, +). Investigating a more robust fix."
+tko task update 20260724_30 --status working
+tko comment add 20260724_30 "Picking up kickback. The URL-decode only handled '+' because I used decodeURIComponent which converts '+' to space. Need to use a proper URL-decode that handles all reserved characters (&, =, %, +). Investigating a more robust fix."
 ```
 
 #### Step 7: Developer Implements the Re-fix
@@ -578,7 +578,7 @@ tinytask comment add 20260724_30 "Picking up kickback. The URL-decode only handl
 Fix the remaining issues. Extend the test coverage to include all special characters:
 
 ```bash
-tinytask comment add 20260724_30 "Re-fix complete. Switched from decodeURIComponent to a proper URL-decode utility that handles all reserved characters (&, =, %, +, #). Updated the integration test to cover all special characters mentioned in the bug report plus additional edge cases (%, #). All tests passing. Branch updated: fix/login-special-chars. Commit: f8c2e9d."
+tko comment add 20260724_30 "Re-fix complete. Switched from decodeURIComponent to a proper URL-decode utility that handles all reserved characters (&, =, %, +, #). Updated the integration test to cover all special characters mentioned in the bug report plus additional edge cases (%, #). All tests passing. Branch updated: fix/login-special-chars. Commit: f8c2e9d."
 ```
 
 #### Step 8: Developer Hands Off Again
@@ -586,9 +586,9 @@ tinytask comment add 20260724_30 "Re-fix complete. Switched from decodeURICompon
 Follow the same handoff process as C3:
 
 ```bash
-tinytask task update 20260724_30 --status idle
-tinytask queue move 20260724_30 ready-for-testing
-tinytask move 20260724_30 tko-shield --comment "Re-fix complete. All special characters (&, =, %, #, +) now handled correctly. Please re-verify."
+tko task update 20260724_30 --status idle
+tko queue move 20260724_30 ready-for-testing
+tko move 20260724_30 tko-shield --comment "Re-fix complete. All special characters (&, =, %, #, +) now handled correctly. Please re-verify."
 ```
 
 #### Step 9: Tester Re-verifies
@@ -596,8 +596,8 @@ tinytask move 20260724_30 tko-shield --comment "Re-fix complete. All special cha
 The tester picks up the re-fix and verifies again:
 
 ```bash
-tinytask task update 20260724_30 --status working
-tinytask comment add 20260724_30 "Re-verification started. Testing all special character cases."
+tko task update 20260724_30 --status working
+tko comment add 20260724_30 "Re-verification started. Testing all special character cases."
 ```
 
 If verification passes this time, proceed to closure (see [C5](#c5-defect-closure--cleanup)). If it fails again, repeat the kickback cycle.
@@ -609,7 +609,7 @@ If verification passes this time, proceed to closure (see [C5](#c5-defect-closur
 If the fix resolved the original bug but introduced a new problem:
 
 ```bash
-tinytask comment add 20260724_30 "Verification PARTIAL PASS. The original bug is fixed — special character passwords now work. However, the fix introduced a new issue: passwords that are exactly 128 characters long now return 422 instead of 200. This appears to be an off-by-one error in the new validation logic.
+tko comment add 20260724_30 "Verification PARTIAL PASS. The original bug is fixed — special character passwords now work. However, the fix introduced a new issue: passwords that are exactly 128 characters long now return 422 instead of 200. This appears to be an off-by-one error in the new validation logic.
 
 Re-test steps:
 1. POST /api/auth/login with a 128-character password → 422 (expected 200)
@@ -626,21 +626,21 @@ If the fix introduced a separate, distinct issue, the tester may file a new defe
 
 ```bash
 # File a new defect for the introduced issue
-tinytask task create "BUG: Login rejects 128-character passwords (off-by-one in fix for #20260724_30)" \
+tko task create "BUG: Login rejects 128-character passwords (off-by-one in fix for #20260724_30)" \
   -d "Introduced by fix for #20260724_30. The new validation logic has an off-by-one error: passwords of exactly 128 characters are rejected with 422 instead of accepted with 200." \
   --assigned-to tko-sword \
   --priority 7 \
   --tags "bug,api,auth,regression"
-tinytask queue add 20260724_36 ready-for-development
+tko queue add 20260724_36 ready-for-development
 
 # Link the new defect to the original
-tinytask link add 20260724_36 "tasks/20260724_30" -d "Regression from fix for this bug"
+tko link add 20260724_36 "tasks/20260724_30" -d "Regression from fix for this bug"
 
 # Kick back the original if the tester considers it not fully fixed
-tinytask comment add 20260724_30 "Verification FAILED. Original issue fixed but new off-by-one introduced. See linked #20260724_36. Kicking back for re-fix."
-tinytask task update 20260724_30 --status idle
-tinytask queue move 20260724_30 ready-for-development
-tinytask move 20260724_30 tko-sword --comment "Kickback: fix introduced off-by-one. See #20260724_36."
+tko comment add 20260724_30 "Verification FAILED. Original issue fixed but new off-by-one introduced. See linked #20260724_36. Kicking back for re-fix."
+tko task update 20260724_30 --status idle
+tko queue move 20260724_30 ready-for-development
+tko move 20260724_30 tko-sword --comment "Kickback: fix introduced off-by-one. See #20260724_36."
 ```
 
 #### Multiple Kickback Cycles
@@ -649,17 +649,17 @@ If a defect goes through multiple kickback cycles, each cycle should be clearly 
 
 ```bash
 # First kickback
-tinytask comment add 20260724_30 "Kickback #1: '&' and '=' not handled. See comment above."
+tko comment add 20260724_30 "Kickback #1: '&' and '=' not handled. See comment above."
 
 # Second kickback (after re-fix attempt)
-tinytask comment add 20260724_30 "Kickback #2: Fix for '&' and '=' works, but now introduces a regression on Unicode passwords (U+0080 to U+00FF). Reverting to use decodeURIComponent for those ranges."
+tko comment add 20260724_30 "Kickback #2: Fix for '&' and '=' works, but now introduces a regression on Unicode passwords (U+0080 to U+00FF). Reverting to use decodeURIComponent for those ranges."
 ```
 
 If a defect goes through more than 2-3 kickback cycles, consider escalating:
 
 ```bash
-tinytask comment add 20260724_30 "ESCALATION: This defect has been kicked back 3 times. The root cause appears to be deeper than URL encoding — the password handling pipeline needs a comprehensive review. Suggesting we decompose into: (1) a proper input normalization layer, (2) updated validation, (3) comprehensive test matrix. See [B1](./02-Scenario-Group-B-Development-Workflows.md#b1-subtask-decomposition) for decomposition approach."
-tinytask task update 20260724_30 --priority 9
+tko comment add 20260724_30 "ESCALATION: This defect has been kicked back 3 times. The root cause appears to be deeper than URL encoding — the password handling pipeline needs a comprehensive review. Suggesting we decompose into: (1) a proper input normalization layer, (2) updated validation, (3) comprehensive test matrix. See [B1](./02-Scenario-Group-B-Development-Workflows.md#b1-subtask-decomposition) for decomposition approach."
+tko task update 20260724_30 --priority 9
 ```
 
 ### Common Mistakes to Avoid
@@ -703,7 +703,7 @@ Ensure you have:
 Document the final verification results:
 
 ```bash
-tinytask comment add 20260724_30 "VERIFIED AND CLOSED.
+tko comment add 20260724_30 "VERIFIED AND CLOSED.
 
 Verification results:
 - Original reproduction steps: PASS (200 OK with valid session token for passwords with +, &, =, %, #)
@@ -724,7 +724,7 @@ Defect is resolved. Closing."
 Only the tester/QA role can mark a task as `complete`:
 
 ```bash
-tinytask task update 20260724_30 --status complete
+tko task update 20260724_30 --status complete
 ```
 
 #### Step 4: Check for Related Tasks
@@ -733,21 +733,21 @@ Look for subtasks, linked tasks, or regression tasks that need closure:
 
 ```bash
 # Check for subtasks
-tinytask subtask list 20260724_30
+tko subtask list 20260724_30
 
 # Check for linked tasks
-tinytask link list 20260724_30
+tko link list 20260724_30
 
 # Search for tasks that reference this defect
-tinytask task list --json | grep 20260724_30
+tko task list --json | grep 20260724_30
 ```
 
 If there are open related tasks (e.g., a regression task filed during a kickback), verify and close them too:
 
 ```bash
 # Close the regression task if it was also fixed
-tinytask comment add 20260724_36 "Fixed as part of #20260724_30 re-fix. The off-by-one boundary issue is resolved. Verified — 128-character passwords now accepted."
-tinytask task update 20260724_36 --status complete
+tko comment add 20260724_36 "Fixed as part of #20260724_30 re-fix. The off-by-one boundary issue is resolved. Verified — 128-character passwords now accepted."
+tko task update 20260724_36 --status complete
 ```
 
 #### Step 5: Update the Original Feature Task (if applicable)
@@ -755,7 +755,7 @@ tinytask task update 20260724_36 --status complete
 If the defect was against a feature task, add a closure note to the feature task:
 
 ```bash
-tinytask comment add 20260724_10 "Defect #20260724_30 (special character password bug) verified and closed. Fix is in the login handler. No further action needed on the feature task."
+tko comment add 20260724_10 "Defect #20260724_30 (special character password bug) verified and closed. Fix is in the login handler. No further action needed on the feature task."
 ```
 
 #### Step 6: Archive the Defect Task
@@ -763,23 +763,23 @@ tinytask comment add 20260724_10 "Defect #20260724_30 (special character passwor
 Once complete and no longer needed for active reference, archive the defect:
 
 ```bash
-tinytask comment add 20260724_30 "Archiving — defect resolved and verified."
-tinytask task archive 20260724_30
+tko comment add 20260724_30 "Archiving — defect resolved and verified."
+tko task archive 20260724_30
 ```
 
 #### Step 7: Verify
 
 ```bash
-tinytask task get 20260724_30
+tko task get 20260724_30
 ```
 
 Confirm: `status` = `complete`, `completed_at` is set, `archived_at` is set. The task should no longer appear in default list views.
 
 ```bash
-tinytask task list
+tko task list
 # Should not show 20260724_30
 
-tinytask task list --include-archived
+tko task list --include-archived
 # Should show 20260724_30 with archived_at set
 ```
 
@@ -790,8 +790,8 @@ tinytask task list --include-archived
 If the defect is high-severity or may be referenced later, skip archival:
 
 ```bash
-tinytask comment add 20260724_30 "Verified and closed. Keeping this task un-archived for reference — this was a high-severity auth bug and may be relevant for future security audits."
-tinytask task update 20260724_30 --status complete
+tko comment add 20260724_30 "Verified and closed. Keeping this task un-archived for reference — this was a high-severity auth bug and may be relevant for future security audits."
+tko task update 20260724_30 --status complete
 ```
 
 #### Closing a Bug That Was Not Reproducible
@@ -799,8 +799,8 @@ tinytask task update 20260724_30 --status complete
 If the tester cannot reproduce the original bug (even before the fix):
 
 ```bash
-tinytask comment add 20260724_30 "Unable to reproduce after multiple attempts across environments. Developer also unable to reproduce (see comment above). Closing as 'cannot reproduce'. If this resurfaces, please re-file with updated reproduction steps."
-tinytask task update 20260724_30 --status complete
+tko comment add 20260724_30 "Unable to reproduce after multiple attempts across environments. Developer also unable to reproduce (see comment above). Closing as 'cannot reproduce'. If this resurfaces, please re-file with updated reproduction steps."
+tko task update 20260724_30 --status complete
 ```
 
 #### Closing a Bug as "Won't Fix" or "By Design"
@@ -808,8 +808,8 @@ tinytask task update 20260724_30 --status complete
 If the team decides not to fix the bug (e.g., it's actually intended behavior):
 
 ```bash
-tinytask comment add 20260724_30 "After review with the team, this is working as designed. The API spec (section 4.2) specifies that passwords must be ASCII-printable. Special characters like '+' and '&' are not supported by design. Closing as 'by design'. Recommend updating the API documentation to explicitly state this constraint."
-tinytask task update 20260724_30 --status complete
+tko comment add 20260724_30 "After review with the team, this is working as designed. The API spec (section 4.2) specifies that passwords must be ASCII-printable. Special characters like '+' and '&' are not supported by design. Closing as 'by design'. Recommend updating the API documentation to explicitly state this constraint."
+tko task update 20260724_30 --status complete
 ```
 
 #### Archiving a Batch of Closed Defects
@@ -818,9 +818,9 @@ When cleaning up multiple closed defects:
 
 ```bash
 for task_id in 20260724_30 20260724_31 20260724_32 20260724_36; do
-  tinytask task archive "$task_id"
+  tko task archive "$task_id"
 done
-tinytask comment add 20260724_10 "Batch archive: defects #20260724_30, #20260724_31, #20260724_32, and #20260724_36 all verified and closed. Archiving for cleanup."
+tko comment add 20260724_10 "Batch archive: defects #20260724_30, #20260724_31, #20260724_32, and #20260724_36 all verified and closed. Archiving for cleanup."
 ```
 
 ### Common Mistakes to Avoid
@@ -839,61 +839,61 @@ tinytask comment add 20260724_10 "Batch archive: defects #20260724_30, #20260724
 
 ```bash
 # 1. Create the defect task
-tinytask task create "BUG: <description>" \
+tko task create "BUG: <description>" \
   -d "<steps to reproduce, expected, actual, environment>" \
   --assigned-to tko-sword \
   --priority <n> \
   --tags "bug,<component>"
 
 # 2. Route to development queue
-tinytask queue add <defect-id> ready-for-development
+tko queue add <defect-id> ready-for-development
 
 # 3. Add filing comment
-tinytask comment add <defect-id> "<context for developer>"
+tko comment add <defect-id> "<context for developer>"
 
 # 4. Link related tasks (optional)
-tinytask link add <defect-id> "<url or task ref>" -d "<description>"
+tko link add <defect-id> "<url or task ref>" -d "<description>"
 ```
 
 ### Defect Fix Handoff (Developer → Tester)
 
 ```bash
 # 1. Write fix summary
-tinytask comment add <defect-id> "Fix complete. <root cause, changes, testing details>. Branch: <branch>. Commit: <hash>."
+tko comment add <defect-id> "Fix complete. <root cause, changes, testing details>. Branch: <branch>. Commit: <hash>."
 
 # 2. Link PR (if applicable)
-tinytask link add <defect-id> "<pr-url>" -d "Fix PR"
+tko link add <defect-id> "<pr-url>" -d "Fix PR"
 
 # 3. Set to idle
-tinytask task update <defect-id> --status idle
+tko task update <defect-id> --status idle
 
 # 4. Move to verification queue
-tinytask queue move <defect-id> ready-for-testing
+tko queue move <defect-id> ready-for-testing
 
 # 5. Reassign to the original reporter
-tinytask task update <defect-id> --assigned-to <reporter>
+tko task update <defect-id> --assigned-to <reporter>
 # or:
-tinytask move <defect-id> <reporter> --comment "Defect fixed. Please re-test."
+tko move <defect-id> <reporter> --comment "Defect fixed. Please re-test."
 ```
 
 ### Verification & Closure (Tester)
 
 ```bash
 # 1. Pick up for verification
-tinytask task update <defect-id> --status working
-tinytask comment add <defect-id> "Starting verification."
+tko task update <defect-id> --status working
+tko comment add <defect-id> "Starting verification."
 
 # 2. If verification PASSES:
-tinytask comment add <defect-id> "Verified. <details>. Closing."
-tinytask task update <defect-id> --status complete
+tko comment add <defect-id> "Verified. <details>. Closing."
+tko task update <defect-id> --status complete
 # (Optional) archive
-tinytask task archive <defect-id>
+tko task archive <defect-id>
 
 # 3. If verification FAILS (kickback):
-tinytask comment add <defect-id> "Verification FAILED. <what didn't work, steps, expected vs actual>"
-tinytask task update <defect-id> --status idle
-tinytask queue move <defect-id> ready-for-development
-tinytask move <defect-id> <developer> --comment "Kickback: <reason>. Please re-fix."
+tko comment add <defect-id> "Verification FAILED. <what didn't work, steps, expected vs actual>"
+tko task update <defect-id> --status idle
+tko queue move <defect-id> ready-for-development
+tko move <defect-id> <developer> --comment "Kickback: <reason>. Please re-fix."
 ```
 
 ### Full Bug Lifecycle (Summary)
@@ -904,32 +904,32 @@ Report → Fix → Verify → (Pass: Close) or (Fail: Kickback → Re-fix → Re
 
 ```bash
 # C1: Tester files bug
-tinytask task create "BUG: ..." --assigned-to tko-sword --tags "bug,..." --priority <n>
-tinytask queue add <id> ready-for-development
+tko task create "BUG: ..." --assigned-to tko-sword --tags "bug,..." --priority <n>
+tko queue add <id> ready-for-development
 
 # C2: Developer picks up and fixes
-tinytask task update <id> --status working
+tko task update <id> --status working
 # ... implement fix ...
-tinytask comment add <id> "Fix complete. <details>"
+tko comment add <id> "Fix complete. <details>"
 
 # C3: Developer hands off to tester
-tinytask task update <id> --status idle
-tinytask queue move <id> ready-for-testing
-tinytask move <id> <reporter> --comment "Defect fixed. Please verify."
+tko task update <id> --status idle
+tko queue move <id> ready-for-testing
+tko move <id> <reporter> --comment "Defect fixed. Please verify."
 
 # C4: Tester verifies — if fail, kickback
-tinytask task update <id> --status working
+tko task update <id> --status working
 # ... verify ...
 # If fail:
-tinytask comment add <id> "Verification FAILED. <details>"
-tinytask task update <id> --status idle
-tinytask queue move <id> ready-for-development
-tinytask move <id> <developer> --comment "Kickback. <reason>"
+tko comment add <id> "Verification FAILED. <details>"
+tko task update <id> --status idle
+tko queue move <id> ready-for-development
+tko move <id> <developer> --comment "Kickback. <reason>"
 
 # C5: Tester verifies — if pass, close
-tinytask comment add <id> "Verified. <details>. Closing."
-tinytask task update <id> --status complete
-tinytask task archive <id>
+tko comment add <id> "Verified. <details>. Closing."
+tko task update <id> --status complete
+tko task archive <id>
 ```
 
 ---
@@ -942,9 +942,9 @@ tinytask task archive <id>
 | Development workflows (subtask decomposition, parallel work, code review) | [Scenario Group B](./02-Scenario-Group-B-Development-Workflows.md) |
 | Task dependencies, blocked tasks, and organization | [Scenario Group D](./04-Scenario-Group-D-Task-Organization-and-Dependencies.md) |
 | Comments, cross-queue handoffs, coordination | [Scenario Group E](./05-Scenario-Group-E-Collaboration-and-Communication.md) |
-| Queue management commands | See `tinytask queue --help` |
-| Comment commands | See `tinytask comment --help` |
-| Link commands | See `tinytask link --help` |
+| Queue management commands | See `tko queue --help` |
+| Comment commands | See `tko comment --help` |
+| Link commands | See `tko link --help` |
 
 ### Key Handoff Points
 
@@ -966,4 +966,4 @@ tinytask task archive <id>
 
 ---
 
-*This document is part of the TinyTask Process Manual. See [00-Foundation.md](./00-Foundation.md) for core concepts and [other scenario documents](.) for specialized workflows.*
+*This document is part of the TKO Process Manual. See [00-Foundation.md](./00-Foundation.md) for core concepts and [other scenario documents](.) for specialized workflows.*

@@ -1,7 +1,7 @@
 # Forensic Logging Implementation Plan
 
 ## Overview
-This document provides the detailed technical implementation plan for adding forensic-level logging to the TinyTask MCP server. This will enable comprehensive debugging of agent interactions, particularly for troubleshooting issues like the current goose agent task creation problem.
+This document provides the detailed technical implementation plan for adding forensic-level logging to the TKO MCP server. This will enable comprehensive debugging of agent interactions, particularly for troubleshooting issues like the current goose agent task creation problem.
 
 ## Architecture
 
@@ -24,20 +24,20 @@ export class Logger {
   private static instance: Logger;
   private level: LogLevel;
   private enableTimestamp: boolean;
-  
+
   private constructor() {
-    const levelStr = (process.env.TINYTASK_LOG_LEVEL || 'info').toLowerCase();
+    const levelStr = (process.env.TKO_LOG_LEVEL || 'info').toLowerCase();
     this.level = this.parseLevel(levelStr);
     this.enableTimestamp = true;
   }
-  
+
   static getInstance(): Logger {
     if (!Logger.instance) {
       Logger.instance = new Logger();
     }
     return Logger.instance;
   }
-  
+
   private parseLevel(level: string): LogLevel {
     switch (level) {
       case 'error': return LogLevel.ERROR;
@@ -48,61 +48,61 @@ export class Logger {
       default: return LogLevel.INFO;
     }
   }
-  
+
   private shouldLog(level: LogLevel): boolean {
     return level <= this.level;
   }
-  
+
   private formatMessage(level: string, message: string, context?: unknown): string {
-    const timestamp = this.enableTimestamp 
-      ? `[${new Date().toISOString()}]` 
+    const timestamp = this.enableTimestamp
+      ? `[${new Date().toISOString()}]`
       : '';
     const prefix = `${timestamp} ${level}:`;
-    
+
     if (context === undefined) {
       return `${prefix} ${message}`;
     }
-    
+
     // Format context object
-    const contextStr = typeof context === 'string' 
-      ? context 
+    const contextStr = typeof context === 'string'
+      ? context
       : JSON.stringify(context, null, 2);
-    
+
     return `${prefix} ${message}\n${contextStr}`;
   }
-  
+
   error(message: string, context?: unknown): void {
     if (this.shouldLog(LogLevel.ERROR)) {
       console.error(this.formatMessage('ERROR', message, context));
     }
   }
-  
+
   warn(message: string, context?: unknown): void {
     if (this.shouldLog(LogLevel.WARN)) {
       console.error(this.formatMessage('WARN', message, context));
     }
   }
-  
+
   info(message: string, context?: unknown): void {
     if (this.shouldLog(LogLevel.INFO)) {
       console.error(this.formatMessage('INFO', message, context));
     }
   }
-  
+
   debug(message: string, context?: unknown): void {
     if (this.shouldLog(LogLevel.DEBUG)) {
       console.error(this.formatMessage('DEBUG', message, context));
     }
   }
-  
+
   trace(message: string, context?: unknown): void {
     if (this.shouldLog(LogLevel.TRACE)) {
       console.error(this.formatMessage('TRACE', message, context));
     }
   }
-  
+
   // Specialized helper methods
-  
+
   logRequest(method: string, path: string, details: {
     sessionId?: string;
     headers?: Record<string, unknown>;
@@ -116,7 +116,7 @@ export class Logger {
       });
     }
   }
-  
+
   logResponse(status: number, details: {
     duration?: number;
     body?: unknown;
@@ -128,33 +128,33 @@ export class Logger {
       });
     }
   }
-  
+
   logToolCall(name: string, args: unknown): void {
     if (this.shouldLog(LogLevel.DEBUG)) {
-      const context = this.shouldLog(LogLevel.TRACE) 
+      const context = this.shouldLog(LogLevel.TRACE)
         ? { fullArgs: args }
         : { args: this.sanitizeArgs(args) };
-      
+
       this.debug(`Tool call: ${name}`, context);
     }
   }
-  
+
   logToolResult(name: string, result: unknown, duration?: number): void {
     if (this.shouldLog(LogLevel.DEBUG)) {
       const context: Record<string, unknown> = {};
-      
+
       if (duration !== undefined) {
         context.duration = `${duration}ms`;
       }
-      
+
       if (this.shouldLog(LogLevel.TRACE)) {
         context.result = result;
       }
-      
+
       this.debug(`Tool result: ${name}`, context);
     }
   }
-  
+
   logToolError(name: string, error: Error, args?: unknown): void {
     if (this.shouldLog(LogLevel.ERROR)) {
       this.error(`Tool error: ${name}`, {
@@ -164,25 +164,25 @@ export class Logger {
       });
     }
   }
-  
+
   private sanitizeArgs(args: unknown): unknown {
     // Basic sanitization - remove deeply nested objects for readability
     // In TRACE mode, full args are logged anyway
     if (typeof args !== 'object' || args === null) {
       return args;
     }
-    
+
     // For arrays, show count
     if (Array.isArray(args)) {
       return `[Array: ${args.length} items]`;
     }
-    
+
     // For objects, show keys
     const obj = args as Record<string, unknown>;
     return Object.keys(obj).reduce((acc, key) => {
       const value = obj[key];
       if (typeof value === 'object' && value !== null) {
-        acc[key] = Array.isArray(value) 
+        acc[key] = Array.isArray(value)
           ? `[Array: ${value.length} items]`
           : '[Object]';
       } else {
@@ -238,14 +238,14 @@ app.use((req, res, next) => {
 ```typescript
 app.get('/mcp', async (req, res) => {
   logger.info(`New SSE connection from ${req.ip}`);
-  
+
   const transport = new SSEServerTransport('/mcp', res);
   const sessionId = transport.sessionId;
   transports.set(sessionId, transport);
-  
+
   logger.info(`SSE session established: ${sessionId}`);
   logger.debug('Transport details', { sessionId, clientIp: req.ip });
-  
+
   await server.connect(transport);
 
   req.on('close', () => {
@@ -259,17 +259,17 @@ app.get('/mcp', async (req, res) => {
 ```typescript
 app.post('/mcp', async (req, res) => {
   const startTime = Date.now();
-  
+
   logger.info('MCP POST message received');
-  
+
   // Log request details
   const sessionId = (req.query.sessionId as string) || (req.headers['x-session-id'] as string);
-  
+
   logger.trace('Request headers', {
     headers: req.headers,
     sessionId
   });
-  
+
   if (!sessionId) {
     logger.warn('No session ID in POST request', {
       query: req.query,
@@ -278,9 +278,9 @@ app.post('/mcp', async (req, res) => {
     res.status(400).json({ error: 'Missing session ID' });
     return;
   }
-  
+
   const transport = transports.get(sessionId);
-  
+
   if (!transport) {
     logger.error(`No transport found for session: ${sessionId}`, {
       availableSessions: Array.from(transports.keys())
@@ -288,7 +288,7 @@ app.post('/mcp', async (req, res) => {
     res.status(404).json({ error: 'Session not found' });
     return;
   }
-  
+
   // Capture request body for logging (without consuming the stream)
   if (logger.shouldLog(LogLevel.TRACE)) {
     const chunks: Buffer[] = [];
@@ -304,14 +304,14 @@ app.post('/mcp', async (req, res) => {
       }
     });
   }
-  
+
   try {
     // Handle the incoming message through the transport
     await transport.handlePostMessage(req, res);
-    
+
     const duration = Date.now() - startTime;
     logger.debug(`Request processed successfully`, { duration: `${duration}ms` });
-    
+
   } catch (error) {
     const duration = Date.now() - startTime;
     logger.error('Error handling POST message', {
@@ -320,7 +320,7 @@ app.post('/mcp', async (req, res) => {
       sessionId,
       duration: `${duration}ms`
     });
-    
+
     if (!res.headersSent) {
       res.status(500).json({ error: 'Failed to process message' });
     }
@@ -347,10 +347,10 @@ app.use(
 
 // Startup
 const httpServer = app.listen(port, host, () => {
-  logger.info('TinyTask MCP server running on SSE');
+  logger.info('TKO MCP server running on SSE');
   logger.info(`URL: http://${host}:${port}/mcp`);
   logger.info(`Health: http://${host}:${port}/health`);
-  logger.info(`Database: ${process.env.TINYTASK_DB_PATH || './data/tinytask.db'}`);
+  logger.info(`Database: ${process.env.TKO_DB_PATH || './data/tinytask.db'}`);
   logger.info('Mode: SSE');
   logger.info('Press Ctrl+C to stop');
 });
@@ -436,14 +436,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   } catch (error) {
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : String(error);
-    
+
     logger.error(`Tool execution failed: ${name}`, {
       error: errorMessage,
       stack: error instanceof Error ? error.stack : undefined,
       args: logger.sanitizeArgs(args),
       duration: `${duration}ms`
     });
-    
+
     return {
       content: [
         {
@@ -478,12 +478,12 @@ export async function createTaskHandler(
   try {
     logger.debug('Creating task', { title: params.title, assigned_to: params.assigned_to });
     logger.trace('Full task creation params', params);
-    
+
     const task = taskService.create(params);
-    
+
     logger.info(`Task created successfully: ${task.id}`, { title: task.title });
     logger.trace('Created task details', task);
-    
+
     return {
       content: [
         {
@@ -498,7 +498,7 @@ export async function createTaskHandler(
       stack: error instanceof Error ? error.stack : undefined,
       params
     });
-    
+
     return {
       content: [
         {
@@ -522,15 +522,15 @@ import { logger } from './utils/index.js';
 async function main() {
   try {
     // Load configuration
-    const mode = process.env.TINYTASK_MODE || 'both';
-    const dbPath = process.env.TINYTASK_DB_PATH || './data/tinytask.db';
-    const port = parseInt(process.env.TINYTASK_PORT || '3000', 10);
-    const host = process.env.TINYTASK_HOST || '0.0.0.0';
-    const logLevel = process.env.TINYTASK_LOG_LEVEL || 'info';
+    const mode = process.env.TKO_MODE || 'both';
+    const dbPath = process.env.TKO_DB_PATH || './data/tinytask.db';
+    const port = parseInt(process.env.TKO_PORT || '3000', 10);
+    const host = process.env.TKO_HOST || '0.0.0.0';
+    const logLevel = process.env.TKO_LOG_LEVEL || 'info';
 
     // Print startup banner
     logger.info('='.repeat(50));
-    logger.info('TinyTask MCP Server');
+    logger.info('TKO MCP Server');
     logger.info('='.repeat(50));
     logger.info(`Mode: ${mode}`);
     logger.info(`Database: ${dbPath}`);
@@ -632,13 +632,13 @@ import { logger } from '../utils/index.js';
 
 export async function startStdioServer(server: Server): Promise<void> {
   const transport = new StdioServerTransport();
-  
+
   // Connect server to transport
   await server.connect(transport);
 
   // Log to stderr (stdout is reserved for MCP protocol)
-  logger.info('TinyTask MCP server running on stdio');
-  logger.info(`Database: ${process.env.TINYTASK_DB_PATH || './data/tinytask.db'}`);
+  logger.info('TKO MCP server running on stdio');
+  logger.info(`Database: ${process.env.TKO_DB_PATH || './data/tinytask.db'}`);
   logger.info('Mode: stdio');
   logger.info('Press Ctrl+C to stop');
 
@@ -662,18 +662,18 @@ export async function startStdioServer(server: Server): Promise<void> {
 ```yaml
 environment:
   # Server mode
-  TINYTASK_MODE: sse
-  
+  TKO_MODE: sse
+
   # SSE configuration
-  TINYTASK_PORT: 3000
-  TINYTASK_HOST: 0.0.0.0
-  
+  TKO_PORT: 3000
+  TKO_HOST: 0.0.0.0
+
   # Database
-  TINYTASK_DB_PATH: /data/tinytask.db
-  
+  TKO_DB_PATH: /data/tinytask.db
+
   # Logging - change to 'trace' for forensic debugging
-  TINYTASK_LOG_LEVEL: info  # Options: error, warn, info, debug, trace
-  
+  TKO_LOG_LEVEL: info  # Options: error, warn, info, debug, trace
+
   # Node environment
   NODE_ENV: production
 ```
@@ -687,7 +687,7 @@ Add section on logging configuration:
 ```markdown
 ## Logging Configuration
 
-TinyTask MCP supports multiple logging levels for debugging and troubleshooting:
+TKO MCP supports multiple logging levels for debugging and troubleshooting:
 
 ### Log Levels
 
@@ -699,15 +699,15 @@ TinyTask MCP supports multiple logging levels for debugging and troubleshooting:
 
 ### Configuration
 
-Set the `TINYTASK_LOG_LEVEL` environment variable:
+Set the `TKO_LOG_LEVEL` environment variable:
 
 ```bash
 # Development - full forensic logging
-export TINYTASK_LOG_LEVEL=trace
+export TKO_LOG_LEVEL=trace
 npm run dev
 
 # Production - errors only
-export TINYTASK_LOG_LEVEL=error
+export TKO_LOG_LEVEL=error
 npm start
 ```
 
@@ -717,7 +717,7 @@ Update `docker-compose.yml`:
 
 ```yaml
 environment:
-  TINYTASK_LOG_LEVEL: trace  # Enable forensic logging
+  TKO_LOG_LEVEL: trace  # Enable forensic logging
 ```
 
 ### Troubleshooting Agent Issues
@@ -727,13 +727,13 @@ If an agent (like goose) is having issues creating tasks:
 1. Enable trace logging:
    ```bash
    docker-compose down
-   # Edit docker-compose.yml, set TINYTASK_LOG_LEVEL: trace
+   # Edit docker-compose.yml, set TKO_LOG_LEVEL: trace
    docker-compose up -d
    ```
 
 2. Watch logs in real-time:
    ```bash
-   docker-compose logs -f tinytask
+   docker-compose logs -f tko
    ```
 
 3. Look for:
@@ -745,7 +745,7 @@ If an agent (like goose) is having issues creating tasks:
 4. Return to normal logging:
    ```bash
    docker-compose down
-   # Edit docker-compose.yml, set TINYTASK_LOG_LEVEL: info
+   # Edit docker-compose.yml, set TKO_LOG_LEVEL: info
    docker-compose up -d
    ```
 ```
@@ -762,36 +762,36 @@ import { Logger, LogLevel } from '../../src/utils/logger.js';
 
 describe('Logger', () => {
   let originalEnv: string | undefined;
-  
+
   beforeEach(() => {
-    originalEnv = process.env.TINYTASK_LOG_LEVEL;
+    originalEnv = process.env.TKO_LOG_LEVEL;
   });
-  
+
   afterEach(() => {
-    process.env.TINYTASK_LOG_LEVEL = originalEnv;
+    process.env.TKO_LOG_LEVEL = originalEnv;
   });
-  
+
   it('should default to INFO level', () => {
-    delete process.env.TINYTASK_LOG_LEVEL;
+    delete process.env.TKO_LOG_LEVEL;
     const logger = new Logger();
     expect(logger.shouldLog(LogLevel.INFO)).toBe(true);
     expect(logger.shouldLog(LogLevel.DEBUG)).toBe(false);
   });
-  
+
   it('should respect TRACE level', () => {
-    process.env.TINYTASK_LOG_LEVEL = 'trace';
+    process.env.TKO_LOG_LEVEL = 'trace';
     const logger = new Logger();
     expect(logger.shouldLog(LogLevel.TRACE)).toBe(true);
     expect(logger.shouldLog(LogLevel.DEBUG)).toBe(true);
   });
-  
+
   it('should respect ERROR level', () => {
-    process.env.TINYTASK_LOG_LEVEL = 'error';
+    process.env.TKO_LOG_LEVEL = 'error';
     const logger = new Logger();
     expect(logger.shouldLog(LogLevel.ERROR)).toBe(true);
     expect(logger.shouldLog(LogLevel.INFO)).toBe(false);
   });
-  
+
   // Add more tests for sanitization, formatting, etc.
 });
 ```
@@ -809,7 +809,7 @@ Update existing integration tests to verify logging doesn't break functionality.
    - [ ] Verify no detailed request/response bodies
 
 2. **Trace Logging**
-   - [ ] Set TINYTASK_LOG_LEVEL=trace
+   - [ ] Set TKO_LOG_LEVEL=trace
    - [ ] Create a task via API
    - [ ] Verify full request body logged
    - [ ] Verify full response body logged
@@ -817,7 +817,7 @@ Update existing integration tests to verify logging doesn't break functionality.
    - [ ] Verify tool invocation logged
 
 3. **Error Logging**
-   - [ ] Set TINYTASK_LOG_LEVEL=error
+   - [ ] Set TKO_LOG_LEVEL=error
    - [ ] Verify no INFO messages
    - [ ] Cause an error (invalid task)
    - [ ] Verify error logged with context

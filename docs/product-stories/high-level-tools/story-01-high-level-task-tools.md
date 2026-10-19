@@ -152,7 +152,7 @@ Each round-trip consumes tokens for both the request and response. With multiple
 ## Technical Design
 
 ### Architecture
-Follow existing TinyTask layered architecture:
+Follow existing TKO layered architecture:
 1. **Tool Layer** (`src/tools/task-tools.ts`): Handler functions
 2. **Service Layer** (`src/services/task-service.ts`): Business logic methods
 3. **Database Layer** (`src/db/client.ts`): Transaction support
@@ -327,7 +327,7 @@ move_task: z.object({
 
 ### Risk 1: Transaction Locking
 **Risk:** High concurrency could cause database lock contention
-**Mitigation:** 
+**Mitigation:**
 - Use existing transaction patterns that release locks immediately
 - Monitor lock wait times in production
 - Consider optimistic locking if needed

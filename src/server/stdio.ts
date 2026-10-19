@@ -18,8 +18,10 @@ export async function startStdioServer(server: Server): Promise<void> {
   await server.connect(transport);
 
   // Log to stderr (stdout is reserved for MCP protocol)
-  logger.info('TinyTask MCP server running on stdio');
-  logger.info(`Database: ${process.env.TINYTASK_DB_PATH || './data/tinytask.db'}`);
+  logger.info('TKO MCP server running on stdio');
+  logger.info(
+    `Database: ${(process.env.TKO_DB_PATH ?? process.env.TINYTASK_DB_PATH) || './data/tinytask.db'}`
+  );
   logger.info('Mode: stdio');
   logger.info('Press Ctrl+C to stop');
 

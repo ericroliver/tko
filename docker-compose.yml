@@ -1,8 +1,8 @@
 
 services:
-  tinytask:
-    image: tinytask-mcp:latest
-    container_name: tinytask
+  tko:
+    image: tko-mcp:latest
+    container_name: tko
     build:
       context: .
       dockerfile: Dockerfile
@@ -15,25 +15,25 @@ services:
       # Transport mode: stdio, http, or both (default: both)
       # Use 'http' for remote HTTP connections only
       # Use 'both' for stdio + HTTP (recommended for flexibility)
-      TINYTASK_MODE: http
+      TKO_MODE: http
       
       # HTTP Transport: Streamable HTTP by default
       # Uncomment the following line to enable legacy SSE mode:
-      # TINYTASK_ENABLE_SSE: 'true'
+      # TKO_ENABLE_SSE: 'true'
       # See docker-compose.legacy-sse.yml for a complete SSE example
       # Migration guide: docs/product/streamable-http-migration-guide.md
       
       # HTTP server configuration
-      TINYTASK_PORT: 3000
-      TINYTASK_HOST: 0.0.0.0
+      TKO_PORT: 3000
+      TKO_HOST: 0.0.0.0
       
       # Database
-      TINYTASK_DB_PATH: /data/tinytask.db
+      TKO_DB_PATH: /data/tinytask.db
       
       # Logging
       # Options: error, warn, info (default), debug, trace
       # Use 'trace' for forensic debugging, 'info' for production
-      TINYTASK_LOG_LEVEL: info
+      TKO_LOG_LEVEL: info
       
       # Node environment
       NODE_ENV: production
@@ -45,8 +45,8 @@ services:
       retries: 3
       start_period: 5s
     networks:
-      - tinytask-network
+      - tko-network
 
 networks:
-  tinytask-network:
+  tko-network:
     driver: bridge

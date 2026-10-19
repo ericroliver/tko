@@ -13,7 +13,7 @@ import type { ParsedTask, CommentData, LinkData, TaskStatus } from '../types/ind
 export interface HubMessageMetadata {
   priority?: 'low' | 'normal' | 'high';
   ttl?: number; // Seconds, 1–86400
-  source?: string; // e.g. 'tinytask', max 100 chars
+  source?: string; // e.g. 'tko', max 100 chars
   correlationId?: string; // Optional, max 100 chars
 }
 
@@ -225,7 +225,7 @@ export function createEvent(
     timestamp: new Date().toISOString(),
     payload,
     metadata: {
-      source: 'tinytask',
+      source: 'tko',
       priority: 'normal',
       ...metadata,
     },

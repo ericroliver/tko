@@ -1,7 +1,7 @@
 # Docker Deployment Strategy
 
 ## Overview
-TinyTask MCP server packaged as a lightweight Docker container with SQLite persistence mapped to the host filesystem.
+TKO MCP server packaged as a lightweight Docker container with SQLite persistence mapped to the host filesystem.
 
 ## Dockerfile Design
 
@@ -66,9 +66,9 @@ CMD ["node", "build/index.js"]
 version: '3.8'
 
 services:
-  tinytask:
-    image: tinytask-mcp:latest
-    container_name: tinytask-mcp
+  tko:
+    image: tko-mcp:latest
+    container_name: tko-mcp
     build:
       context: .
       dockerfile: Dockerfile
@@ -81,20 +81,20 @@ services:
       - ./config:/config:ro
     environment:
       # Server mode / transport
-      TINYTASK_MODE: both  # Stdio + Streamable HTTP
-      TINYTASK_ENABLE_SSE: "false"  # Set true only for legacy SSE
-      
+      TKO_MODE: both  # Stdio + Streamable HTTP
+      TKO_ENABLE_SSE: "false"  # Set true only for legacy SSE
+
       # HTTP configuration
-      TINYTASK_PORT: 3000
-      TINYTASK_HOST: 0.0.0.0
-      
+      TKO_PORT: 3000
+      TKO_HOST: 0.0.0.0
+
       # Database
-      TINYTASK_DB_PATH: /data/tinytask.db
-      
+      TKO_DB_PATH: /data/tinytask.db
+
       # Optional features
-      TINYTASK_ENABLE_HISTORY: "false"
-      TINYTASK_LOG_LEVEL: info
-      
+      TKO_ENABLE_HISTORY: "false"
+      TKO_LOG_LEVEL: info
+
       # Node environment
       NODE_ENV: production
     restart: unless-stopped
@@ -105,10 +105,10 @@ services:
       retries: 3
       start_period: 5s
     networks:
-      - tinytask-network
+      - tko-network
 
 networks:
-  tinytask-network:
+  tko-network:
     driver: bridge
 ```
 
@@ -118,11 +118,11 @@ networks:
 version: '3.8'
 
 services:
-  tinytask-dev:
+  tko-dev:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: tinytask-mcp-dev
+    container_name: tko-mcp-dev
     ports:
       - "3000:3000"
       - "9229:9229"  # Debug port
@@ -131,18 +131,18 @@ services:
       - ./data:/data
       - /app/node_modules  # Prevent overwriting
     environment:
-      TINYTASK_MODE: both
-      TINYTASK_ENABLE_SSE: "false"
-      TINYTASK_PORT: 3000
-      TINYTASK_DB_PATH: /data/tinytask.db
-      TINYTASK_LOG_LEVEL: debug
+      TKO_MODE: both
+      TKO_ENABLE_SSE: "false"
+      TKO_PORT: 3000
+      TKO_DB_PATH: /data/tinytask.db
+      TKO_LOG_LEVEL: debug
       NODE_ENV: development
     command: npm run dev
     networks:
-      - tinytask-network
+      - tko-network
 
 networks:
-  tinytask-network:
+  tko-network:
     driver: bridge
 ```
 
@@ -153,13 +153,13 @@ networks:
 **Option 1: Host Directory (Recommended for MVP)**
 ```bash
 # Create data directory on host
-mkdir -p /opt/tinytask/data
+mkdir -p /opt/tko/data
 
 # Set permissions
-chmod 755 /opt/tinytask/data
+chmod 755 /opt/tko/data
 
 # Mount in container
-docker run -v /opt/tinytask/data:/data tinytask-mcp
+docker run -v /opt/tko/data:/data tko-mcp
 ```
 
 **Advantages:**
@@ -171,13 +171,13 @@ docker run -v /opt/tinytask/data:/data tinytask-mcp
 **Option 2: Named Docker Volume**
 ```bash
 # Create volume
-docker volume create tinytask-data
+docker volume create tko-data
 
 # Mount in container
-docker run -v tinytask-data:/data tinytask-mcp
+docker run -v tko-data:/data tko-mcp
 
 # Backup volume
-docker run --rm -v tinytask-data:/data -v $(pwd):/backup alpine tar czf /backup/tinytask-backup.tar.gz /data
+docker run --rm -v tko-data:/data -v $(pwd):/backup alpine tar czf /backup/tko-backup.tar.gz /data
 ```
 
 **Advantages:**
@@ -213,30 +213,30 @@ For MVP, use host directory for simplicity and easy access.
 
 ```bash
 #!/bin/bash
-# backup-tinytask.sh
+# backup-tko.sh
 
-BACKUP_DIR="/opt/tinytask/backups"
-DB_PATH="/opt/tinytask/data/tinytask.db"
+BACKUP_DIR="/opt/tko/backups"
+DB_PATH="/opt/tko/data/tinytask.db"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
 # Create backup directory
 mkdir -p "$BACKUP_DIR"
 
 # Backup using SQLite online backup
-sqlite3 "$DB_PATH" ".backup '$BACKUP_DIR/tinytask-$TIMESTAMP.db'"
+sqlite3 "$DB_PATH" ".backup '$BACKUP_DIR/tko-$TIMESTAMP.db'"
 
 # Compress
-gzip "$BACKUP_DIR/tinytask-$TIMESTAMP.db"
+gzip "$BACKUP_DIR/tko-$TIMESTAMP.db"
 
 # Keep only last 7 days
-find "$BACKUP_DIR" -name "tinytask-*.db.gz" -mtime +7 -delete
+find "$BACKUP_DIR" -name "tko-*.db.gz" -mtime +7 -delete
 
-echo "Backup completed: tinytask-$TIMESTAMP.db.gz"
+echo "Backup completed: tko-$TIMESTAMP.db.gz"
 ```
 
 **Crontab entry** (daily at 2 AM):
 ```cron
-0 2 * * * /opt/tinytask/backup-tinytask.sh >> /var/log/tinytask-backup.log 2>&1
+0 2 * * * /opt/tko/backup-tko.sh >> /var/log/tko-backup.log 2>&1
 ```
 
 ## Container Orchestration
@@ -245,29 +245,29 @@ echo "Backup completed: tinytask-$TIMESTAMP.db.gz"
 
 ```bash
 # Build image
-docker build -t tinytask-mcp:latest .
+docker build -t tko-mcp:latest .
 
 # Run container
 docker run -d \
-  --name tinytask-mcp \
+  --name tko-mcp \
   -p 3000:3000 \
-  -v /opt/tinytask/data:/data \
-  -e TINYTASK_MODE=sse \
-  -e TINYTASK_LOG_LEVEL=info \
+  -v /opt/tko/data:/data \
+  -e TKO_MODE=sse \
+  -e TKO_LOG_LEVEL=info \
   --restart unless-stopped \
-  tinytask-mcp:latest
+  tko-mcp:latest
 
 # View logs
-docker logs -f tinytask-mcp
+docker logs -f tko-mcp
 
 # Stop container
-docker stop tinytask-mcp
+docker stop tko-mcp
 
 # Start container
-docker start tinytask-mcp
+docker start tko-mcp
 
 # Remove container (data persists in volume)
-docker rm tinytask-mcp
+docker rm tko-mcp
 ```
 
 ### Docker Compose
@@ -292,7 +292,7 @@ docker-compose down -v
 ## Network Configuration
 
 ### Port Mapping
-- **Container Port:** 3000 (configurable via TINYTASK_PORT)
+- **Container Port:** 3000 (configurable via TKO_PORT)
 - **Host Port:** 3000 (can map to any available port)
 
 ### Firewall Rules
@@ -310,16 +310,16 @@ For production, consider nginx or traefik:
 
 ```nginx
 # nginx configuration
-upstream tinytask {
+upstream tko {
     server localhost:3000;
 }
 
 server {
     listen 80;
-    server_name tinytask.example.com;
-    
+    server_name tko.example.com;
+
     location /mcp {
-        proxy_pass http://tinytask;
+        proxy_pass http://tko;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -327,16 +327,16 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        
+
         # SSE specific
         proxy_buffering off;
         proxy_cache off;
         proxy_read_timeout 86400s;
         proxy_send_timeout 86400s;
     }
-    
+
     location /health {
-        proxy_pass http://tinytask;
+        proxy_pass http://tko;
     }
 }
 ```
@@ -377,16 +377,16 @@ Docker automatically captures stdout/stderr:
 
 ```bash
 # View logs
-docker logs tinytask-mcp
+docker logs tko-mcp
 
 # Follow logs
-docker logs -f tinytask-mcp
+docker logs -f tko-mcp
 
 # Last 100 lines
-docker logs --tail 100 tinytask-mcp
+docker logs --tail 100 tko-mcp
 
 # With timestamps
-docker logs -t tinytask-mcp
+docker logs -t tko-mcp
 ```
 
 ### Log Levels
@@ -425,8 +425,8 @@ docker run \
   --cap-drop=ALL \
   --read-only \
   --tmpfs /tmp \
-  -v /opt/tinytask/data:/data \
-  tinytask-mcp
+  -v /opt/tko/data:/data \
+  tko-mcp
 ```
 
 ### Network Security
@@ -440,7 +440,7 @@ docker run \
 
 ```yaml
 services:
-  tinytask:
+  tko:
     # ...
     deploy:
       resources:
@@ -458,7 +458,7 @@ docker run \
   --cpus=1.0 \
   --memory=512m \
   --memory-reservation=256m \
-  tinytask-mcp
+  tko-mcp
 ```
 
 ### Recommended Resources
@@ -496,22 +496,22 @@ docker run \
 
 1. **Stop container:**
    ```bash
-   docker stop tinytask-mcp
+   docker stop tko-mcp
    ```
 
 2. **Restore from backup:**
    ```bash
-   cp /opt/tinytask/backups/tinytask-20240115-020000.db /opt/tinytask/data/tinytask.db
+   cp /opt/tko/backups/tko-20240115-020000.db /opt/tko/data/tinytask.db
    ```
 
 3. **Restart container:**
    ```bash
-   docker start tinytask-mcp
+   docker start tko-mcp
    ```
 
 4. **Verify:**
    ```bash
-   docker logs tinytask-mcp
+   docker logs tko-mcp
    curl http://localhost:3000/health
    ```
 
@@ -530,24 +530,24 @@ Test recovery procedure monthly to ensure backups are valid.
 ### Simple Update (Brief Downtime)
 ```bash
 # Pull new image
-docker pull tinytask-mcp:latest
+docker pull tko-mcp:latest
 
 # Stop old container
-docker stop tinytask-mcp
+docker stop tko-mcp
 
 # Remove old container
-docker rm tinytask-mcp
+docker rm tko-mcp
 
 # Start new container (uses same volume)
 docker run -d \
-  --name tinytask-mcp \
+  --name tko-mcp \
   -p 3000:3000 \
-  -v /opt/tinytask/data:/data \
+  -v /opt/tko/data:/data \
   --restart unless-stopped \
-  tinytask-mcp:latest
+  tko-mcp:latest
 
 # Verify
-docker logs -f tinytask-mcp
+docker logs -f tko-mcp
 ```
 
 ## Performance Optimization

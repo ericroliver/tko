@@ -2,14 +2,14 @@
 
 ## Executive Summary
 
-This feature adds two major capabilities to TinyTask:
+This feature adds two major capabilities to TKO:
 
 1. **Subtasks**: Hierarchical task relationships enabling task decomposition
 2. **Queues**: Team-based task organization (dev, product, qa teams)
 
 ## Problem Statement
 
-Currently, TinyTask only supports:
+Currently, TKO only supports:
 - Flat task lists (no parent-child relationships)
 - Individual agent assignment (no team-level organization)
 
@@ -73,19 +73,19 @@ graph TB
         Tools[MCP Tools]
         Resources[MCP Resources]
     end
-    
+
     subgraph "Service Layer"
         TaskService[Task Service]
         SubtaskLogic[Subtask Logic]
         QueueLogic[Queue Logic]
     end
-    
+
     subgraph "Database Layer"
         Schema[(SQLite Database)]
         Tasks[tasks table]
         Indexes[Indexes]
     end
-    
+
     Tools --> TaskService
     Resources --> TaskService
     TaskService --> SubtaskLogic
@@ -94,7 +94,7 @@ graph TB
     QueueLogic --> Tasks
     Tasks --> Schema
     Indexes --> Schema
-    
+
     style Tools fill:#e1f5ff
     style Resources fill:#e1f5ff
     style TaskService fill:#fff4e1

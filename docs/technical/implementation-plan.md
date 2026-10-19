@@ -1,29 +1,29 @@
-# TinyTask MCP Implementation Plan
+# TKO MCP Implementation Plan
 
 ## Project Overview
 
-**Project Name:** TinyTask MCP  
-**Version:** 1.0.0 (MVP)  
-**Purpose:** Minimal task management system for LLM agent collaboration  
-**Technology:** Node.js/TypeScript MCP Server with SQLite  
+**Project Name:** TKO MCP
+**Version:** 1.0.0 (MVP)
+**Purpose:** Minimal task management system for LLM agent collaboration
+**Technology:** Node.js/TypeScript MCP Server with SQLite
 **Deployment:** Docker container with persistent storage
 
 ## Goals and Non-Goals
 
 ### Goals
-✅ Enable multiple LLM agents to collaborate on tasks  
-✅ Support task queuing and assignment between agents  
-✅ Allow agents to add comments and links to tasks  
-✅ Provide both stdio (local) and SSE (remote) transport  
-✅ Ensure data persistence across container restarts  
+✅ Enable multiple LLM agents to collaborate on tasks
+✅ Support task queuing and assignment between agents
+✅ Allow agents to add comments and links to tasks
+✅ Provide both stdio (local) and SSE (remote) transport
+✅ Ensure data persistence across container restarts
 ✅ Minimal viable product - simple and focused
 
 ### Non-Goals
-❌ User authentication/authorization (trusted network)  
-❌ Complex workflow engine (agents decide routing)  
-❌ Web UI (CLI/MCP-only interface)  
-❌ Real-time notifications (agents poll)  
-❌ Advanced reporting/analytics  
+❌ User authentication/authorization (trusted network)
+❌ Complex workflow engine (agents decide routing)
+❌ Web UI (CLI/MCP-only interface)
+❌ Real-time notifications (agents poll)
+❌ Advanced reporting/analytics
 ❌ Multi-database support (SQLite only for MVP)
 
 ## Technical Specifications
@@ -46,7 +46,7 @@
 **4 Tables:**
 1. **tasks** - Core entity with status, assignment, priority
 2. **comments** - Many-to-one with tasks
-3. **links** - Many-to-one with tasks  
+3. **links** - Many-to-one with tasks
 4. **task_history** - Audit trail (populated on every task mutation since v2.2.0)
 
 **Key Features:**
@@ -243,7 +243,7 @@ See: [`architecture.md`](architecture.md)
 
 **Tasks:**
 1. Create index.ts with mode detection
-2. Support TINYTASK_MODE environment variable
+2. Support TKO_MODE environment variable
 3. Initialize database on startup
 4. Add graceful shutdown handling
 5. Add startup logging
@@ -306,8 +306,8 @@ See: [`architecture.md`](architecture.md)
 ---
 
 ## Total Estimated Effort
-**Minimum:** 46 hours  
-**Maximum:** 72 hours  
+**Minimum:** 46 hours
+**Maximum:** 72 hours
 **Average:** 59 hours (~1.5 weeks full-time)
 
 ## Dependencies and Prerequisites

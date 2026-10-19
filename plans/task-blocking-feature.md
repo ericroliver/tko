@@ -2,7 +2,7 @@
 
 ## Overview
 
-Add task blocking capability to TinyTask MCP, allowing tasks to be blocked by other tasks. When a blocking task is completed, blocked tasks become unblocked. If the blocking task is reopened, previously blocked tasks become blocked again.
+Add task blocking capability to TKO MCP, allowing tasks to be blocked by other tasks. When a blocking task is completed, blocked tasks become unblocked. If the blocking task is reopened, previously blocked tasks become blocked again.
 
 ## Requirements Summary
 
@@ -391,7 +391,7 @@ async function listBlockedTasksHandler(
   args: { blocking_task_id: number }
 ): Promise<ToolResponse> {
   const blockedTasks = taskService.getBlockedTasks(args.blocking_task_id);
-  
+
   return {
     content: [
       {
@@ -473,7 +473,7 @@ All task resources automatically include the new fields since they use `ParsedTa
 // Handler
 async function getBlockedByResource(taskId: number): Promise<Resource> {
   const blockedTasks = taskService.getBlockedTasks(taskId);
-  
+
   return {
     uri: `tasks://blocked-by/${taskId}`,
     mimeType: 'application/json',
@@ -549,7 +549,7 @@ Update [`docs/technical/database-schema.md`](../docs/technical/database-schema.m
 - **Type**: INTEGER (nullable)
 - **Foreign Key**: References tasks(id) ON DELETE SET NULL
 - **Purpose**: Indicates this task is blocked by another task
-- **Behavior**: 
+- **Behavior**:
   - Task is "currently blocked" if blocking task status != 'complete'
   - Field is never auto-cleared (preserves relationship)
   - Set to NULL if blocking task is deleted

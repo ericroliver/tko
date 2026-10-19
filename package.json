@@ -1,11 +1,11 @@
 {
-  "name": "tinytask",
+  "name": "tko",
   "version": "2.2.2",
-  "description": "TinyTask is a minimal task management system for LLMs exposed as an MCP server, API and CLI",
+  "description": "TKO is a minimal task management system for LLMs exposed as an MCP server, API and CLI",
   "type": "module",
   "main": "build/index.js",
   "bin": {
-    "tinytask-mcp": "build/index.js"
+    "tko-mcp": "build/index.js"
   },
   "directories": {
     "doc": "docs"
@@ -15,12 +15,12 @@
     "copy-assets": "mkdir -p build/db && cp src/db/schema.sql build/db/",
     "dev": "tsx watch src/index.ts",
     "start": "node build/index.js",
-    "start:stdio": "TINYTASK_MODE=stdio node build/index.js",
-    "start:http": "TINYTASK_MODE=http node build/index.js",
-    "start:http:sse": "TINYTASK_MODE=http TINYTASK_ENABLE_SSE=true node build/index.js",
-    "start:both": "TINYTASK_MODE=both node build/index.js",
-    "start:both:sse": "TINYTASK_MODE=both TINYTASK_ENABLE_SSE=true node build/index.js",
-    "start:sse": "echo '⚠️  DEPRECATED: Use start:http:sse instead' && TINYTASK_MODE=http TINYTASK_ENABLE_SSE=true node build/index.js",
+    "start:stdio": "TKO_MODE=stdio node build/index.js",
+    "start:http": "TKO_MODE=http node build/index.js",
+    "start:http:sse": "TKO_MODE=http TKO_ENABLE_SSE=true node build/index.js",
+    "start:both": "TKO_MODE=both node build/index.js",
+    "start:both:sse": "TKO_MODE=both TKO_ENABLE_SSE=true node build/index.js",
+    "start:sse": "echo '⚠️  DEPRECATED: Use start:http:sse instead' && TKO_MODE=http TKO_ENABLE_SSE=true node build/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

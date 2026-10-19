@@ -7,7 +7,7 @@ This document provides the detailed implementation plan for two high-level task 
 ## Architecture Review
 
 ### Existing Patterns
-The TinyTask MCP follows a clean layered architecture:
+The TKO MCP follows a clean layered architecture:
 - **Tool Layer** ([`src/tools/task-tools.ts`](../../src/tools/task-tools.ts:1)): Handler functions that process MCP tool calls
 - **Service Layer** ([`src/services/task-service.ts`](../../src/services/task-service.ts:1)): Business logic with transaction support
 - **Database Layer** ([`src/db/client.ts`](../../src/db/client.ts:1)): SQLite wrapper with transaction API
@@ -44,16 +44,16 @@ signupForTask(agentName: string): TaskWithRelations | null
 **SQL Operations:**
 ```sql
 -- Step 1: Find first idle task
-SELECT * FROM tasks 
-WHERE assigned_to = ? 
+SELECT * FROM tasks
+WHERE assigned_to = ?
   AND status = 'idle'
   AND archived_at IS NULL
 ORDER BY priority DESC, created_at ASC
 LIMIT 1
 
 -- Step 2: Update to working (if task found)
-UPDATE tasks 
-SET status = 'working', updated_at = CURRENT_TIMESTAMP 
+UPDATE tasks
+SET status = 'working', updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
 
 -- Step 3: Get full task with relations
@@ -72,8 +72,8 @@ signupForTask(agentName: string): TaskWithRelations | null {
   return this.db.transaction(() => {
     // Get first idle task from agent's queue
     const task = this.db.queryOne<Task>(
-      `SELECT * FROM tasks 
-       WHERE assigned_to = ? 
+      `SELECT * FROM tasks
+       WHERE assigned_to = ?
          AND status = 'idle'
          AND archived_at IS NULL
        ORDER BY priority DESC, created_at ASC
@@ -134,12 +134,12 @@ moveTask(
 SELECT * FROM tasks WHERE id = ?
 
 -- Step 2: Update assignment and status
-UPDATE tasks 
-SET assigned_to = ?, status = 'idle', updated_at = CURRENT_TIMESTAMP 
+UPDATE tasks
+SET assigned_to = ?, status = 'idle', updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
 
 -- Step 3: Add handoff comment
-INSERT INTO comments (task_id, content, created_by) 
+INSERT INTO comments (task_id, content, created_by)
 VALUES (?, ?, ?)
 
 -- Step 4: Get full task with relations
@@ -163,7 +163,7 @@ moveTask(
   return this.db.transaction(() => {
     // Verify task and ownership
     const task = this.db.queryOne<Task>('SELECT * FROM tasks WHERE id = ?', [taskId]);
-    
+
     if (!task) {
       throw new Error(`Task not found: ${taskId}`);
     }
@@ -182,8 +182,8 @@ moveTask(
 
     // Update task assignment and status
     this.db.execute(
-      `UPDATE tasks 
-       SET assigned_to = ?, status = 'idle', updated_at = CURRENT_TIMESTAMP 
+      `UPDATE tasks
+       SET assigned_to = ?, status = 'idle', updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
       [newAgent, taskId]
     );
@@ -225,7 +225,7 @@ export async function signupForTaskHandler(
 ) {
   try {
     const task = taskService.signupForTask(params.agent_name);
-    
+
     if (!task) {
       return {
         content: [
@@ -388,7 +388,7 @@ sequenceDiagram
     participant Handler
     participant Service
     participant Database
-    
+
     Agent->>Handler: signup_for_task(agent_name)
     Handler->>Service: signupForTask(agent_name)
     Service->>Database: BEGIN TRANSACTION
@@ -417,12 +417,12 @@ sequenceDiagram
     participant Handler
     participant Service
     participant Database
-    
+
     Agent->>Handler: move_task(task_id, current, new, comment)
     Handler->>Service: moveTask(...)
     Service->>Database: BEGIN TRANSACTION
     Service->>Database: SELECT task by id
-    
+
     alt Task not found
         Database-->>Service: null
         Service->>Database: ROLLBACK
@@ -579,7 +579,7 @@ sequenceDiagram
 
 ### Transaction Locking
 **Risk:** Concurrent access could cause lock contention
-**Mitigation:** 
+**Mitigation:**
 - SQLite WAL mode already enabled (concurrent reads)
 - Transactions are short-lived (< 100ms)
 - busy_timeout set to 30 seconds

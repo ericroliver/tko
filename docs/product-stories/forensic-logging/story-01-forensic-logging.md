@@ -4,7 +4,7 @@
 Implement comprehensive, environment-controlled logging to enable forensic-level debugging of MCP protocol interactions, particularly for troubleshooting agent integration issues.
 
 ## Problem Statement
-When agents (like goose) interact with the TinyTask MCP server, issues can occur that are difficult to debug with current minimal logging. The current log output `"MCP POST message received"` provides no visibility into:
+When agents (like goose) interact with the TKO MCP server, issues can occur that are difficult to debug with current minimal logging. The current log output `"MCP POST message received"` provides no visibility into:
 - What data the agent is sending
 - How the server is responding
 - Where in the request/response cycle failures occur
@@ -58,7 +58,7 @@ When agents (like goose) interact with the TinyTask MCP server, issues can occur
 ```
 ┌─────────────────────────────────────────────────────┐
 │                 Environment Config                   │
-│              TINYTASK_LOG_LEVEL=trace                │
+│              TKO_LOG_LEVEL=trace                │
 └──────────────────┬──────────────────────────────────┘
                    │
                    ▼
@@ -97,17 +97,17 @@ enum LogLevel {
 
 class Logger {
   private level: LogLevel;
-  
+
   constructor(level: string) {
     this.level = this.parseLevel(level);
   }
-  
+
   error(message: string, context?: unknown): void
   warn(message: string, context?: unknown): void
   info(message: string, context?: unknown): void
   debug(message: string, context?: unknown): void
   trace(message: string, context?: unknown): void
-  
+
   // Specialized logging methods
   logRequest(req: Request): void
   logResponse(res: Response, duration: number): void
@@ -137,7 +137,7 @@ class Logger {
 
 #### Environment Variable
 ```bash
-TINYTASK_LOG_LEVEL=trace
+TKO_LOG_LEVEL=trace
 ```
 
 Valid values: `error`, `warn`, `info` (default), `debug`, `trace`
@@ -145,7 +145,7 @@ Valid values: `error`, `warn`, `info` (default), `debug`, `trace`
 #### Docker Compose Update
 ```yaml
 environment:
-  TINYTASK_LOG_LEVEL: trace  # Change from 'info' to enable forensics
+  TKO_LOG_LEVEL: trace  # Change from 'info' to enable forensics
 ```
 
 ### Log Output Examples
@@ -239,7 +239,7 @@ MCP POST message received
 
 ### Core Functionality
 - [ ] Logger utility supports all 5 log levels (error, warn, info, debug, trace)
-- [ ] TINYTASK_LOG_LEVEL environment variable controls logging
+- [ ] TKO_LOG_LEVEL environment variable controls logging
 - [ ] Default log level is 'info' (maintains current behavior)
 - [ ] All existing console.error calls migrated to logger
 
@@ -291,7 +291,7 @@ MCP POST message received
 - No breaking changes to API or behavior
 
 ### Deployment
-- Update docker-compose.yml with TINYTASK_LOG_LEVEL
+- Update docker-compose.yml with TKO_LOG_LEVEL
 - Update README with configuration instructions
 - Update troubleshooting guide
 

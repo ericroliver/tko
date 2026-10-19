@@ -1,16 +1,16 @@
-# TinyTask MCP - Architecture Summary
+# TKO MCP - Architecture Summary
 
 ## Executive Summary
 
-**TinyTask MCP** is a minimal task management system designed specifically for LLM agent collaboration. It exposes task management functionality via the Model Context Protocol (MCP), allowing autonomous agents to create, manage, and collaborate on tasks without human intervention.
+**TKO MCP** is a minimal task management system designed specifically for LLM agent collaboration. It exposes task management functionality via the Model Context Protocol (MCP), allowing autonomous agents to create, manage, and collaborate on tasks without human intervention.
 
 ## Key Features
 
-✅ **Task Management** - Full CRUD operations with status tracking (idle, working, complete)  
-✅ **Agent Queues** - Each agent can query their assigned tasks  
-✅ **Collaboration** - Comments and links enable agent communication  
-✅ **Persistence** - SQLite database with Docker volume persistence  
-✅ **Flexible Transport** - Stdio (local) plus Streamable HTTP (default) with SSE legacy fallback  
+✅ **Task Management** - Full CRUD operations with status tracking (idle, working, complete)
+✅ **Agent Queues** - Each agent can query their assigned tasks
+✅ **Collaboration** - Comments and links enable agent communication
+✅ **Persistence** - SQLite database with Docker volume persistence
+✅ **Flexible Transport** - Stdio (local) plus Streamable HTTP (default) with SSE legacy fallback
 ✅ **Production Ready** - Docker packaging with health checks
 
 ## Technology Stack
@@ -33,7 +33,7 @@
 └──────────────┬──────────────────────────────────────┘
                │ MCP Protocol (stdio/HTTP)
 ┌──────────────▼──────────────────────────────────────┐
-│              TinyTask MCP Server                    │
+│              TKO MCP Server                    │
 │  ┌─────────────────────────────────────────────┐   │
 │  │  Tools (15+): create_task, update_task,     │   │
 │  │              add_comment, add_link, etc.    │   │
@@ -108,22 +108,22 @@ See: [`docs/technical/mcp-api-design.md`](technical/mcp-api-design.md)
 
 **Stdio Mode** (Local Development)
 ```bash
-docker run -v ./data:/data -e TINYTASK_MODE=stdio tinytask-mcp
+docker run -v ./data:/data -e TKO_MODE=stdio tko-mcp
 ```
 
 **Streamable HTTP Mode** (Production Multi-Agent)
 ```bash
-docker run -p 3000:3000 -v ./data:/data -e TINYTASK_MODE=http tinytask-mcp
+docker run -p 3000:3000 -v ./data:/data -e TKO_MODE=http tko-mcp
 ```
 
 **Both Modes**
 ```bash
-docker run -p 3000:3000 -v ./data:/data -e TINYTASK_MODE=both tinytask-mcp
+docker run -p 3000:3000 -v ./data:/data -e TKO_MODE=both tko-mcp
 ```
 
 **Legacy SSE**
 ```bash
-docker run -p 3000:3000 -v ./data:/data -e TINYTASK_MODE=http -e TINYTASK_ENABLE_SSE=true tinytask-mcp
+docker run -p 3000:3000 -v ./data:/data -e TKO_MODE=http -e TKO_ENABLE_SSE=true tko-mcp
 ```
 
 See: [`docs/technical/docker-deployment.md`](technical/docker-deployment.md)
@@ -226,9 +226,9 @@ docs/
 │   ├── docker-deployment.md
 │   └── implementation-plan.md
 ├── product/
-│   └── tinytask-mcp-prd.md
+│   └── tko-mcp-prd.md
 └── product-stories/
-    └── tinytask-mcp/
+    └── tko-mcp/
         ├── story-01-project-setup.md
         ├── story-02-database-layer.md
         ├── story-03-service-layer.md
@@ -255,7 +255,7 @@ Refer to the detailed documentation:
 - [Technical Architecture](technical/architecture.md)
 - [API Design](technical/mcp-api-design.md)
 - [Implementation Plan](technical/implementation-plan.md)
-- [Product PRD](product/tinytask-mcp-prd.md)
+- [Product PRD](product/tko-mcp-prd.md)
 
 ---
 
