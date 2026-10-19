@@ -56,7 +56,7 @@ RUN npm ci --omit=dev --ignore-scripts
 RUN npm rebuild better-sqlite3
 
 # Fail the build here if the native module cannot load (e.g. prebuild missing).
-RUN node -e "require('better-sqlite3'); console.log('better-sqlite3 native module loads OK')"
+RUN node -e "new (require('better-sqlite3'))(':memory:').close(); console.log('better-sqlite3 native module loads OK')"
 
 # --- Harvest VC++ runtime DLLs required by better_sqlite3.node ----------------
 # nanoserver does not ship the VC++ redistributable; install it here and copy
@@ -89,7 +89,9 @@ COPY --from=builder C:/app/build C:/app/build
 RUN mkdir C:\data && icacls C:\data /grant ContainerUser:(OI)(CI)F
 
 # Verify the native module really loads in the runtime image, not just builder.
-RUN node -e "require('better-sqlite3'); console.log('better_sqlite3.node loads in nanoserver')"
+RUN node -e "new (require('better-sqlite3'))(':memory:').close(); console.log('better_sqlite3.node loads in nanoserver')"
+
+ENV TKO_MODE=http TKO_DB_PATH=C:/data/tinytask.db
 
 USER ContainerUser
 

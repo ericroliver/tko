@@ -18,12 +18,14 @@ COPY package*.json tsconfig.json ./
 COPY src ./src
 
 # Install dependencies (this will trigger prepare script which builds)
-RUN npm ci
+RUN apk add --no-cache python3 make g++ && npm ci
 
 # Production stage
 FROM node:20-alpine
 
 WORKDIR /app
+
+ENV TKO_MODE=http TKO_DB_PATH=/data/tinytask.db
 
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
@@ -45,6 +47,9 @@ COPY --from=builder /app/build ./build
 
 # Use non-root user
 USER node
+
+# Verify the native addon loads on each target architecture.
+RUN node -e "new (require('better-sqlite3'))(':memory:').close()"
 
 # Expose HTTP port (works with both Streamable HTTP and legacy SSE)
 EXPOSE 3000

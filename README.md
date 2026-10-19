@@ -529,6 +529,8 @@ npm run clean
 
 ## Deployment
 
+For automated container and CLI releases, see [CI and releases](docs/releases.md). Push a `vMAJOR.MINOR.PATCH` tag on a commit from `main` to publish.
+
 See [Deployment Guide](docs/deployment.md) for production deployment instructions, including Streamable HTTP vs SSE configuration details.
 
 ## Troubleshooting
