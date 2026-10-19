@@ -37,3 +37,8 @@ data/
 *.db
 *.db-wal
 *.db-shm
+
+# CLI binaries and CI metadata are not server build inputs
+tko-cli/
+.github/
+scripts/

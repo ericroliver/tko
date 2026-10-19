@@ -1,0 +1,302 @@
+name: Build and release
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+env:
+  NODE_VERSION: '20.20.2'
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      publish: ${{ steps.release.outputs.publish }}
+      tag: ${{ steps.release.outputs.tag }}
+      image: ${{ steps.release.outputs.image }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: release
+        shell: bash
+        env:
+          REF: ${{ github.ref }}
+          EVENT: ${{ github.event_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          echo "image=ghcr.io/${REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo 'publish=false' >> "$GITHUB_OUTPUT"
+          if [[ "$EVENT" == push && "$REF" == refs/tags/* ]]; then
+            tag="${REF#refs/tags/}"
+            [[ "$tag" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || { echo 'Expected vMAJOR.MINOR.PATCH'; exit 1; }
+            git merge-base --is-ancestor HEAD origin/main || { echo 'Release commit is not on main'; exit 1; }
+            echo 'publish=true' >> "$GITHUB_OUTPUT"
+            echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          fi
+
+  test:
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            tko-cli/package-lock.json
+      - if: needs.validate.outputs.publish == 'true'
+        env:
+          TAG: ${{ needs.validate.outputs.tag }}
+        run: node scripts/release-version.mjs "$TAG"
+      - run: node --test scripts/release-version.test.mjs
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm ci
+        working-directory: tko-cli
+      - run: npm run lint && npm run build && npm test
+        working-directory: tko-cli
+
+  client:
+    needs: [validate, test]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            platform: linux-x64
+            script: package-linux
+            binary: tko-linux
+          - runner: ubuntu-24.04-arm
+            platform: linux-arm64
+            script: package-linux
+            binary: tko-linux
+          - runner: macos-15-intel
+            platform: macos-x64
+            script: package-mac
+            binary: tko-macos
+          - runner: macos-15
+            platform: macos-arm64
+            script: package-mac
+            binary: tko-macos
+          - runner: windows-2022
+            platform: windows-x64
+            script: package-windows
+            binary: tko-win.exe
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: tko-cli/package-lock.json
+      - if: needs.validate.outputs.publish == 'true'
+        env:
+          TAG: ${{ needs.validate.outputs.tag }}
+        run: node scripts/release-version.mjs "$TAG"
+      - run: npm ci
+        working-directory: tko-cli
+      - run: npm run build && npm test
+        working-directory: tko-cli
+      - env:
+          BUILD_SCRIPT: ${{ matrix.script }}
+        run: npm run "$BUILD_SCRIPT"
+        working-directory: tko-cli
+      - name: Smoke test and archive the standalone executable
+        env:
+          BINARY: ${{ matrix.binary }}
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          mkdir -p staging artifacts
+          expected=$(node -p "require('./tko-cli/package.json').version")
+          # Run outside the source tree: the binary must not need node_modules.
+          if [[ "$PLATFORM" == windows-* ]]; then
+            cp "tko-cli/dist/$BINARY" staging/tko.exe
+          else
+            cp "tko-cli/dist/$BINARY" staging/tko
+            chmod +x staging/tko
+          fi
+          cd staging
+          actual=$(./tko --version | tr -d '\r')
+          [[ "$actual" == "$expected" ]] || { echo "Expected $expected, got $actual"; exit 1; }
+          ./tko --help
+          cp ../LICENSE .
+          if [[ "$PLATFORM" == windows-* ]]; then
+            powershell.exe -NoProfile -Command 'Compress-Archive -Path tko.exe,LICENSE -DestinationPath ../artifacts/tko-windows-x64.zip'
+          else
+            tar -czf "../artifacts/tko-$PLATFORM.tar.gz" tko LICENSE
+          fi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: client-${{ matrix.platform }}
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 14
+
+  linux-container:
+    needs: [validate, test]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            platform: linux/amd64
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            platform: linux/arm64
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - if: needs.validate.outputs.publish == 'true'
+        env:
+          TAG: ${{ needs.validate.outputs.tag }}
+        run: node scripts/release-version.mjs "$TAG"
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - if: needs.validate.outputs.publish == 'true'
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Linux images
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          push: ${{ needs.validate.outputs.publish == 'true' }}
+          tags: ${{ needs.validate.outputs.image }}:${{ needs.validate.outputs.tag || 'ci' }}-linux-${{ matrix.arch }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ needs.validate.outputs.tag || 'ci' }}
+          cache-from: type=gha,scope=linux-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=linux-${{ matrix.arch }}
+
+  windows-container:
+    needs: [validate, test]
+    runs-on: windows-2022
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - if: needs.validate.outputs.publish == 'true'
+        env:
+          TAG: ${{ needs.validate.outputs.tag }}
+        run: node scripts/release-version.mjs $env:TAG
+      - name: Build and smoke test Windows image
+        env:
+          IMAGE: ${{ needs.validate.outputs.image }}
+          TAG: ${{ needs.validate.outputs.tag || 'ci' }}
+          SOURCE: https://github.com/${{ github.repository }}
+        run: |
+          $imageTag = "${env:IMAGE}:${env:TAG}-windows-ltsc2022"
+          docker build --file Dockerfile.windows --label "org.opencontainers.image.source=$env:SOURCE" --label "org.opencontainers.image.revision=$env:GITHUB_SHA" --tag $imageTag .
+          if ($LASTEXITCODE -ne 0) { throw 'Windows container build failed' }
+          docker run --rm $imageTag node -e "new (require('better-sqlite3'))(':memory:').close()"
+          if ($LASTEXITCODE -ne 0) { throw 'Windows native SQLite smoke test failed' }
+      - name: Publish Windows image
+        if: needs.validate.outputs.publish == 'true'
+        env:
+          IMAGE: ${{ needs.validate.outputs.image }}
+          TAG: ${{ needs.validate.outputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          $env:GH_TOKEN | docker login ghcr.io --username $env:ACTOR --password-stdin
+          if ($LASTEXITCODE -ne 0) { throw 'Registry login failed' }
+          docker push "${env:IMAGE}:${env:TAG}-windows-ltsc2022"
+          if ($LASTEXITCODE -ne 0) { throw 'Windows image push failed' }
+
+  release:
+    needs: [validate, client, linux-container, windows-container]
+    if: needs.validate.outputs.publish == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: client-*
+          path: artifacts
+          merge-multiple: true
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish Linux multi-architecture manifest
+        env:
+          IMAGE: ${{ needs.validate.outputs.image }}
+          TAG: ${{ needs.validate.outputs.tag }}
+        run: |
+          docker buildx imagetools create --tag "$IMAGE:$TAG" \
+            "$IMAGE:$TAG-linux-amd64" "$IMAGE:$TAG-linux-arm64"
+      - name: Publish release with checksums
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.validate.outputs.tag }}
+          IMAGE: ${{ needs.validate.outputs.image }}
+        shell: bash
+        run: |
+          cd artifacts
+          test "$(find . -maxdepth 1 -type f | wc -l)" -eq 5
+          sha256sum *.tar.gz *.zip > SHA256SUMS
+          printf 'Server images:\n- `%s:%s` (Linux amd64/arm64)\n- `%s:%s-windows-ltsc2022` (Windows x64)\n\nClient archives contain `tko` or `tko.exe`. Verify downloads with SHA256SUMS.\n' "$IMAGE" "$TAG" "$IMAGE" "$TAG" > ../release-notes.md
+          # A published release is immutable here. A failed draft can be resumed.
+          if gh release view "$TAG" --json isDraft > ../release-state.json 2>/dev/null; then
+            jq -e '.isDraft == true' ../release-state.json
+          else
+            gh release create "$TAG" --verify-tag --draft --title "TKO $TAG" --generate-notes --notes-file ../release-notes.md
+          fi
+          gh release upload "$TAG" ./* --clobber
+          gh release edit "$TAG" --draft=false

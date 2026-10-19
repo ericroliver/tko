@@ -1,3 +1,4 @@
+import { version } from '../version.js';
 /**
  * OpenAPI 3.0 specification generator for TKO REST adapter
  *
@@ -1042,7 +1043,7 @@ export function generateOpenApiSpec(): Record<string, unknown> {
       title: 'TKO REST API',
       description:
         'Thin REST adapter for TKO MCP server. Maps all MCP tools to RESTful endpoints for Shogun test coverage. Each endpoint delegates directly to the service layer with no additional business logic.',
-      version: '1.0.0',
+      version,
       contact: {
         name: 'TKO',
       },

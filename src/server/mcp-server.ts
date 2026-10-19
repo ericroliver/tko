@@ -1,3 +1,4 @@
+import { version } from '../version.js';
 /**
  * MCP Server factory
  * Creates and configures the MCP server with all tools and resources
@@ -21,7 +22,7 @@ export function createMcpServer(
   const server = new Server(
     {
       name: 'tko-mcp',
-      version: '1.0.0',
+      version,
     },
     {
       capabilities: {
