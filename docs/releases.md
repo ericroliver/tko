@@ -46,9 +46,11 @@ Images default to HTTP mode and persist SQLite at `/data/tinytask.db` (Windows: 
 
 ## Validation and permissions
 
-The workflow runs server/CLI lint, builds, and tests; native CLI builds/tests and standalone `--version`/`--help` checks on all five platforms; Linux multi-architecture and Windows container builds with native SQLite checks. The GitHub Release is published only after all build jobs succeed. CI archives are also available as workflow artifacts for 14 days.
+The workflow runs server/CLI lint, builds, and tests; native CLI builds/tests and standalone `--version`/`--help` checks on all five platforms; native Linux amd64/arm64 and Windows container builds with native SQLite checks. The GitHub Release is published only after all build jobs succeed. CI archives are also available as workflow artifacts for 14 days.
 
 The workflow uses `GITHUB_TOKEN` with job-scoped `packages: write` for GHCR and `contents: write` for the release. No PAT or custom secrets are needed. Actions must be enabled and repository/org policies must permit those token permissions. If a GHCR package already exists, grant this repository Actions write access to it. GHCR packages may initially be private even for a public repository; set the package visibility to public in package settings if anonymous pulls are wanted.
+
+Linux images build on native x64 and ARM64 runners, publish architecture-suffixed tags (`-linux-amd64`, `-linux-arm64`), and are combined into the versioned multi-architecture manifest after every build succeeds.
 
 Version tags are published; there is deliberately no rolling `latest` tag that an older rerun could move backward. A failure may leave versioned container images or a draft release, but the release remains unpublished until all jobs succeed. Rerun a failed tag workflow to retry. Rerunning a fully published release refuses to replace its assets. Use a new version for changed code; do not move release tags. Container pushes happen before the release and are not transactional with it.
 

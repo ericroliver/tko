@@ -161,8 +161,18 @@ jobs:
 
   linux-container:
     needs: [validate, test]
-    runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            platform: linux/amd64
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            platform: linux/arm64
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: write
@@ -177,7 +187,6 @@ jobs:
         env:
           TAG: ${{ needs.validate.outputs.tag }}
         run: node scripts/release-version.mjs "$TAG"
-      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
       - if: needs.validate.outputs.publish == 'true'
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
@@ -189,15 +198,15 @@ jobs:
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platform }}
           push: ${{ needs.validate.outputs.publish == 'true' }}
-          tags: ${{ needs.validate.outputs.image }}:${{ needs.validate.outputs.tag || 'ci' }}
+          tags: ${{ needs.validate.outputs.image }}:${{ needs.validate.outputs.tag || 'ci' }}-linux-${{ matrix.arch }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.version=${{ needs.validate.outputs.tag || 'ci' }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=linux-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=linux-${{ matrix.arch }}
 
   windows-container:
     needs: [validate, test]
@@ -251,12 +260,26 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write
+      packages: write
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           pattern: client-*
           path: artifacts
           merge-multiple: true
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish Linux multi-architecture manifest
+        env:
+          IMAGE: ${{ needs.validate.outputs.image }}
+          TAG: ${{ needs.validate.outputs.tag }}
+        run: |
+          docker buildx imagetools create --tag "$IMAGE:$TAG" \
+            "$IMAGE:$TAG-linux-amd64" "$IMAGE:$TAG-linux-arm64"
       - name: Publish release with checksums
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
