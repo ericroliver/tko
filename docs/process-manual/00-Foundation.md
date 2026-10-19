@@ -1,14 +1,14 @@
-# TinyTask Process Manual — Foundation
+# TKO Process Manual — Foundation
 
 > **Status:** Official / Definitive
-> **Audience:** All TinyTask agents and operators
-> **Purpose:** Establish the canonical reference for task creation, lifecycle, and flow within the TinyTask (TKO) task management system.
+> **Audience:** All TKO agents and operators
+> **Purpose:** Establish the canonical reference for task creation, lifecycle, and flow within the TKO (TKO) task management system.
 
 ---
 
 ## 1. Introduction
 
-TinyTask (TKO) is a minimal task management system designed for LLM agent collaboration. It is exposed as a Model Context Protocol (MCP) server, an HTTP API, and a CLI. This manual is the definitive reference for how tasks should be created, routed, tracked, and completed across all agent roles.
+TKO (TKO) is a minimal task management system designed for LLM agent collaboration. It is exposed as a Model Context Protocol (MCP) server, an HTTP API, and a CLI. This manual is the definitive reference for how tasks should be created, routed, tracked, and completed across all agent roles.
 
 ### How This Manual Is Structured
 
@@ -29,7 +29,7 @@ TinyTask (TKO) is a minimal task management system designed for LLM agent collab
 
 ### 2.1 Task
 
-A **task** is the fundamental unit of work in TinyTask. Every actionable item — a feature, a bug, a research question, a configuration change — is represented as a task.
+A **task** is the fundamental unit of work in TKO. Every actionable item — a feature, a bug, a research question, a configuration change — is represented as a task.
 
 Tasks carry:
 
@@ -259,4 +259,4 @@ This foundation document defines the shared vocabulary and rules. The following 
 
 ---
 
-*This document is part of the TinyTask Process Manual. For scenario-specific guidance, see the companion documents in this directory.*
+*This document is part of the TKO Process Manual. For scenario-specific guidance, see the companion documents in this directory.*

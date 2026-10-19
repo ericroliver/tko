@@ -2,7 +2,7 @@
 
 ## Overview
 
-TinyTask MCP now uses Streamable HTTP as the default HTTP transport. The change replaces SSE's dual-endpoint model with a unified `/mcp` endpoint that supports bidirectional messaging and optional streaming per request. This guide explains why the change was made, how to stay compatible, and what steps to take when migrating existing deployments.
+TKO MCP now uses Streamable HTTP as the default HTTP transport. The change replaces SSE's dual-endpoint model with a unified `/mcp` endpoint that supports bidirectional messaging and optional streaming per request. This guide explains why the change was made, how to stay compatible, and what steps to take when migrating existing deployments.
 
 ### Why Streamable HTTP?
 
@@ -13,7 +13,7 @@ TinyTask MCP now uses Streamable HTTP as the default HTTP transport. The change 
 
 ### Backward Compatibility
 
-- SSE remains available as a legacy transport when `TINYTASK_ENABLE_SSE=true`.
+- SSE remains available as a legacy transport when `TKO_ENABLE_SSE=true`.
 - All existing SSE clients can continue functioning without code changes when the flag is enabled.
 - No server APIs were removed; only the default transport selection changed.
 
@@ -21,14 +21,14 @@ TinyTask MCP now uses Streamable HTTP as the default HTTP transport. The change 
 
 ### Option 1: Do Nothing (Temporary Compatibility)
 
-- If your deployment sets `TINYTASK_MODE=http` but does not specify `TINYTASK_ENABLE_SSE`, Streamable HTTP will start automatically.
-- However, `TINYTASK_START:sse` scripts now emit a deprecation warning. Plan a migration before SSE removal.
+- If your deployment sets `TKO_MODE=http` but does not specify `TKO_ENABLE_SSE`, Streamable HTTP will start automatically.
+- However, `TKO_START:sse` scripts now emit a deprecation warning. Plan a migration before SSE removal.
 
 ### Option 2: Explicit SSE Mode
 
 ```bash
-TINYTASK_MODE=http \
-TINYTASK_ENABLE_SSE=true \
+TKO_MODE=http \
+TKO_ENABLE_SSE=true \
 node build/index.js
 ```
 
@@ -37,14 +37,14 @@ node build/index.js
 
 ### Option 3: Migrate to Streamable HTTP
 
-1. Remove `TINYTASK_ENABLE_SSE` or set it to `false`.
+1. Remove `TKO_ENABLE_SSE` or set it to `false`.
 2. Verify clients target the same `/mcp` endpoint (no change needed for most HTTP clients).
 3. Update documentation references from SSE to Streamable HTTP.
 4. Roll out gradually and monitor logs for transport mismatches.
 
 ## For New Users
 
-- Default `TINYTASK_MODE=http` automatically enables Streamable HTTP.
+- Default `TKO_MODE=http` automatically enables Streamable HTTP.
 - Docker quick start: `docker-compose up -d` (the compose file now uses Streamable HTTP).
 - NPM scripts: `npm run start:http` or `npm run start:both` for stdio + HTTP.
 
@@ -54,8 +54,8 @@ node build/index.js
 docker run -d \
   -p 3000:3000 \
   -v $(pwd)/data:/app/data \
-  -e TINYTASK_MODE=http \
-  tinytask-mcp:latest
+  -e TKO_MODE=http \
+  tko-mcp:latest
 ```
 
 ## Technical Differences
@@ -93,7 +93,7 @@ If you see `"transport": "sse"`, the legacy flag is enabled or cached.
 | Symptom | Cause | Resolution |
 | --- | --- | --- |
 | Client sees timeouts | Client still expects SSE's dual endpoints | Update client to Streamable HTTP or enable legacy mode temporarily |
-| Health endpoint reports SSE unexpectedly | `TINYTASK_ENABLE_SSE` set somewhere | Remove the flag or set to `false` |
+| Health endpoint reports SSE unexpectedly | `TKO_ENABLE_SSE` set somewhere | Remove the flag or set to `false` |
 | Performance drop after migration | Client still opens multiple connections | Ensure client reuses session IDs and respects new model |
 
 ### When to Use SSE vs Streamable HTTP
@@ -113,4 +113,4 @@ Stdio clients require no change. HTTP clients should treat `/mcp` as a unified e
 Streamable HTTP reduces persistent sockets and shortens response turnaround times, especially under burst loads. Early benchmarks show 10-20% improvement in connection efficiency.
 
 **Can I switch back to SSE?**
-Yes. Set `TINYTASK_ENABLE_SSE=true` and restart the server. Remember to remove the flag after clients migrate.
+Yes. Set `TKO_ENABLE_SSE=true` and restart the server. Remember to remove the flag after clients migrate.

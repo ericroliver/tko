@@ -4,8 +4,8 @@
 Implement service layer methods to support hierarchical task relationships, including creating, retrieving, and managing subtasks.
 
 ## User Story
-**As a** TinyTask API consumer  
-**I want** service methods to create and retrieve subtasks  
+**As a** TKO API consumer
+**I want** service methods to create and retrieve subtasks
 **So that** I can build hierarchical task structures and query them efficiently
 
 ## Business Value
@@ -49,7 +49,7 @@ Implement service layer methods to support hierarchical task relationships, incl
 
 ```typescript
 export class TaskService {
-  
+
   // Enhanced create
   create(params: CreateTaskParams): ParsedTask {
     // If parent_task_id provided:
@@ -57,7 +57,7 @@ export class TaskService {
     // 2. Inherit queue_name if not specified
     // 3. Create with parent reference
   }
-  
+
   // Enhanced update
   update(id: number, updates: UpdateTaskParams): ParsedTask {
     // If parent_task_id changed:
@@ -65,7 +65,7 @@ export class TaskService {
     // 2. Check for circular references
     // 3. Update parent reference
   }
-  
+
   // Get immediate subtasks
   getSubtasks(parentId: number, recursive = false): ParsedTask[] {
     if (!recursive) {
@@ -74,25 +74,25 @@ export class TaskService {
       // WITH RECURSIVE ... query all descendants
     }
   }
-  
+
   // Get task with subtasks
   getWithSubtasks(id: number, recursive = false): TaskWithSubtasks {
     const task = this.get(id);
     const subtasks = this.getSubtasks(id, recursive);
     return { ...task, subtasks, subtask_count: subtasks.length };
   }
-  
+
   // Get ancestor path
   getTaskPath(id: number): ParsedTask[] {
     // WITH RECURSIVE ... query ancestors
     // Return ordered from root to leaf
   }
-  
+
   // Get top-level tasks
   getTopLevelTasks(filters?: TaskFilters): ParsedTask[] {
     // SELECT * FROM tasks WHERE parent_task_id IS NULL
   }
-  
+
   // Prevent circular references
   private wouldCreateCycle(taskId: number, newParentId: number): boolean {
     // Check if newParentId is a descendant of taskId
@@ -106,8 +106,8 @@ export class TaskService {
 
 ```sql
 -- Get immediate subtasks
-SELECT * FROM tasks 
-WHERE parent_task_id = ? 
+SELECT * FROM tasks
+WHERE parent_task_id = ?
 AND archived_at IS NULL
 ORDER BY priority DESC, created_at ASC;
 
@@ -117,11 +117,11 @@ WITH RECURSIVE subtask_tree AS (
   SELECT * FROM tasks WHERE parent_task_id = ?
   UNION ALL
   -- Recursive case: children of children
-  SELECT t.* 
+  SELECT t.*
   FROM tasks t
   INNER JOIN subtask_tree st ON t.parent_task_id = st.id
 )
-SELECT * FROM subtask_tree 
+SELECT * FROM subtask_tree
 WHERE archived_at IS NULL
 ORDER BY priority DESC, created_at ASC;
 
@@ -138,8 +138,8 @@ WITH RECURSIVE ancestor_path AS (
 SELECT * FROM ancestor_path ORDER BY id ASC;
 
 -- Get top-level tasks
-SELECT * FROM tasks 
-WHERE parent_task_id IS NULL 
+SELECT * FROM tasks
+WHERE parent_task_id IS NULL
 AND archived_at IS NULL
 ORDER BY priority DESC, created_at ASC;
 ```
@@ -151,7 +151,7 @@ private wouldCreateCycle(taskId: number, newParentId: number): boolean {
   if (taskId === newParentId) {
     return true; // Self-reference
   }
-  
+
   // Check if newParentId is a descendant of taskId
   const descendants = this.getSubtasks(taskId, true);
   return descendants.some(t => t.id === newParentId);

@@ -1,15 +1,15 @@
 ---
 name: task-management
-description: TinyTask CLI reference — commands, data model, conventions, and rules for all agents.
+description: TKO CLI reference — commands, data model, conventions, and rules for all agents.
 ---
 
 > **Agent names (e.g., `tko-sword`, `tko-shield`) are examples.** Use actual names from your environment — defined in your `AGENTS.md` file. Replace placeholders like `<your-agent>`, `<qa-agent>`, `<developer>` with real names.
 
-# TinyTask Shared Skill
+# TKO Shared Skill
 
 ## Overview
 
-TinyTask is a task management system for LLM agent collaboration, exposed as an MCP server, HTTP API, and CLI. The `tinytask` CLI communicates with the server over HTTP. Role-specific workflows live in `developer.md`, `tester.md`, `reviewer.md`, and `coordinator.md` — this file is the CLI syntax and conventions reference.
+TKO is a task management system for LLM agent collaboration, exposed as an MCP server, HTTP API, and CLI. The `tko` CLI communicates with the server over HTTP. Role-specific workflows live in `developer.md`, `tester.md`, `reviewer.md`, and `coordinator.md` — this file is the CLI syntax and conventions reference.
 
 ## Core Concepts
 
@@ -91,11 +91,11 @@ TinyTask is a task management system for LLM agent collaboration, exposed as an 
 ## CLI Setup
 
 ```bash
-tinytask config init                              # First-time setup → ~/.tinytaskrc.json
-tinytask config set url http://localhost:3000/mcp # Server URL
+tko config init                              # First-time setup → ~/.tkorc.json
+tko config set url http://localhost:3000/mcp # Server URL
 ```
 
-**Agent identity:** Set the `TKO_AGENT` environment variable in your agent process. This is used as `created_by` for tasks, comments, and links. Alternatively, pass `--created-by <agent>` per command, or `tinytask config set agent <your-agent>`.
+**Agent identity:** Set the `TKO_AGENT` environment variable in your agent process. This is used as `created_by` for tasks, comments, and links. Alternatively, pass `--created-by <agent>` per command, or `tko config set agent <your-agent>`.
 
 ### Global Options
 
@@ -109,11 +109,11 @@ tinytask config set url http://localhost:3000/mcp # Server URL
 | Variable | Description |
 |---|---|
 | `TKO_AGENT` | Agent identity — used for `created_by` on tasks, comments, links; `--from` on move; `--agent` on signup/queue view (preferred) |
-| `TINYTASK_AGENT` | Legacy alias for `TKO_AGENT` (backward compat) |
-| `TINYTASK_URL` | Server URL |
-| `TINYTASK_FORMAT` | Output format (`table`, `json`, `csv`, `compact`) |
-| `TINYTASK_NO_COLOR` | Set `true` to disable color |
-| `TINYTASK_TIMEOUT` | Request timeout (ms) |
+| `TKO_AGENT` | Legacy alias for `TKO_AGENT` (backward compat) |
+| `TKO_URL` | Server URL |
+| `TKO_FORMAT` | Output format (`table`, `json`, `csv`, `compact`) |
+| `TKO_NO_COLOR` | Set `true` to disable color |
+| `TKO_TIMEOUT` | Request timeout (ms) |
 
 Precedence: CLI flags > environment variables > active profile > base config > defaults.
 
@@ -121,98 +121,98 @@ Precedence: CLI flags > environment variables > active profile > base config > d
 
 ## Task Commands
 
-`tinytask task` (alias: `tinytask t`)
+`tko task` (alias: `tko t`)
 
 ```bash
 # Create
-tinytask task create "<title>" [-d <desc>] [-a <agent>] [-c <creator>] [-p <priority>] [-t <tags>] [--parent <id>] [-q <queue>]
+tko task create "<title>" [-d <desc>] [-a <agent>] [-c <creator>] [-p <priority>] [-t <tags>] [--parent <id>] [-q <queue>]
 # created_by is required — set TKO_AGENT env var or pass -c <creator>. assigned_to defaults to unassigned.
 
 # Get / Update / List / Archive / Delete
-tinytask task get <id> [--json]
-tinytask task update <id> [-t <title>] [-d <desc>] [-s <status>] [-a <agent>] [-p <priority>] [--tags <tags>] [--parent <id|null>] [-q <queue>]
-tinytask task list [-a <agent>] [-s <status>] [-q <queue>] [--parent <id>] [--exclude-subtasks] [--include-archived] [--limit <n>] [--offset <n>]
-tinytask task archive <id>
-tinytask task delete <id> [-y]
+tko task get <id> [--json]
+tko task update <id> [-t <title>] [-d <desc>] [-s <status>] [-a <agent>] [-p <priority>] [--tags <tags>] [--parent <id|null>] [-q <queue>]
+tko task list [-a <agent>] [-s <status>] [-q <queue>] [--parent <id>] [--exclude-subtasks] [--include-archived] [--limit <n>] [--offset <n>]
+tko task archive <id>
+tko task delete <id> [-y]
 ```
 
 ```bash
 # Examples
-tinytask task create "Implement pagination" -d "Add limit/offset to GET /tasks" -a <developer> -p 7 --tags "api,performance" -q ready-for-development
-tinytask task create "BUG: Login 500 on special chars" -d "<steps>" -a <developer> -p 9 --tags "bug,auth" -q ready-for-development
-tinytask task update 5 --status working
-tinytask task update 5 --status idle --queue ready-for-qa --assigned-to <qa-agent>
-tinytask task update 10 --parent null          # Make subtask top-level
+tko task create "Implement pagination" -d "Add limit/offset to GET /tasks" -a <developer> -p 7 --tags "api,performance" -q ready-for-development
+tko task create "BUG: Login 500 on special chars" -d "<steps>" -a <developer> -p 9 --tags "bug,auth" -q ready-for-development
+tko task update 5 --status working
+tko task update 5 --status idle --queue ready-for-qa --assigned-to <qa-agent>
+tko task update 10 --parent null          # Make subtask top-level
 ```
 
 ## Subtask Commands
 
-`tinytask subtask` (alias: `tinytask st`)
+`tko subtask` (alias: `tko st`)
 
 ```bash
-tinytask subtask create <parent-id> "<title>" [-d <desc>] [-a <agent>] [-p <priority>] [-t <tags>] [-q <queue>]
-tinytask subtask list <parent-id> [-r] [--include-archived]
-tinytask subtask tree <task-id> [-r]
-tinytask subtask move <subtask-id> [new-parent-id]    # Omit new parent to make top-level
+tko subtask create <parent-id> "<title>" [-d <desc>] [-a <agent>] [-p <priority>] [-t <tags>] [-q <queue>]
+tko subtask list <parent-id> [-r] [--include-archived]
+tko subtask tree <task-id> [-r]
+tko subtask move <subtask-id> [new-parent-id]    # Omit new parent to make top-level
 ```
 
 ## Queue Commands
 
-`tinytask queue` (alias: `tinytask q`)
+`tko queue` (alias: `tko q`)
 
 ```bash
-tinytask queue view [agent] [-s <status>] [--mine]   # View agent's queue (use --mine for your own)
-tinytask queue list                                  # List all queue names
-tinytask queue stats <queue-name>                    # Task counts, assignment breakdown, agents
-tinytask queue tasks <queue-name> [-s <status>] [-a <agent>] [--exclude-subtasks] [--include-archived] [-l <limit>] [-o <offset>]
-tinytask queue add <task-id> <queue-name>            # Add task to queue
-tinytask queue remove <task-id>                      # Remove from queue (task stays in system)
-tinytask queue move <task-id> <new-queue>            # Move between queues
-tinytask queue clear <queue-name> [-y]               # Remove all tasks from queue
+tko queue view [agent] [-s <status>] [--mine]   # View agent's queue (use --mine for your own)
+tko queue list                                  # List all queue names
+tko queue stats <queue-name>                    # Task counts, assignment breakdown, agents
+tko queue tasks <queue-name> [-s <status>] [-a <agent>] [--exclude-subtasks] [--include-archived] [-l <limit>] [-o <offset>]
+tko queue add <task-id> <queue-name>            # Add task to queue
+tko queue remove <task-id>                      # Remove from queue (task stays in system)
+tko queue move <task-id> <new-queue>            # Move between queues
+tko queue clear <queue-name> [-y]               # Remove all tasks from queue
 ```
 
 ## Agent Workflow Commands
 
 ```bash
-tinytask signup [-a <agent>]                          # Claim next idle task → sets working
-tinytask move <id> <to-agent> [-f <from-agent>] [-m <comment>]  # Transfer task between agents (auto-adds comment)
+tko signup [-a <agent>]                          # Claim next idle task → sets working
+tko move <id> <to-agent> [-f <from-agent>] [-m <comment>]  # Transfer task between agents (auto-adds comment)
 ```
 
 ## Comment Commands
 
-`tinytask comment` (alias: `tinytask c`)
+`tko comment` (alias: `tko c`)
 
 ```bash
-tinytask comment add <task-id> "<content>" [--created-by <agent>]
-tinytask comment list <task-id>
-tinytask comment update <comment-id> "<content>"
-tinytask comment delete <comment-id> [-y]
+tko comment add <task-id> "<content>" [--created-by <agent>]
+tko comment list <task-id>
+tko comment update <comment-id> "<content>"
+tko comment delete <comment-id> [-y]
 ```
 
 ## Link Commands
 
-`tinytask link` (alias: `tinytask l`)
+`tko link` (alias: `tko l`)
 
 ```bash
-tinytask link add <task-id> <url> [-d <description>] [--created-by <agent>]
-tinytask link list <task-id>
-tinytask link update <link-id> [--url <url>] [--description <text>]
-tinytask link delete <link-id> [-y]
+tko link add <task-id> <url> [-d <description>] [--created-by <agent>]
+tko link list <task-id>
+tko link update <link-id> [--url <url>] [--description <text>]
+tko link delete <link-id> [-y]
 ```
 
-Link type prefixes (convention — in description field): `[blocks]`, `[related]`, `[duplicate]`, or none for general reference (PRs, docs). Link both directions when connecting two TinyTask tasks.
+Link type prefixes (convention — in description field): `[blocks]`, `[related]`, `[duplicate]`, or none for general reference (PRs, docs). Link both directions when connecting two TKO tasks.
 
 ## Config Commands
 
 ```bash
-tinytask config init [-f]                 # Create ~/.tinytaskrc.json (--force to overwrite)
-tinytask config show                      # Display current config
-tinytask config set <key> <value>         # Set: url, agent, outputFormat, colorOutput, timeout
-tinytask config get <key>                 # Get value
-tinytask config profile add -n <name> -u <url> [--agent <agent>]
-tinytask config profile list
-tinytask config profile use <name>
-tinytask config profile remove <name>
+tko config init [-f]                 # Create ~/.tkorc.json (--force to overwrite)
+tko config show                      # Display current config
+tko config set <key> <value>         # Set: url, agent, outputFormat, colorOutput, timeout
+tko config get <key>                 # Get value
+tko config profile add -n <name> -u <url> [--agent <agent>]
+tko config profile list
+tko config profile use <name>
+tko config profile remove <name>
 ```
 
 ## Output Formats
@@ -221,8 +221,8 @@ tinytask config profile remove <name>
 |---|---|---|
 | `table` (default) | Interactive, human reading | Default — no action |
 | `json` | Scripting, piping to `jq` | `--json` flag |
-| `csv` | Spreadsheet export | `config set outputFormat csv` or `TINYTASK_FORMAT=csv` |
-| `compact` | Quick scans, minimal output | `config set outputFormat compact` or `TINYTASK_FORMAT=compact` |
+| `csv` | Spreadsheet export | `config set outputFormat csv` or `TKO_FORMAT=csv` |
+| `compact` | Quick scans, minimal output | `config set outputFormat compact` or `TKO_FORMAT=compact` |
 | `tree` | Subtask hierarchy | `subtask tree <id> [-r]` (automatic) |
 
 `csv` and `compact` are config/env-only — no CLI flags. Use `--json` for one-off scripting.
@@ -269,7 +269,7 @@ Comment on **every** status change, queue move, reassignment, dependency action,
 - Never leave `working` when moving to another queue — set `idle` first.
 - Use `ready-for-testing` for defect fixes, `ready-for-qa` for feature completions.
 - Use `blocked` queue for tasks waiting on dependencies — don't leave them in active queues.
-- Check your queue at session start: `tinytask queue view --mine`
+- Check your queue at session start: `tko queue view --mine`
 
 ### Dependencies
 

@@ -3,7 +3,7 @@
  *
  * - list_tasks / GET /api/v1/tasks omit `description` by default and cap at 100 rows
  * - include_description=true restores full rows
- * - TINYTASK_LIST_INCLUDE_DESCRIPTION=true env escape hatch restores descriptions globally
+ * - TKO_LIST_INCLUDE_DESCRIPTION=true env escape hatch restores descriptions globally
  * - get_my_queue / GET /api/v1/agents/:name/queue omit `description` by default
  * - payload budget: default list payload must stay well under the full payload
  */
@@ -60,7 +60,7 @@ describe('List Response Slimming', () => {
 
   afterEach(() => {
     ctx.cleanup();
-    delete process.env.TINYTASK_LIST_INCLUDE_DESCRIPTION;
+    delete process.env.TKO_LIST_INCLUDE_DESCRIPTION;
   });
 
   describe('service level (TaskService.list)', () => {
@@ -91,8 +91,8 @@ describe('List Response Slimming', () => {
       }
     });
 
-    test('should include description via TINYTASK_LIST_INCLUDE_DESCRIPTION env escape hatch', () => {
-      process.env.TINYTASK_LIST_INCLUDE_DESCRIPTION = 'true';
+    test('should include description via TKO_LIST_INCLUDE_DESCRIPTION env escape hatch', () => {
+      process.env.TKO_LIST_INCLUDE_DESCRIPTION = 'true';
       const tasks = ctx.taskService.list();
       for (const task of tasks) {
         expect(task.description).toBe(LONG_DESCRIPTION);

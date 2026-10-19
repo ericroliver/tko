@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to TinyTask MCP will be documented in this file.
+All notable changes to TKO MCP will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   an empty queue returns JSON `null`. Previously both paths returned
   human-readable text ("No idle tasks available in queue for agent: X" /
   "Task #N claimed and set to working status\n\n{json}"), which broke
-  JSON-expecting clients — the tinytask CLI aborted with a parse error on
+  JSON-expecting clients — the tko CLI aborted with a parse error on
   every signup, taking agent tool calls down with a libuv abort on Windows
   (exit -1073740791). Tool description now documents the contract;
   technical/final-spec docs updated; handler-level contract tests added.
@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`deploy-windows.sh`, `sea:windows` now uses the local `node.exe` when run on
   Windows and gained a PowerShell extraction fallback for cross-builds); fixed
   `deploy-macos.sh` calling the non-existent `npm run package` script. The installed
-  command name (`tinytask`) is unchanged.
+  command name (`tko`) is unchanged.
 
 ## [2.2.0] - 2026-09-05
 
@@ -65,7 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - omit the `description` field from each task (descriptions were ~62% of list payload),
   - cap results at 100 unless an explicit `limit` is passed (previously unbounded).
   Request `include_description=true` (REST query param / MCP tool arg) to get full
-  descriptions, or set server env `TINYTASK_LIST_INCLUDE_DESCRIPTION=true` to restore the
+  descriptions, or set server env `TKO_LIST_INCLUDE_DESCRIPTION=true` to restore the
   old behavior globally.
 
 ### Added
@@ -96,44 +96,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Task priority system
   - Task assignment to agents
   - Task archival for completed tasks
-  
+
 - **Comment System**
   - Add comments to tasks
   - Update and delete comments
   - List all comments for a task
   - Comment timestamps and creator tracking
-  
+
 - **Link/Artifact System**
   - Add links/artifacts to tasks
   - Update and delete links
   - List all links for a task
   - Link descriptions and creator tracking
-  
+
 - **Agent Queue Management**
   - Per-agent task queues
   - Priority-based queue sorting
   - Queue filtering by agent name
   - Queue statistics
-  
+
 - **MCP Server Implementation**
   - Full MCP protocol support
   - 16 tools for task, comment, and link operations
   - 8 resource URIs for data access
   - Comprehensive tool parameter validation
-  
+
 - **Dual Transport Support**
   - stdio transport for local MCP clients
   - SSE (Server-Sent Events) over HTTP transport
   - Both transports mode for development
   - Configurable via environment variables
-  
+
 - **Database Layer**
   - SQLite database with Better-SQLite3
   - Automatic schema initialization
   - Foreign key constraints
   - Proper indexing for performance
   - WAL mode support
-  
+
 - **Docker Support**
   - Production Dockerfile
   - Development Dockerfile
@@ -141,7 +141,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - docker-compose.dev.yml for development
   - Health check endpoints
   - Volume mounting for data persistence
-  
+
 - **Testing Suite**
   - Integration tests for multi-agent workflows
   - Persistence tests for data durability
@@ -149,7 +149,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Error scenario tests
   - Test helper utilities
   - Jest configuration for TypeScript
-  
+
 - **Documentation**
   - Comprehensive README
   - API reference documentation
@@ -193,7 +193,7 @@ Two new atomic task management tools that significantly reduce token consumption
   - Respects priority ordering (higher priority first)
   - Respects creation time ordering (older tasks first within same priority)
   - **Token Savings**: ~58% reduction (3 calls → 1 call)
-  
+
 - **`move_task` Tool**
   - Atomically transfers task to another agent with status reset to 'idle'
   - Adds handoff comment from current agent
@@ -281,16 +281,16 @@ Two new atomic task management tools that significantly reduce token consumption
 - Initial release - no upgrade path needed
 - Database schema is automatically initialized on first run
 - Environment variables:
-  - `TINYTASK_MODE`: Set to `stdio`, `sse`, or `both`
-  - `TINYTASK_PORT`: HTTP port for SSE mode (default: 3000)
-  - `TINYTASK_DB_PATH`: Database file location (default: ./data/tinytask.db)
+  - `TKO_MODE`: Set to `stdio`, `sse`, or `both`
+  - `TKO_PORT`: HTTP port for SSE mode (default: 3000)
+  - `TKO_DB_PATH`: Database file location (default: ./data/tinytask.db)
 
 ---
 
 ## Support
 
 For questions, issues, or feature requests:
-- GitHub Issues: [Create an issue](https://github.com/yourusername/tinytask-mcp/issues)
+- GitHub Issues: [Create an issue](https://github.com/yourusername/tko-mcp/issues)
 - Documentation: See [docs/](docs/) directory
 - Email: support@example.com (if applicable)
 
@@ -298,7 +298,7 @@ For questions, issues, or feature requests:
 
 ## Contributors
 
-Thanks to all contributors who have helped build TinyTask MCP!
+Thanks to all contributors who have helped build TKO MCP!
 
 ---
 

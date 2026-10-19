@@ -3,19 +3,19 @@
 > **Status:** Draft / Planning
 > **Author:** tko-sword
 > **Date:** 2026-07-26
-> **Purpose:** Define the structure and content of role-specific task management skill files, derived from the TinyTask Process Manual.
+> **Purpose:** Define the structure and content of role-specific task management skill files, derived from the TKO Process Manual.
 
 ---
 
 ## 1. Background & Motivation
 
-Currently, all TinyTask agents share a single `task-management` skill file (`current-skill.md`). This file is a flat CLI command reference — it lists every command available but does not encode role-specific workflows, responsibilities, queue disciplines, or lifecycle rules. As a result:
+Currently, all TKO agents share a single `task-management` skill file (`current-skill.md`). This file is a flat CLI command reference — it lists every command available but does not encode role-specific workflows, responsibilities, queue disciplines, or lifecycle rules. As a result:
 
 - Agents must read the full process manual (7,000+ lines) to understand their role.
 - There is no role-specific guidance on which queues to monitor, which statuses to set, or which handoff patterns to follow.
 - The skill file does not enforce the process manual's rules (e.g., "developers never mark tasks complete").
 
-The TinyTask Process Manual (`docs/process-manual/`) is now merged to main and provides a comprehensive, role-aware reference. This plan defines how to split the single skill into multiple role-specific skill files, each tailored to the workflows and responsibilities of that role.
+The TKO Process Manual (`docs/process-manual/`) is now merged to main and provides a comprehensive, role-aware reference. This plan defines how to split the single skill into multiple role-specific skill files, each tailored to the workflows and responsibilities of that role.
 
 ---
 
@@ -79,7 +79,7 @@ The process manual defines two formal agent roles (Developer, Tester) but refere
 >
 > 1. **Every line costs tokens on every turn.** A 400-line skill file costs ~4× more context overhead than a 100-line file, on every single interaction.
 > 2. **Be ruthlessly tight.** No preamble, no throat-clearing, no "This section explains…" intros. Get to the command.
-> 3. **Do not repeat patterns.** If a command pattern is shown once (e.g., `tinytask task update <id> --status working`), do not re-show the full command in the next section. Reference it: "set to working (see §3)".
+> 3. **Do not repeat patterns.** If a command pattern is shown once (e.g., `tko task update <id> --status working`), do not re-show the full command in the next section. Reference it: "set to working (see §3)".
 > 4. **One example teaches multiple lessons.** A single well-constructed example should demonstrate the command, the comment, the status change, the queue move, and the reassignment all at once — not 5 separate examples.
 > 5. **Dense, not sparse.** Prefer a table or a combined command block over prose. One code block with 5 chained commands teaches more than 5 paragraphs.
 > 6. **Complete but not exhaustive.** Cover every use case the role encounters, but use the minimal representation for each. If 3 scenarios follow the same pattern, show the pattern once with a note: "Same pattern for X, Y, Z."
@@ -149,7 +149,7 @@ description: <one-line description — NO agent names, keep generic>
 
 | Section | Content | Source |
 |---|---|---|
-| Overview | What TinyTask is, how the CLI works | Foundation §1, CLI Ref §1 |
+| Overview | What TKO is, how the CLI works | Foundation §1, CLI Ref §1 |
 | Core Concepts | Task, subtask, queue, comment, link, history | Foundation §2 |
 | Task Fields | All fields with types and descriptions | Foundation §4 |
 | Status Values | `idle`, `working`, `complete` — who can set each | Foundation §4.3, Conventions §5 |
@@ -296,7 +296,7 @@ Role files will cross-reference each other at handoff points:
 
 All skill files will be placed in:
 ```
-/enigma-home/repos/tinytask/docs/skill/
+/enigma-home/repos/tko/docs/skill/
 ```
 
 | File | Role |
@@ -343,7 +343,7 @@ All skill files will be placed in:
 - **Include in role files:** Role-specific workflows, rules, checklists, command patterns, handoff targets
 - **Exclude from role files (keep in `SKILL.md`):** Full CLI syntax, global conventions, data model reference
 - **Include in role files as quick reference:** Ready-to-run command sequences — combined blocks that show the full workflow in one code block, not isolated commands
-- **Anti-pattern:** Do NOT show `tinytask task update <id> --status working` as a standalone example, then show it again in a "handoff" section, then again in a "context switch" section. Show it once in context, then reference: "set to working (§3)".
+- **Anti-pattern:** Do NOT show `tko task update <id> --status working` as a standalone example, then show it again in a "handoff" section, then again in a "context switch" section. Show it once in context, then reference: "set to working (§3)".
 - **Anti-pattern:** Do NOT write prose like "To set the status to working, use the update command with the --status flag set to working." Just show the command.
 
 ### 8.2 Tone & Format
@@ -375,7 +375,7 @@ The project's `AGENTS.md` contains technology stack and development rules (TypeS
 |---|---|
 | **Operator** | The operator is a human who interacts with the system, not an LLM agent. The coordinator skill covers escalation-to-operator workflows. |
 | **Product Owner** | Not defined in the process manual. If product management workflows are added later, a `product.md` skill can be created. |
-| **DevOps** | Referenced only as an external dependency (CI/CD pipeline). Not a TinyTask agent role. |
+| **DevOps** | Referenced only as an external dependency (CI/CD pipeline). Not a TKO agent role. |
 | **Architect** | Architectural decisions are handled via the conflict resolution / escalation workflow in the coordinator skill. Not a separate role. |
 
 ---
@@ -394,7 +394,7 @@ The project's `AGENTS.md` contains technology stack and development rules (TypeS
 
 ## 11. Summary
 
-This plan defines **5 skill files** (shared + 4 role-specific) that replace the single `current-skill.md`. Each role file is tailored to the workflows, rules, and command patterns that role needs, while `SKILL.md` provides the common CLI reference and conventions all roles share. The files are derived directly from the 8-file TinyTask Process Manual, mapping each scenario and convention to the role responsible for it.
+This plan defines **5 skill files** (shared + 4 role-specific) that replace the single `current-skill.md`. Each role file is tailored to the workflows, rules, and command patterns that role needs, while `SKILL.md` provides the common CLI reference and conventions all roles share. The files are derived directly from the 8-file TKO Process Manual, mapping each scenario and convention to the role responsible for it.
 
 | File | Covers Process Manual Sections |
 |---|---|

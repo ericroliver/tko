@@ -2,21 +2,21 @@
 
 ## Quick Reference
 
-**Problem**: Cannot debug agent (goose) issues with current minimal logging  
-**Solution**: Environment-controlled forensic logging with 5 levels  
-**Control**: Single variable `TINYTASK_LOG_LEVEL` (default: `info`)  
-**Impact**: Zero overhead when disabled, <5ms when enabled  
+**Problem**: Cannot debug agent (goose) issues with current minimal logging
+**Solution**: Environment-controlled forensic logging with 5 levels
+**Control**: Single variable `TKO_LOG_LEVEL` (default: `info`)
+**Impact**: Zero overhead when disabled, <5ms when enabled
 
 ## Quick Start for Troubleshooting
 
 ```bash
 # Enable forensic logging
 docker-compose down
-# Edit docker-compose.yml, set: TINYTASK_LOG_LEVEL: trace
+# Edit docker-compose.yml, set: TKO_LOG_LEVEL: trace
 docker-compose up -d
 
 # Watch logs
-docker-compose logs -f tinytask
+docker-compose logs -f tko
 
 # Reproduce issue with agent
 
@@ -24,7 +24,7 @@ docker-compose logs -f tinytask
 
 # Disable when done
 docker-compose down
-# Edit docker-compose.yml, set: TINYTASK_LOG_LEVEL: info
+# Edit docker-compose.yml, set: TKO_LOG_LEVEL: info
 docker-compose up -d
 ```
 
@@ -42,7 +42,7 @@ docker-compose up -d
 
 ### Before (Current)
 ```
-tinytask-mcp | MCP POST message received
+tko-mcp | MCP POST message received
 ```
 
 ### After (TRACE level)
@@ -72,7 +72,7 @@ tinytask-mcp | MCP POST message received
 ## Architecture
 
 ```
-Environment Variable (TINYTASK_LOG_LEVEL)
+Environment Variable (TKO_LOG_LEVEL)
     ↓
 Logger Utility (level filtering)
     ↓
@@ -99,7 +99,7 @@ stderr output → Docker logs → docker-compose logs
 - `src/utils/logger.ts` (NEW) - Core logger utility
 - `src/server/sse.ts` (MODIFY) - HTTP request/response logging
 - `src/tools/tool-handlers.ts` (MODIFY) - Tool execution logging
-- `docker-compose.yml` (MODIFY) - Add TINYTASK_LOG_LEVEL config
+- `docker-compose.yml` (MODIFY) - Add TKO_LOG_LEVEL config
 
 ## Implementation Phases
 
@@ -108,7 +108,7 @@ Create the logger utility with level-based filtering
 - Files: `src/utils/logger.ts`, `src/utils/index.ts`
 - Outcome: Foundation for all logging
 
-### Phase 2: HTTP Layer (Priority 1) 
+### Phase 2: HTTP Layer (Priority 1)
 Add request/response capture to SSE server
 - Files: `src/server/sse.ts`
 - Outcome: **Solves the goose debugging problem**
@@ -164,31 +164,31 @@ Update user-facing documentation
 
 ### Development (Local)
 ```bash
-export TINYTASK_LOG_LEVEL=debug
+export TKO_LOG_LEVEL=debug
 npm run dev
 ```
 
 ### Docker (Troubleshooting)
 ```yaml
 environment:
-  TINYTASK_LOG_LEVEL: trace
+  TKO_LOG_LEVEL: trace
 ```
 
 ### Docker (Production)
 ```yaml
 environment:
-  TINYTASK_LOG_LEVEL: warn
+  TKO_LOG_LEVEL: warn
 ```
 
 ### MCP Client (stdio)
 ```json
 {
   "mcpServers": {
-    "tinytask": {
+    "tko": {
       "command": "node",
       "args": ["./build/index.js"],
       "env": {
-        "TINYTASK_LOG_LEVEL": "debug"
+        "TKO_LOG_LEVEL": "debug"
       }
     }
   }

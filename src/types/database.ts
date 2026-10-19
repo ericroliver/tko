@@ -1,5 +1,5 @@
 /**
- * Database types for TinyTask
+ * Database types for TKO
  */
 
 export interface Task {

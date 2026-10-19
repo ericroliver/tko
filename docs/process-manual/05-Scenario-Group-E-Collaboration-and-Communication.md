@@ -21,7 +21,7 @@
 
 ### When to Use
 
-You need to communicate with another agent about a task — to ask a clarifying question, provide additional context, report a finding, or document a decision. Comments are the primary mechanism for inter-agent communication within the TinyTask task system. Unlike external chat or messaging, comments are attached to the task and persist as part of the task's history.
+You need to communicate with another agent about a task — to ask a clarifying question, provide additional context, report a finding, or document a decision. Comments are the primary mechanism for inter-agent communication within the TKO task system. Unlike external chat or messaging, comments are attached to the task and persist as part of the task's history.
 
 ### Who Can Perform
 
@@ -29,7 +29,7 @@ Any agent can add comments to any task. Comments carry an `author` field identif
 
 ### Prerequisites
 
-- The `tinytask` CLI is installed and configured.
+- The `tko` CLI is installed and configured.
 - You know the task ID you want to comment on.
 - You have something meaningful to add — context, a question, a decision, or a status update.
 
@@ -48,7 +48,7 @@ Determine which task needs a comment and what you want to communicate. Common co
 #### Step 2: Add the Comment
 
 ```bash
-tinytask comment add 20260724_01 "Question for @tko-shield: The bug report mentions 'special characters' but doesn't specify which ones. Should I handle all ASCII printable characters (0x20-0x7E), or just the reserved URI characters (&, =, +, %, #)?"
+tko comment add 20260724_01 "Question for @tko-shield: The bug report mentions 'special characters' but doesn't specify which ones. Should I handle all ASCII printable characters (0x20-0x7E), or just the reserved URI characters (&, =, +, %, #)?"
 ```
 
 The comment is timestamped and attributed to you.
@@ -58,7 +58,7 @@ The comment is timestamped and attributed to you.
 If your comment relates to another task, reference it by ID so future readers can follow the thread:
 
 ```bash
-tinytask comment add 20260724_01 "This endpoint depends on the schema from #20260724_05. The users table must have the email column indexed before this endpoint can be performance-tested. See #20260724_05 for the schema design."
+tko comment add 20260724_01 "This endpoint depends on the schema from #20260724_05. The users table must have the email column indexed before this endpoint can be performance-tested. See #20260724_05 for the schema design."
 ```
 
 #### Step 4: Check for Responses
@@ -66,7 +66,7 @@ tinytask comment add 20260724_01 "This endpoint depends on the schema from #2026
 Other agents will see your comment when they review the task. To check for responses:
 
 ```bash
-tinytask comment list 20260724_01
+tko comment list 20260724_01
 ```
 
 Review the full comment thread to see if your question was answered or if additional context was added.
@@ -76,7 +76,7 @@ Review the full comment thread to see if your question was answered or if additi
 When another agent answers your question or provides context, acknowledge it:
 
 ```bash
-tinytask comment add 20260724_01 "Thanks @tko-shield. I'll handle all reserved URI characters as you suggested. Updating the test coverage to include &, =, +, %, and #."
+tko comment add 20260724_01 "Thanks @tko-shield. I'll handle all reserved URI characters as you suggested. Updating the test coverage to include &, =, +, %, and #."
 ```
 
 ### Variations
@@ -86,7 +86,7 @@ tinytask comment add 20260724_01 "Thanks @tko-shield. I'll handle all reserved U
 When a task requires a design decision, use comments to document the discussion and the final decision:
 
 ```bash
-tinytask comment add 20260724_10 "Design question: Should the session token be stored in the database or be stateless (JWT)? 
+tko comment add 20260724_10 "Design question: Should the session token be stored in the database or be stateless (JWT)?
 
 Arguments for database sessions: revocable, no secret management needed.
 Arguments for JWT: stateless, scales better, no DB lookup per request.
@@ -94,7 +94,7 @@ Arguments for JWT: stateless, scales better, no DB lookup per request.
 Leaning toward database sessions for v1 since we need revocation support for the security requirements. Will implement JWT in a future iteration if performance requires it."
 
 # Later, after discussion:
-tinytask comment add 20260724_10 "Decision: Database sessions for v1. @tko-sword please implement with the sessions table from #20260724_05. Add an index on session_token for fast lookups."
+tko comment add 20260724_10 "Decision: Database sessions for v1. @tko-sword please implement with the sessions table from #20260724_05. Add an index on session_token for fast lookups."
 ```
 
 #### Commenting on Another Agent's Task
@@ -102,7 +102,7 @@ tinytask comment add 20260724_10 "Decision: Database sessions for v1. @tko-sword
 When you need to provide input on a task assigned to someone else (e.g., you discovered a related issue):
 
 ```bash
-tinytask comment add 20260724_13 "Heads up @tko-shield: While testing the auth flow, I noticed the login endpoint doesn't set a rate-limit header (X-RateLimit-Remaining). The spec mentions this header in section 4.3. Might be worth adding to your test cases."
+tko comment add 20260724_13 "Heads up @tko-shield: While testing the auth flow, I noticed the login endpoint doesn't set a rate-limit header (X-RateLimit-Remaining). The spec mentions this header in section 4.3. Might be worth adding to your test cases."
 ```
 
 #### Updating a Comment
@@ -111,10 +111,10 @@ If you need to correct or refine a comment you've already made:
 
 ```bash
 # Get the comment ID first
-tinytask comment list 20260724_01
+tko comment list 20260724_01
 
 # Update it
-tinytask comment update 15 "Corrected question: Should I handle all reserved URI characters per RFC 3986 (sub-delims: !, $, &, ', (, ), *, +, ,, ;, =, and also %, #)?"
+tko comment update 15 "Corrected question: Should I handle all reserved URI characters per RFC 3986 (sub-delims: !, $, &, ', (, ), *, +, ,, ;, =, and also %, #)?"
 ```
 
 #### Deleting a Comment
@@ -122,9 +122,9 @@ tinytask comment update 15 "Corrected question: Should I handle all reserved URI
 If a comment was made in error or is no longer relevant:
 
 ```bash
-tinytask comment delete 15
+tko comment delete 15
 # Or skip confirmation:
-tinytask comment delete 15 --yes
+tko comment delete 15 --yes
 ```
 
 Use sparingly — comments are part of the task's audit trail. Prefer updating over deleting when possible.
@@ -144,7 +144,7 @@ Use sparingly — comments are part of the task's audit trail. Prefer updating o
 
 ### When to Use
 
-A task needs to move from one role's queue to another's because responsibility has shifted. This is the core handoff mechanism in TinyTask — it routes tasks to the right agent at the right stage of the workflow. Cross-queue handoffs are distinct from simple reassignment (see [A4](./01-Scenario-Group-A-Core-Task-Lifecycle.md#a4-task-reassignment)) because they involve moving between role-specific queues, not just changing the assignee within the same role.
+A task needs to move from one role's queue to another's because responsibility has shifted. This is the core handoff mechanism in TKO — it routes tasks to the right agent at the right stage of the workflow. Cross-queue handoffs are distinct from simple reassignment (see [A4](./01-Scenario-Group-A-Core-Task-Lifecycle.md#a4-task-reassignment)) because they involve moving between role-specific queues, not just changing the assignee within the same role.
 
 ### Who Can Perform
 
@@ -167,7 +167,7 @@ Any agent can perform a cross-queue handoff. Typically:
 Before moving a task between queues, ensure it is not in `working` status:
 
 ```bash
-tinytask task update 20260724_01 --status idle
+tko task update 20260724_01 --status idle
 ```
 
 A task in `working` status being moved to another queue creates a confusing state — it implies someone is actively working on it in a queue where no one should be.
@@ -177,19 +177,19 @@ A task in `working` status being moved to another queue creates a confusing stat
 Document why the task is being handed off and what the receiving agent should know:
 
 ```bash
-tinytask comment add 20260724_01 "Implementation complete. All acceptance criteria met. 12 unit tests passing. Ready for QA verification. See linked PR #42 for code review."
+tko comment add 20260724_01 "Implementation complete. All acceptance criteria met. 12 unit tests passing. Ready for QA verification. See linked PR #42 for code review."
 ```
 
 #### Step 3: Move the Task to the Destination Queue
 
 ```bash
-tinytask queue move 20260724_01 ready-for-qa
+tko queue move 20260724_01 ready-for-qa
 ```
 
 Or use the update command:
 
 ```bash
-tinytask task update 20260724_01 --queue ready-for-qa
+tko task update 20260724_01 --queue ready-for-qa
 ```
 
 #### Step 4: Reassign to the Appropriate Agent
@@ -197,19 +197,19 @@ tinytask task update 20260724_01 --queue ready-for-qa
 Update the assignee to match the role responsible for the destination queue:
 
 ```bash
-tinytask task update 20260724_01 --assigned-to tko-shield
+tko task update 20260724_01 --assigned-to tko-shield
 ```
 
 Or use the move command to combine reassignment with a comment:
 
 ```bash
-tinytask move 20260724_01 tko-shield --comment "Handing off to QA. Implementation is complete, all tests pass. Please verify against the acceptance criteria in the description."
+tko move 20260724_01 tko-shield --comment "Handing off to QA. Implementation is complete, all tests pass. Please verify against the acceptance criteria in the description."
 ```
 
 #### Step 5: Verify the Handoff
 
 ```bash
-tinytask task get 20260724_01
+tko task get 20260724_01
 ```
 
 Confirm:
@@ -220,7 +220,7 @@ Confirm:
 Also verify the receiving queue has the task:
 
 ```bash
-tinytask queue tasks ready-for-qa
+tko queue tasks ready-for-qa
 ```
 
 ### Variations
@@ -230,10 +230,10 @@ tinytask queue tasks ready-for-qa
 When a developer finishes implementing a feature:
 
 ```bash
-tinytask comment add 20260724_01 "Implementation complete. POST /tasks now supports limit/offset pagination. Default limit=50, max=200. Total count in X-Total-Count header. 8 unit tests passing. Ready for QA."
-tinytask task update 20260724_01 --status idle
-tinytask queue move 20260724_01 ready-for-qa
-tinytask task update 20260724_01 --assigned-to tko-shield
+tko comment add 20260724_01 "Implementation complete. POST /tasks now supports limit/offset pagination. Default limit=50, max=200. Total count in X-Total-Count header. 8 unit tests passing. Ready for QA."
+tko task update 20260724_01 --status idle
+tko queue move 20260724_01 ready-for-qa
+tko task update 20260724_01 --assigned-to tko-shield
 ```
 
 See [A3: Task Completion & Handoff](./01-Scenario-Group-A-Core-Task-Lifecycle.md#a3-task-completion--handoff) for the full workflow.
@@ -243,10 +243,10 @@ See [A3: Task Completion & Handoff](./01-Scenario-Group-A-Core-Task-Lifecycle.md
 When a developer fixes a defect, the handoff goes to `ready-for-testing` (not `ready-for-qa`) and is reassigned to the task's original reporter:
 
 ```bash
-tinytask comment add 20260724_30 "Fix complete. Root cause was missing URL decoding. See fix summary in previous comment. Please re-test with the original reproduction steps."
-tinytask task update 20260724_30 --status idle
-tinytask queue move 20260724_30 ready-for-testing
-tinytask task update 20260724_30 --assigned-to tko-shield
+tko comment add 20260724_30 "Fix complete. Root cause was missing URL decoding. See fix summary in previous comment. Please re-test with the original reproduction steps."
+tko task update 20260724_30 --status idle
+tko queue move 20260724_30 ready-for-testing
+tko task update 20260724_30 --assigned-to tko-shield
 ```
 
 See [C3: Defect Fix Handoff & Verification](./03-Scenario-Group-C-QA-and-Bug-Workflows.md#c3-defect-fix-handoff--verification) for the full workflow.
@@ -256,10 +256,10 @@ See [C3: Defect Fix Handoff & Verification](./03-Scenario-Group-C-QA-and-Bug-Wor
 When a tester verifies a fix and it fails, the task is kicked back to the developer:
 
 ```bash
-tinytask comment add 20260724_30 "Verification FAILED. The '+' character is fixed but '&' still causes a 500. See my detailed comment above. Please re-fix."
-tinytask task update 20260724_30 --status idle
-tinytask queue move 20260724_30 ready-for-development
-tinytask task update 20260724_30 --assigned-to tko-sword
+tko comment add 20260724_30 "Verification FAILED. The '+' character is fixed but '&' still causes a 500. See my detailed comment above. Please re-fix."
+tko task update 20260724_30 --status idle
+tko queue move 20260724_30 ready-for-development
+tko task update 20260724_30 --assigned-to tko-sword
 ```
 
 See [C4: Kickback & Re-fix Cycle](./03-Scenario-Group-C-QA-and-Bug-Workflows.md#c4-kickback--refine-cycle) for the full workflow.
@@ -269,9 +269,9 @@ See [C4: Kickback & Re-fix Cycle](./03-Scenario-Group-C-QA-and-Bug-Workflows.md#
 When a task needs to be triaged or evaluated before being routed to development:
 
 ```bash
-tinytask comment add 20260724_40 "Moving to triage. Need to determine if this is a bug or a feature request. Will assign to the appropriate queue after evaluation."
-tinytask task update 20260724_40 --status idle
-tinytask queue move 20260724_40 triage
+tko comment add 20260724_40 "Moving to triage. Need to determine if this is a bug or a feature request. Will assign to the appropriate queue after evaluation."
+tko task update 20260724_40 --status idle
+tko queue move 20260724_40 triage
 ```
 
 #### Handoff to a Blocked Queue
@@ -279,9 +279,9 @@ tinytask queue move 20260724_40 triage
 When a task is blocked by a dependency, move it to a `blocked` queue for visibility:
 
 ```bash
-tinytask comment add 20260724_01 "Blocked by #20260724_05 (schema design). Moving to 'blocked' queue until the dependency is resolved."
-tinytask task update 20260724_01 --status idle
-tinytask queue move 20260724_01 blocked
+tko comment add 20260724_01 "Blocked by #20260724_05 (schema design). Moving to 'blocked' queue until the dependency is resolved."
+tko task update 20260724_01 --status idle
+tko queue move 20260724_01 blocked
 ```
 
 See [D2: Managing Blocked Tasks](./04-Scenario-Group-D-Task-Organization-and-Dependencies.md#d2-managing-blocked-tasks) for the full workflow.
@@ -320,7 +320,7 @@ Any agent involved in coordinated work. The lead developer (typically the parent
 Identify a "hub" task — typically the parent task or the most central task — and use its comment thread as the coordination channel:
 
 ```bash
-tinytask comment add 20260724_10 "COORDINATION PLAN:
+tko comment add 20260724_10 "COORDINATION PLAN:
 - tko-sword: #20260724_11 (schema design), #20260724_17 (session middleware)
 - tko-shield: #20260724_12 (password hashing utility)
 - Dependency: #20260724_13 (login endpoint) depends on #20260724_11 and #20260724_12
@@ -336,10 +336,10 @@ Each agent posts a start comment on the hub task when they begin their assigned 
 
 ```bash
 # tko-sword starts
-tinytask comment add 20260724_10 "Starting #20260724_11 (schema design). Estimated 2 hours. Will post when done."
+tko comment add 20260724_10 "Starting #20260724_11 (schema design). Estimated 2 hours. Will post when done."
 
 # tko-shield starts
-tinytask comment add 20260724_10 "Starting #20260724_12 (password hashing). Estimated 1 hour. Will post when done."
+tko comment add 20260724_10 "Starting #20260724_12 (password hashing). Estimated 1 hour. Will post when done."
 ```
 
 #### Step 3: Agents Report Completion and Unblock Dependents
@@ -348,12 +348,12 @@ When an agent completes a task that others are waiting on, they post to the hub:
 
 ```bash
 # tko-shield completes password hashing
-tinytask comment add 20260724_12 "Implementation complete. bcrypt utility ready at src/utils/password.ts. Exports hashPassword() and verifyPassword()."
-tinytask task update 20260724_12 --status idle
-tinytask queue move 20260724_12 ready-for-qa
+tko comment add 20260724_12 "Implementation complete. bcrypt utility ready at src/utils/password.ts. Exports hashPassword() and verifyPassword()."
+tko task update 20260724_12 --status idle
+tko queue move 20260724_12 ready-for-qa
 
 # Notify the hub that the dependency is cleared
-tinytask comment add 20260724_10 "DEPENDENCY CLEARED: #20260724_12 (password hashing) is done. #20260724_13 (login endpoint) can now start if #20260724_11 (schema) is also done."
+tko comment add 20260724_10 "DEPENDENCY CLEARED: #20260724_12 (password hashing) is done. #20260724_13 (login endpoint) can now start if #20260724_11 (schema) is also done."
 ```
 
 #### Step 4: Agents Check Dependencies Before Starting
@@ -362,11 +362,11 @@ Before picking up a dependent task, an agent checks the hub for the status of it
 
 ```bash
 # tko-sword checks if both dependencies are clear for the login endpoint
-tinytask comment list 20260724_10
+tko comment list 20260724_10
 # Reviews the hub to confirm #20260724_11 and #20260724_12 are both done
 
-tinytask comment add 20260724_10 "Both dependencies clear (#20260724_11 and #20260724_12). Starting #20260724_13 (login endpoint) now."
-tinytask task update 20260724_13 --status working
+tko comment add 20260724_10 "Both dependencies clear (#20260724_11 and #20260724_12). Starting #20260724_13 (login endpoint) now."
+tko task update 20260724_13 --status working
 ```
 
 #### Step 5: Coordinate on Shared Components
@@ -374,13 +374,13 @@ tinytask task update 20260724_13 --status working
 When two tasks modify the same file or module, explicitly coordinate who goes first:
 
 ```bash
-tinytask comment add 20260724_10 "SHARED FILE ALERT: src/api/auth/shared.ts is touched by both #20260724_13 (login) and #20260724_14 (registration). tko-sword will do #20260724_13 first, then tko-shield can start #20260724_14 after the shared module is established. Please don't modify shared.ts simultaneously."
+tko comment add 20260724_10 "SHARED FILE ALERT: src/api/auth/shared.ts is touched by both #20260724_13 (login) and #20260724_14 (registration). tko-sword will do #20260724_13 first, then tko-shield can start #20260724_14 after the shared module is established. Please don't modify shared.ts simultaneously."
 ```
 
 After the first agent finishes the shared component:
 
 ```bash
-tinytask comment add 20260724_10 "Shared module (src/api/auth/shared.ts) is now established by #20260724_13. tko-shield, you're clear to start #20260724_14. The token validation function is exported as validateToken() — please reuse it for registration."
+tko comment add 20260724_10 "Shared module (src/api/auth/shared.ts) is now established by #20260724_13. tko-shield, you're clear to start #20260724_14. The token validation function is exported as validateToken() — please reuse it for registration."
 ```
 
 #### Step 6: Report Progress Periodically
@@ -388,7 +388,7 @@ tinytask comment add 20260724_10 "Shared module (src/api/auth/shared.ts) is now 
 Post progress updates to the hub so all agents have visibility:
 
 ```bash
-tinytask comment add 20260724_10 "Progress update: #20260724_13 (login endpoint) is 60% done. The endpoint handler and credential validation are working. Still need: session token generation, rate limiting, and integration tests. ETA: 2 more hours."
+tko comment add 20260724_10 "Progress update: #20260724_13 (login endpoint) is 60% done. The endpoint handler and credential validation are working. Still need: session token generation, rate limiting, and integration tests. ETA: 2 more hours."
 ```
 
 #### Step 7: Finalize and Hand Off
@@ -396,7 +396,7 @@ tinytask comment add 20260724_10 "Progress update: #20260724_13 (login endpoint)
 When all coordinated work is complete, the lead developer posts a summary and hands off the parent:
 
 ```bash
-tinytask comment add 20260724_10 "ALL SUBTASKS COMPLETE.
+tko comment add 20260724_10 "ALL SUBTASKS COMPLETE.
 - #20260724_11 (schema): done, handed to QA
 - #20260724_12 (password hashing): done, handed to QA
 - #20260724_13 (login endpoint): done, handed to QA
@@ -404,8 +404,8 @@ tinytask comment add 20260724_10 "ALL SUBTASKS COMPLETE.
 - #20260724_17 (session middleware): done, handed to QA
 
 All subtasks verified locally. Full test suite: 48 tests passing. Ready for QA verification of the parent."
-tinytask task update 20260724_10 --status idle
-tinytask queue move 20260724_10 ready-for-qa
+tko task update 20260724_10 --status idle
+tko queue move 20260724_10 ready-for-qa
 ```
 
 ### Variations
@@ -416,10 +416,10 @@ When a developer and tester need to coordinate on a verification cycle:
 
 ```bash
 # Developer notifies tester that a fix is ready on a specific branch
-tinytask comment add 20260724_30 "Fix is on branch fix/auth-special-chars, commit d4e8a7f. Deployed to staging. @tko-shield, please verify against staging URL when ready. The fix covers +, &, =, %, and # characters."
+tko comment add 20260724_30 "Fix is on branch fix/auth-special-chars, commit d4e8a7f. Deployed to staging. @tko-shield, please verify against staging URL when ready. The fix covers +, &, =, %, and # characters."
 
 # Tester acknowledges and coordinates
-tinytask comment add 20260724_30 "Acknowledged. Starting verification on staging. Will report results within 30 minutes."
+tko comment add 20260724_30 "Acknowledged. Starting verification on staging. Will report results within 30 minutes."
 ```
 
 #### Coordination with External Dependencies
@@ -427,7 +427,7 @@ tinytask comment add 20260724_30 "Acknowledged. Starting verification on staging
 When coordinated work depends on an external system or non-task-tracked work:
 
 ```bash
-tinytask comment add 20260724_10 "EXTERNAL DEPENDENCY: The CI/CD pipeline needs to be updated to run the new auth integration tests. This is tracked outside TinyTask (DevOps ticket #CI-145). @tko-sword — please coordinate with the DevOps team before marking the parent complete. The tests won't run in CI until CI-145 is done."
+tko comment add 20260724_10 "EXTERNAL DEPENDENCY: The CI/CD pipeline needs to be updated to run the new auth integration tests. This is tracked outside TKO (DevOps ticket #CI-145). @tko-sword — please coordinate with the DevOps team before marking the parent complete. The tests won't run in CI until CI-145 is done."
 ```
 
 #### Coordinating a Bug Bash
@@ -436,7 +436,7 @@ When multiple testers are investigating different aspects of the same feature:
 
 ```bash
 # Hub task for the bug bash
-tinytask comment add 20260724_50 "BUG BASH: Authentication feature. 
+tko comment add 20260724_50 "BUG BASH: Authentication feature.
 - tko-shield: testing login endpoint edge cases
 - ab-shield: testing registration endpoint edge cases
 - enigma-shield: testing session management and token expiry
@@ -447,9 +447,9 @@ Please file individual defects as separate tasks and link them to this hub. Post
 After the bug bash, each tester links their findings:
 
 ```bash
-tinytask link add 20260724_50 "tasks/20260724_51" -d "[bug] Login returns 500 on special chars (tko-shield)"
-tinytask link add 20260724_50 "tasks/20260724_52" -d "[bug] Registration allows duplicate emails (ab-shield)"
-tinytask link add 20260724_50 "tasks/20260724_53" -d "[bug] Session token not expiring (enigma-shield)"
+tko link add 20260724_50 "tasks/20260724_51" -d "[bug] Login returns 500 on special chars (tko-shield)"
+tko link add 20260724_50 "tasks/20260724_52" -d "[bug] Registration allows duplicate emails (ab-shield)"
+tko link add 20260724_50 "tasks/20260724_53" -d "[bug] Session token not expiring (enigma-shield)"
 ```
 
 ### Common Mistakes to Avoid
@@ -490,13 +490,13 @@ Before making a status change, think about who is affected:
 
 ```bash
 # Check for tasks that depend on this one
-tinytask task list --json | grep 20260724_01
+tko task list --json | grep 20260724_01
 
 # Check linked tasks
-tinytask link list 20260724_01
+tko link list 20260724_01
 
 # Check if this is a subtask — the parent task's assignee needs to know
-tinytask task get 20260724_01 --json
+tko task get 20260724_01 --json
 ```
 
 #### Step 2: Update the Task Status
@@ -505,17 +505,17 @@ The status field is the primary broadcast mechanism. Set it accurately:
 
 ```bash
 # Starting work
-tinytask task update 20260724_01 --status working
-tinytask comment add 20260724_01 "Started work on the pagination implementation."
+tko task update 20260724_01 --status working
+tko comment add 20260724_01 "Started work on the pagination implementation."
 
 # Pausing work
-tinytask task update 20260724_01 --status idle
-tinytask comment add 20260724_01 "Pausing to handle urgent production issue #20260724_20. Will resume after. Current state: 70% done, need to add tests and update docs."
+tko task update 20260724_01 --status idle
+tko comment add 20260724_01 "Pausing to handle urgent production issue #20260724_20. Will resume after. Current state: 70% done, need to add tests and update docs."
 
 # Completing and handing off
-tinytask task update 20260724_01 --status idle
-tinytask queue move 20260724_01 ready-for-qa
-tinytask comment add 20260724_01 "Implementation complete. Ready for QA verification."
+tko task update 20260724_01 --status idle
+tko queue move 20260724_01 ready-for-qa
+tko comment add 20260724_01 "Implementation complete. Ready for QA verification."
 ```
 
 #### Step 3: Broadcast to the Hub Task (if applicable)
@@ -523,7 +523,7 @@ tinytask comment add 20260724_01 "Implementation complete. Ready for QA verifica
 If the task is part of a coordinated effort, post the status change to the hub task:
 
 ```bash
-tinytask comment add 20260724_10 "STATUS UPDATE: #20260724_13 (login endpoint) is now idle — pausing for urgent production issue. Will resume in ~2 hours. This does not block any other subtasks."
+tko comment add 20260724_10 "STATUS UPDATE: #20260724_13 (login endpoint) is now idle — pausing for urgent production issue. Will resume in ~2 hours. This does not block any other subtasks."
 ```
 
 #### Step 4: Notify Dependent Tasks (if applicable)
@@ -532,7 +532,7 @@ If other tasks are blocked by this one, and the status change affects them (e.g.
 
 ```bash
 # Notify the dependent task that its blocker is resolved
-tinytask comment add 20260724_15 "UNBLOCKED: Dependency #20260724_01 (pagination) is now complete and handed to QA. This task is no longer blocked. Ready to start."
+tko comment add 20260724_15 "UNBLOCKED: Dependency #20260724_01 (pagination) is now complete and handed to QA. This task is no longer blocked. Ready to start."
 ```
 
 #### Step 5: Use Queue Placement for Visibility
@@ -541,13 +541,13 @@ Moving a task to a specific queue is itself a broadcast — it signals what stag
 
 ```bash
 # Moving to blocked queue signals that this task is waiting
-tinytask task update 20260724_01 --status idle
-tinytask queue move 20260724_01 blocked
-tinytask comment add 20260724_01 "Moved to 'blocked' queue. Waiting on #20260724_05 (schema design) to complete."
+tko task update 20260724_01 --status idle
+tko queue move 20260724_01 blocked
+tko comment add 20260724_01 "Moved to 'blocked' queue. Waiting on #20260724_05 (schema design) to complete."
 
 # Moving back to active development signals unblock
-tinytask queue move 20260724_01 ready-for-development
-tinytask comment add 20260724_01 "Unblocked. Schema is done. Moving back to development queue."
+tko queue move 20260724_01 ready-for-development
+tko comment add 20260724_01 "Unblocked. Schema is done. Moving back to development queue."
 ```
 
 #### Step 6: Add Links for External References
@@ -555,8 +555,8 @@ tinytask comment add 20260724_01 "Unblocked. Schema is done. Moving back to deve
 If the status change involves an external resource (PR, deployment, CI run), link it so agents can verify:
 
 ```bash
-tinytask link add 20260724_01 "https://github.com/org/tinytask/pull/42" -d "PR: Pagination implementation"
-tinytask link add 20260724_01 "https://ci.example.com/job/12345" -d "CI pipeline run — all tests passing"
+tko link add 20260724_01 "https://github.com/org/tko/pull/42" -d "PR: Pagination implementation"
+tko link add 20260724_01 "https://ci.example.com/job/12345" -d "CI pipeline run — all tests passing"
 ```
 
 ### Variations
@@ -566,12 +566,12 @@ tinytask link add 20260724_01 "https://ci.example.com/job/12345" -d "CI pipeline
 When you discover your task is blocked and others may be waiting on your task (cascade blocking):
 
 ```bash
-tinytask comment add 20260724_01 "BLOCKED: Can't proceed — the database migration in #20260724_05 hasn't been deployed to staging yet. I'm blocked until that happens. If anyone is waiting on my task, please be aware of this delay."
-tinytask task update 20260724_01 --status idle
-tinytask queue move 20260724_01 blocked
+tko comment add 20260724_01 "BLOCKED: Can't proceed — the database migration in #20260724_05 hasn't been deployed to staging yet. I'm blocked until that happens. If anyone is waiting on my task, please be aware of this delay."
+tko task update 20260724_01 --status idle
+tko queue move 20260724_01 blocked
 
 # If there's a hub, notify it too
-tinytask comment add 20260724_10 "BLOCKED: #20260724_01 is blocked waiting on staging deployment of #20260724_05. This may cascade — if #20260724_15 depends on #20260724_01, it's also effectively blocked."
+tko comment add 20260724_10 "BLOCKED: #20260724_01 is blocked waiting on staging deployment of #20260724_05. This may cascade — if #20260724_15 depends on #20260724_01, it's also effectively blocked."
 ```
 
 #### Broadcasting an Unblock
@@ -580,12 +580,12 @@ When a blocking task completes and dependent tasks can proceed:
 
 ```bash
 # On the blocking task
-tinytask comment add 20260724_05 "COMPLETE. Schema migration deployed to staging. All dependent tasks can now proceed."
+tko comment add 20260724_05 "COMPLETE. Schema migration deployed to staging. All dependent tasks can now proceed."
 
 # On each dependent task
-tinytask comment add 20260724_01 "UNBLOCKED: #20260724_05 (schema) is complete and deployed. Resuming work."
-tinytask task update 20260724_01 --status working
-tinytask queue move 20260724_01 ready-for-development
+tko comment add 20260724_01 "UNBLOCKED: #20260724_05 (schema) is complete and deployed. Resuming work."
+tko task update 20260724_01 --status working
+tko queue move 20260724_01 ready-for-development
 ```
 
 #### Broadcasting Across Queues
@@ -593,7 +593,7 @@ tinytask queue move 20260724_01 ready-for-development
 When a task moves between role-specific queues, the queue change itself broadcasts the stage transition. Ensure comments explain the transition for agents who check the task later:
 
 ```bash
-tinytask comment add 20260724_01 "Handoff: Development → QA. Implementation is complete, all unit tests pass. Moving to ready-for-qa queue. @tko-shield please verify."
+tko comment add 20260724_01 "Handoff: Development → QA. Implementation is complete, all unit tests pass. Moving to ready-for-qa queue. @tko-shield please verify."
 ```
 
 ### Common Mistakes to Avoid
@@ -630,7 +630,7 @@ Any agent can initiate conflict resolution or escalation. The agent who identifi
 Clearly state what the disagreement is about, the positions of each agent, and why it's blocking progress:
 
 ```bash
-tinytask comment add 20260724_13 "CONFLICT:
+tko comment add 20260724_13 "CONFLICT:
 
 @tko-sword proposes: Use a sliding window rate limiter (more accurate, slightly more complex).
 @tko-shield proposes: Use a fixed window rate limiter (simpler, acceptable for v1).
@@ -645,7 +645,7 @@ Suggesting escalation for a decision."
 Offer a concrete path forward rather than just flagging the problem:
 
 ```bash
-tinytask comment add 20260724_13 "PROPOSED RESOLUTION: Implement the fixed window approach for v1 (per @tko-shield's suggestion) to unblock the handoff. Create a follow-up task for the sliding window optimization with medium priority. This way we ship v1 faster and can refine later. @tko-shield — does this work for you?"
+tko comment add 20260724_13 "PROPOSED RESOLUTION: Implement the fixed window approach for v1 (per @tko-shield's suggestion) to unblock the handoff. Create a follow-up task for the sliding window optimization with medium priority. This way we ship v1 faster and can refine later. @tko-shield — does this work for you?"
 ```
 
 #### Step 3: Seek Consensus via Comments
@@ -654,7 +654,7 @@ Allow the other agent(s) to respond:
 
 ```bash
 # tko-shield responds
-tinytask comment add 20260724_13 "Agreed. Fixed window for v1, sliding window as follow-up. Let's proceed."
+tko comment add 20260724_13 "Agreed. Fixed window for v1, sliding window as follow-up. Let's proceed."
 ```
 
 If consensus is reached, document the decision and proceed with implementation.
@@ -666,14 +666,14 @@ If the agents cannot reach consensus through comments, escalate by:
 **Raising the priority** to signal urgency:
 
 ```bash
-tinytask task update 20260724_13 --priority 9
-tinytask comment add 20260724_13 "ESCALATION: Unable to reach consensus after 3 comment exchanges. Raising priority to 9. Requesting operator/lead decision on the rate limiter approach."
+tko task update 20260724_13 --priority 9
+tko comment add 20260724_13 "ESCALATION: Unable to reach consensus after 3 comment exchanges. Raising priority to 9. Requesting operator/lead decision on the rate limiter approach."
 ```
 
 **Creating a separate decision task** to track the escalation:
 
 ```bash
-tinytask task create "DECISION: Rate limiter approach for auth endpoints (sliding vs fixed window)" \
+tko task create "DECISION: Rate limiter approach for auth endpoints (sliding vs fixed window)" \
   -d "Conflict on #20260724_13. tko-sword proposes sliding window, tko-shield proposes fixed window. Need a decision to unblock the login endpoint handoff.
 
 Context:
@@ -683,11 +683,11 @@ Context:
 Related task: #20260724_13 (login endpoint implementation, blocked on this decision)" \
   --priority 9 \
   --tags "decision,auth,rate-limiting"
-tinytask queue add 20260724_60 triage
+tko queue add 20260724_60 triage
 
 # Link the decision task to the blocked task
-tinytask link add 20260724_60 "tasks/20260724_13" -d "Blocked task awaiting decision"
-tinytask link add 20260724_13 "tasks/20260724_60" -d "Decision task for rate limiter approach"
+tko link add 20260724_60 "tasks/20260724_13" -d "Blocked task awaiting decision"
+tko link add 20260724_13 "tasks/20260724_60" -d "Decision task for rate limiter approach"
 ```
 
 #### Step 5: Block the Conflicted Task (Optional)
@@ -695,9 +695,9 @@ tinytask link add 20260724_13 "tasks/20260724_60" -d "Decision task for rate lim
 If the conflict is blocking progress, move the task to a blocked state until the decision is made:
 
 ```bash
-tinytask task update 20260724_13 --status idle
-tinytask queue move 20260724_13 blocked
-tinytask comment add 20260724_13 "Moved to 'blocked' queue pending decision in #20260724_60. Will resume once the rate limiter approach is decided."
+tko task update 20260724_13 --status idle
+tko queue move 20260724_13 blocked
+tko comment add 20260724_13 "Moved to 'blocked' queue pending decision in #20260724_60. Will resume once the rate limiter approach is decided."
 ```
 
 #### Step 6: Implement the Decision
@@ -706,12 +706,12 @@ Once a decision is made (by the operator, lead, or consensus), document it and r
 
 ```bash
 # On the decision task
-tinytask comment add 20260724_60 "DECISION: Fixed window for v1. Sliding window as follow-up task. Rationale: v1 needs to ship quickly, fixed window is good enough, and the rate limit accuracy is not critical for the initial launch."
+tko comment add 20260724_60 "DECISION: Fixed window for v1. Sliding window as follow-up task. Rationale: v1 needs to ship quickly, fixed window is good enough, and the rate limit accuracy is not critical for the initial launch."
 
 # On the blocked task
-tinytask comment add 20260724_13 "DECISION RECEIVED: Fixed window rate limiter for v1. Resuming implementation."
-tinytask task update 20260724_13 --status working
-tinytask queue move 20260724_13 ready-for-development
+tko comment add 20260724_13 "DECISION RECEIVED: Fixed window rate limiter for v1. Resuming implementation."
+tko task update 20260724_13 --status working
+tko queue move 20260724_13 ready-for-development
 ```
 
 #### Step 7: Create Follow-Up Tasks (if applicable)
@@ -719,14 +719,14 @@ tinytask queue move 20260724_13 ready-for-development
 If the resolution involves deferring work, create a follow-up task:
 
 ```bash
-tinytask task create "Implement sliding window rate limiter for auth endpoints" \
+tko task create "Implement sliding window rate limiter for auth endpoints" \
   -d "Follow-up from decision in #20260724_60. v1 uses fixed window; this task tracks the upgrade to sliding window for better accuracy." \
   --assigned-to tko-sword \
   --priority 4 \
   --tags "enhancement,auth,rate-limiting"
-tinytask queue add 20260724_61 ready-for-development
+tko queue add 20260724_61 ready-for-development
 
-tinytask link add 20260724_61 "tasks/20260724_13" -d "Follow-up to v1 rate limiter implementation"
+tko link add 20260724_61 "tasks/20260724_13" -d "Follow-up to v1 rate limiter implementation"
 ```
 
 ### Variations
@@ -737,10 +737,10 @@ When two agents' changes conflict at the code level:
 
 ```bash
 # Agent 1 notices the conflict
-tinytask comment add 20260724_14 "MERGE CONFLICT: My changes to src/api/auth/shared.ts conflict with #20260724_13's changes. Both modified the validateToken function. @tko-sword — your version is in feature/login-endpoint, mine is in feature/registration-endpoint. Can we coordinate? I can rebase onto your branch once it's merged."
+tko comment add 20260724_14 "MERGE CONFLICT: My changes to src/api/auth/shared.ts conflict with #20260724_13's changes. Both modified the validateToken function. @tko-sword — your version is in feature/login-endpoint, mine is in feature/registration-endpoint. Can we coordinate? I can rebase onto your branch once it's merged."
 
 # Agent 2 responds
-tinytask comment add 20260724_14 "Acknowledged. I'll merge feature/login-endpoint first. Once it's in main, please rebase your branch. I'll review the shared.ts changes to make sure we don't lose anything."
+tko comment add 20260724_14 "Acknowledged. I'll merge feature/login-endpoint first. Once it's in main, please rebase your branch. I'll review the shared.ts changes to make sure we don't lose anything."
 ```
 
 #### Escalating a Kickback Cycle
@@ -748,15 +748,15 @@ tinytask comment add 20260724_14 "Acknowledged. I'll merge feature/login-endpoin
 When a defect has been kicked back multiple times (see [C4](./03-Scenario-Group-C-QA-and-Bug-Workflows.md#c4-kickback--refine-cycle)):
 
 ```bash
-tinytask comment add 20260724_30 "ESCALATION: This defect has been kicked back 3 times. Root cause analysis suggests the password handling pipeline needs a comprehensive rewrite, not incremental fixes. 
+tko comment add 20260724_30 "ESCALATION: This defect has been kicked back 3 times. Root cause analysis suggests the password handling pipeline needs a comprehensive rewrite, not incremental fixes.
 
 Proposing:
 1. Decompose this into subtasks for a proper input normalization layer (see [B1](./02-Scenario-Group-B-Development-Workflows.md#b1-subtask-decomposition))
 2. Increase priority to urgent
 3. Block the auth feature parent (#20260724_10) until this is properly resolved"
 
-tinytask task update 20260724_30 --priority 9
-tinytask comment add 20260724_10 "BLOCKED: #20260724_30 has been kicked back 3 times. Pausing feature work until the password handling issue is properly resolved. See #20260724_30 for details."
+tko task update 20260724_30 --priority 9
+tko comment add 20260724_10 "BLOCKED: #20260724_30 has been kicked back 3 times. Pausing feature work until the password handling issue is properly resolved. See #20260724_30 for details."
 ```
 
 #### Resolving Duplicate Work
@@ -764,17 +764,17 @@ tinytask comment add 20260724_10 "BLOCKED: #20260724_30 has been kicked back 3 t
 When two agents discover they're working on the same or overlapping tasks:
 
 ```bash
-tinytask comment add 20260724_70 "DUPLICATE WORK DETECTED: This task and #20260724_71 both implement password reset functionality. I started #20260724_70 (focused on the API endpoint) before seeing #20260724_71 (focused on the email flow). 
+tko comment add 20260724_70 "DUPLICATE WORK DETECTED: This task and #20260724_71 both implement password reset functionality. I started #20260724_70 (focused on the API endpoint) before seeing #20260724_71 (focused on the email flow).
 
 Proposing: Consolidate into #20260724_70 (API endpoint). @tko-shield — can we close #20260724_71 and track the email flow as a subtask of #20260724_70?"
 
 # Link as duplicates
-tinytask link add 20260724_70 "tasks/20260724_71" -d "[duplicate] Overlapping work — consolidating here"
-tinytask link add 20260724_71 "tasks/20260724_70" -d "[duplicate] Consolidated into this task"
+tko link add 20260724_70 "tasks/20260724_71" -d "[duplicate] Overlapping work — consolidating here"
+tko link add 20260724_71 "tasks/20260724_70" -d "[duplicate] Consolidated into this task"
 
 # Close the duplicate
-tinytask comment add 20260724_71 "Consolidated into #20260724_70. Closing as duplicate. The email flow will be tracked as a subtask of #20260724_70."
-tinytask task update 20260724_71 --status complete
+tko comment add 20260724_71 "Consolidated into #20260724_70. Closing as duplicate. The email flow will be tracked as a subtask of #20260724_70."
+tko task update 20260724_71 --status complete
 ```
 
 ### Common Mistakes to Avoid
@@ -795,113 +795,113 @@ tinytask task update 20260724_71 --status complete
 
 ```bash
 # Add a comment
-tinytask comment add <task-id> "<message>"
+tko comment add <task-id> "<message>"
 
 # List comments
-tinytask comment list <task-id>
+tko comment list <task-id>
 
 # Update a comment
-tinytask comment update <comment-id> "<updated text>"
+tko comment update <comment-id> "<updated text>"
 
 # Delete a comment
-tinytask comment delete <comment-id> --yes
+tko comment delete <comment-id> --yes
 ```
 
 ### Cross-Queue Handoff
 
 ```bash
 # 1. Set to idle
-tinytask task update <task-id> --status idle
+tko task update <task-id> --status idle
 
 # 2. Add handoff comment
-tinytask comment add <task-id> "<handoff reason and context>"
+tko comment add <task-id> "<handoff reason and context>"
 
 # 3. Move to destination queue
-tinytask queue move <task-id> <destination-queue>
+tko queue move <task-id> <destination-queue>
 
 # 4. Reassign to the appropriate agent
-tinytask task update <task-id> --assigned-to <agent>
+tko task update <task-id> --assigned-to <agent>
 
 # Or combine steps 2 and 4:
-tinytask move <task-id> <agent> --comment "<handoff reason>"
+tko move <task-id> <agent> --comment "<handoff reason>"
 ```
 
 ### Multi-Agent Coordination
 
 ```bash
 # 1. Establish a coordination hub
-tinytask comment add <hub-task-id> "COORDINATION PLAN: <agents, tasks, dependencies, shared files>"
+tko comment add <hub-task-id> "COORDINATION PLAN: <agents, tasks, dependencies, shared files>"
 
 # 2. Agents report start
-tinytask comment add <hub-task-id> "Starting #<task-id>. <details>"
+tko comment add <hub-task-id> "Starting #<task-id>. <details>"
 
 # 3. Agents report completion and unblock dependents
-tinytask comment add <hub-task-id> "DEPENDENCY CLEARED: #<task-id> is done. #<dependent-id> can start."
+tko comment add <hub-task-id> "DEPENDENCY CLEARED: #<task-id> is done. #<dependent-id> can start."
 
 # 4. Check dependencies before starting
-tinytask comment list <hub-task-id>
-tinytask comment add <hub-task-id> "Starting #<task-id>. Both dependencies clear."
+tko comment list <hub-task-id>
+tko comment add <hub-task-id> "Starting #<task-id>. Both dependencies clear."
 
 # 5. Final summary and handoff
-tinytask comment add <hub-task-id> "ALL SUBTASKS COMPLETE. <summary>. Ready for QA."
-tinytask task update <hub-task-id> --status idle
-tinytask queue move <hub-task-id> ready-for-qa
+tko comment add <hub-task-id> "ALL SUBTASKS COMPLETE. <summary>. Ready for QA."
+tko task update <hub-task-id> --status idle
+tko queue move <hub-task-id> ready-for-qa
 ```
 
 ### Status Broadcasting
 
 ```bash
 # Broadcast start
-tinytask task update <task-id> --status working
-tinytask comment add <task-id> "Started work. <details>"
-tinytask comment add <hub-task-id> "STATUS: #<task-id> started."
+tko task update <task-id> --status working
+tko comment add <task-id> "Started work. <details>"
+tko comment add <hub-task-id> "STATUS: #<task-id> started."
 
 # Broadcast block
-tinytask task update <task-id> --status idle
-tinytask queue move <task-id> blocked
-tinytask comment add <task-id> "BLOCKED: <reason>. Waiting on #<blocking-id>."
+tko task update <task-id> --status idle
+tko queue move <task-id> blocked
+tko comment add <task-id> "BLOCKED: <reason>. Waiting on #<blocking-id>."
 
 # Broadcast unblock
-tinytask comment add <dependent-id> "UNBLOCKED: #<blocking-id> is done. Ready to start."
-tinytask task update <dependent-id> --status working
-tinytask queue move <dependent-id> ready-for-development
+tko comment add <dependent-id> "UNBLOCKED: #<blocking-id> is done. Ready to start."
+tko task update <dependent-id> --status working
+tko queue move <dependent-id> ready-for-development
 
 # Broadcast completion
-tinytask task update <task-id> --status idle
-tinytask queue move <task-id> ready-for-qa
-tinytask comment add <task-id> "Complete. Ready for QA."
-tinytask comment add <hub-task-id> "STATUS: #<task-id> complete and handed to QA."
+tko task update <task-id> --status idle
+tko queue move <task-id> ready-for-qa
+tko comment add <task-id> "Complete. Ready for QA."
+tko comment add <hub-task-id> "STATUS: #<task-id> complete and handed to QA."
 ```
 
 ### Conflict Resolution & Escalation
 
 ```bash
 # 1. Document the conflict
-tinytask comment add <task-id> "CONFLICT: <positions of each agent, tradeoffs>"
+tko comment add <task-id> "CONFLICT: <positions of each agent, tradeoffs>"
 
 # 2. Propose resolution
-tinytask comment add <task-id> "PROPOSED RESOLUTION: <path forward>"
+tko comment add <task-id> "PROPOSED RESOLUTION: <path forward>"
 
 # 3. If consensus fails, escalate
-tinytask task update <task-id> --priority 9
-tinytask comment add <task-id> "ESCALATION: Unable to reach consensus. Requesting decision."
+tko task update <task-id> --priority 9
+tko comment add <task-id> "ESCALATION: Unable to reach consensus. Requesting decision."
 
 # 4. Create a decision task
-tinytask task create "DECISION: <topic>" -d "<context, positions, related task>" --priority 9 --tags "decision"
-tinytask link add <decision-id> "tasks/<task-id>" -d "Blocked task awaiting decision"
+tko task create "DECISION: <topic>" -d "<context, positions, related task>" --priority 9 --tags "decision"
+tko link add <decision-id> "tasks/<task-id>" -d "Blocked task awaiting decision"
 
 # 5. Block the conflicted task
-tinytask task update <task-id> --status idle
-tinytask queue move <task-id> blocked
+tko task update <task-id> --status idle
+tko queue move <task-id> blocked
 
 # 6. After decision, resume
-tinytask comment add <task-id> "DECISION RECEIVED: <decision>. Resuming."
-tinytask task update <task-id> --status working
-tinytask queue move <task-id> ready-for-development
+tko comment add <task-id> "DECISION RECEIVED: <decision>. Resuming."
+tko task update <task-id> --status working
+tko queue move <task-id> ready-for-development
 
 # 7. Create follow-up task for deferred work
-tinytask task create "Follow-up: <deferred work>" -d "<context>" --assigned-to <agent> --priority <n>
-tinytask link add <followup-id> "tasks/<original-id>" -d "Follow-up to <original>"
+tko task create "Follow-up: <deferred work>" -d "<context>" --assigned-to <agent> --priority <n>
+tko link add <followup-id> "tasks/<original-id>" -d "Follow-up to <original>"
 ```
 
 ---
@@ -916,9 +916,9 @@ tinytask link add <followup-id> "tasks/<original-id>" -d "Follow-up to <original
 | Task dependencies, blocked tasks, linking, bulk operations | [Scenario Group D](./04-Scenario-Group-D-Task-Organization-and-Dependencies.md) |
 | Core concepts: comments, queues, roles | [00-Foundation.md](./00-Foundation.md) — Sections 2.3, 2.4, 3 |
 | Queue transition rules | [00-Foundation.md](./00-Foundation.md) — Section 6 |
-| Comment commands | See `tinytask comment --help` |
-| Queue management commands | See `tinytask queue --help` |
-| Link commands | See `tinytask link --help` |
+| Comment commands | See `tko comment --help` |
+| Queue management commands | See `tko queue --help` |
+| Link commands | See `tko link --help` |
 
 ### Key Handoff Points
 
@@ -933,4 +933,4 @@ tinytask link add <followup-id> "tasks/<original-id>" -d "Follow-up to <original
 
 ---
 
-*This document is part of the TinyTask Process Manual. See [00-Foundation.md](./00-Foundation.md) for core concepts and [other scenario documents](.) for specialized workflows.*
+*This document is part of the TKO Process Manual. See [00-Foundation.md](./00-Foundation.md) for core concepts and [other scenario documents](.) for specialized workflows.*

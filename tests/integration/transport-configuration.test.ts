@@ -33,10 +33,10 @@ describe('Transport Configuration', () => {
     client.cleanup();
   });
 
-  describe('TINYTASK_ENABLE_SSE Configuration', () => {
-    it('should use SSE when TINYTASK_ENABLE_SSE=true', async () => {
-      process.env.TINYTASK_MODE = 'http';
-      process.env.TINYTASK_ENABLE_SSE = 'true';
+  describe('TKO_ENABLE_SSE Configuration', () => {
+    it('should use SSE when TKO_ENABLE_SSE=true', async () => {
+      process.env.TKO_MODE = 'http';
+      process.env.TKO_ENABLE_SSE = 'true';
 
       const port = PORTS.SSE_ENABLED;
       const _serverPromise = startHttpServer(
@@ -62,9 +62,9 @@ describe('Transport Configuration', () => {
       expect(health.transport).toBeUndefined();
     });
 
-    it('should use Streamable HTTP when TINYTASK_ENABLE_SSE=false', async () => {
-      process.env.TINYTASK_MODE = 'http';
-      process.env.TINYTASK_ENABLE_SSE = 'false';
+    it('should use Streamable HTTP when TKO_ENABLE_SSE=false', async () => {
+      process.env.TKO_MODE = 'http';
+      process.env.TKO_ENABLE_SSE = 'false';
 
       const port = PORTS.SSE_DISABLED;
       const _serverPromise = startHttpServer(
@@ -86,9 +86,9 @@ describe('Transport Configuration', () => {
       expect(health.sessionCount).toBeDefined();
     });
 
-    it('should default to Streamable HTTP when TINYTASK_ENABLE_SSE is unset', async () => {
-      process.env.TINYTASK_MODE = 'http';
-      delete process.env.TINYTASK_ENABLE_SSE;
+    it('should default to Streamable HTTP when TKO_ENABLE_SSE is unset', async () => {
+      process.env.TKO_MODE = 'http';
+      delete process.env.TKO_ENABLE_SSE;
 
       const port = PORTS.SSE_UNSET;
       const serverPromise = startHttpServer(
@@ -111,26 +111,26 @@ describe('Transport Configuration', () => {
     });
   });
 
-  describe('TINYTASK_MODE Configuration', () => {
-    it('should activate SSE with deprecation warning when TINYTASK_MODE=sse', async () => {
+  describe('TKO_MODE Configuration', () => {
+    it('should activate SSE with deprecation warning when TKO_MODE=sse', async () => {
       // This test verifies backward compatibility
-      // When mode is 'sse', it should be normalized to 'http' with TINYTASK_ENABLE_SSE=true
+      // When mode is 'sse', it should be normalized to 'http' with TKO_ENABLE_SSE=true
       
-      const originalMode = process.env.TINYTASK_MODE;
-      process.env.TINYTASK_MODE = 'sse';
-      delete process.env.TINYTASK_ENABLE_SSE;
+      const originalMode = process.env.TKO_MODE;
+      process.env.TKO_MODE = 'sse';
+      delete process.env.TKO_ENABLE_SSE;
 
       // Import index to trigger mode normalization
-      // Note: In real scenario, the index.ts normalizes 'sse' to 'http' + sets TINYTASK_ENABLE_SSE=true
+      // Note: In real scenario, the index.ts normalizes 'sse' to 'http' + sets TKO_ENABLE_SSE=true
       // For testing, we simulate this behavior
-      let mode = process.env.TINYTASK_MODE;
+      let mode = process.env.TKO_MODE;
       if (mode === 'sse') {
         mode = 'http';
-        if (!process.env.TINYTASK_ENABLE_SSE) {
-          process.env.TINYTASK_ENABLE_SSE = 'true';
+        if (!process.env.TKO_ENABLE_SSE) {
+          process.env.TKO_ENABLE_SSE = 'true';
         }
       }
-      process.env.TINYTASK_MODE = mode;
+      process.env.TKO_MODE = mode;
 
       const port = PORTS.MODE_SSE;
       const serverPromise = startHttpServer(
@@ -152,9 +152,9 @@ describe('Transport Configuration', () => {
       expect(health.transport).toBeUndefined();
     });
 
-    it('should use Streamable HTTP when TINYTASK_MODE=http without SSE flag', async () => {
-      process.env.TINYTASK_MODE = 'http';
-      delete process.env.TINYTASK_ENABLE_SSE;
+    it('should use Streamable HTTP when TKO_MODE=http without SSE flag', async () => {
+      process.env.TKO_MODE = 'http';
+      delete process.env.TKO_ENABLE_SSE;
 
       const port = PORTS.MODE_HTTP;
       const serverPromise = startHttpServer(
@@ -175,9 +175,9 @@ describe('Transport Configuration', () => {
       expect(health.transport).toBe('streamable-http');
     });
 
-    it('should use Streamable HTTP by default when TINYTASK_MODE=both', async () => {
-      process.env.TINYTASK_MODE = 'both';
-      delete process.env.TINYTASK_ENABLE_SSE;
+    it('should use Streamable HTTP by default when TKO_MODE=both', async () => {
+      process.env.TKO_MODE = 'both';
+      delete process.env.TKO_ENABLE_SSE;
 
       const port = PORTS.MODE_BOTH;
       // In 'both' mode, only the HTTP server part is testable
@@ -199,9 +199,9 @@ describe('Transport Configuration', () => {
       expect(health.transport).toBe('streamable-http');
     });
 
-    it('should use SSE when TINYTASK_MODE=both TINYTASK_ENABLE_SSE=true', async () => {
-      process.env.TINYTASK_MODE = 'both';
-      process.env.TINYTASK_ENABLE_SSE = 'true';
+    it('should use SSE when TKO_MODE=both TKO_ENABLE_SSE=true', async () => {
+      process.env.TKO_MODE = 'both';
+      process.env.TKO_ENABLE_SSE = 'true';
 
       const port = PORTS.MODE_BOTH_SSE;
       const serverPromise = startHttpServer(
@@ -226,7 +226,7 @@ describe('Transport Configuration', () => {
 
   describe('Transport Verification', () => {
     it('should execute tools correctly with SSE transport', async () => {
-      process.env.TINYTASK_ENABLE_SSE = 'true';
+      process.env.TKO_ENABLE_SSE = 'true';
 
       const port = PORTS.SSE_ENABLED + 100;
       const serverPromise = startHttpServer(
@@ -254,7 +254,7 @@ describe('Transport Configuration', () => {
     });
 
     it('should execute tools correctly with Streamable HTTP transport', async () => {
-      delete process.env.TINYTASK_ENABLE_SSE;
+      delete process.env.TKO_ENABLE_SSE;
 
       const port = PORTS.SSE_DISABLED + 100;
       const serverPromise = startHttpServer(
@@ -283,10 +283,10 @@ describe('Transport Configuration', () => {
   });
 
   describe('Configuration Priority', () => {
-    it('should prioritize TINYTASK_ENABLE_SSE over mode defaults', async () => {
+    it('should prioritize TKO_ENABLE_SSE over mode defaults', async () => {
       // Even with mode=http, explicit SSE flag should activate SSE
-      process.env.TINYTASK_MODE = 'http';
-      process.env.TINYTASK_ENABLE_SSE = 'true';
+      process.env.TKO_MODE = 'http';
+      process.env.TKO_ENABLE_SSE = 'true';
 
       const port = PORTS.SSE_ENABLED + 200;
       const serverPromise = startHttpServer(
@@ -307,9 +307,9 @@ describe('Transport Configuration', () => {
       expect(health.transport).toBeUndefined();
     });
 
-    it('should use Streamable HTTP when TINYTASK_ENABLE_SSE is explicitly false', async () => {
-      process.env.TINYTASK_MODE = 'http';
-      process.env.TINYTASK_ENABLE_SSE = 'false';
+    it('should use Streamable HTTP when TKO_ENABLE_SSE is explicitly false', async () => {
+      process.env.TKO_MODE = 'http';
+      process.env.TKO_ENABLE_SSE = 'false';
 
       const port = PORTS.SSE_DISABLED + 200;
       const serverPromise = startHttpServer(
@@ -334,11 +334,11 @@ describe('Transport Configuration', () => {
     it('should properly isolate test environment variables', () => {
       // Set test-specific env vars
       process.env.TEST_VAR = 'test';
-      process.env.TINYTASK_ENABLE_SSE = 'true';
+      process.env.TKO_ENABLE_SSE = 'true';
 
       // Verify they're set
       expect(process.env.TEST_VAR).toBe('test');
-      expect(process.env.TINYTASK_ENABLE_SSE).toBe('true');
+      expect(process.env.TKO_ENABLE_SSE).toBe('true');
 
       // After test cleanup (in afterEach), they should be restored
       // This is verified by the test framework

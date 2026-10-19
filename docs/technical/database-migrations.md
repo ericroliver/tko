@@ -2,7 +2,7 @@
 
 ## Overview
 
-TinyTask MCP includes an automatic migration system to handle schema changes for existing databases. Migrations run automatically during database initialization, ensuring backward compatibility.
+TKO MCP includes an automatic migration system to handle schema changes for existing databases. Migrations run automatically during database initialization, ensuring backward compatibility.
 
 ## Migration Strategy
 
@@ -56,12 +56,12 @@ private runMigrations(): void {
     this.db.exec(`ALTER TABLE tasks ADD COLUMN parent_task_id INTEGER;`);
     this.db.exec(`CREATE INDEX IF NOT EXISTS idx_tasks_parent_task_id ON tasks(parent_task_id);`);
   }
-  
+
   if (!this.columnExists('tasks', 'queue_name')) {
     this.db.exec(`ALTER TABLE tasks ADD COLUMN queue_name TEXT;`);
     // Create queue indexes...
   }
-  
+
   if (!this.columnExists('tasks', 'previous_assigned_to')) {
     this.db.exec(`ALTER TABLE tasks ADD COLUMN previous_assigned_to TEXT;`);
   }
@@ -106,7 +106,7 @@ To verify migrations have run:
 
 1. Connect to the running container:
    ```bash
-   docker compose exec tinytask-mcp sh
+   docker compose exec tko-mcp sh
    ```
 
 2. Check the database schema:

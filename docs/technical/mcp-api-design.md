@@ -1,4 +1,4 @@
-# TinyTask MCP API Design
+# TKO MCP API Design
 
 ## Overview
 The MCP server exposes both **Tools** (for actions/mutations) and **Resources** (for data queries) to enable LLM agents to collaborate on tasks.
@@ -321,8 +321,8 @@ Common error scenarios:
 3. **Architect Agent** updates status and adds comments:
    ```
    update_task({ id: 1, status: "working" })
-   add_comment({ 
-     task_id: 1, 
+   add_comment({
+     task_id: 1,
      content: "Analyzing requirements...",
      created_by: "architect-agent"
    })
@@ -339,8 +339,8 @@ Common error scenarios:
 
 5. **Architect Agent** reassigns to code agent:
    ```
-   update_task({ 
-     id: 1, 
+   update_task({
+     id: 1,
      assigned_to: "code-agent",
      status: "idle"
    })

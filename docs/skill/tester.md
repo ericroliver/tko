@@ -16,7 +16,7 @@ description: Tester task management skill for QA agents — bug reporting, defec
 | Status discipline | `working` on start → `complete` on verified pass, or `idle` + kickback on fail |
 | CLI reference | See `SKILL.md` for full command syntax |
 
-> **Agent identity:** Set `TKO_AGENT` in your environment. Used as `created_by` for tasks, comments, links. Alternatively, pass `--created-by <agent>` per command, or `tinytask config set agent <your-agent>`.
+> **Agent identity:** Set `TKO_AGENT` in your environment. Used as `created_by` for tasks, comments, links. Alternatively, pass `--created-by <agent>` per command, or `tko config set agent <your-agent>`.
 
 ## Your Queues
 
@@ -32,14 +32,14 @@ description: Tester task management skill for QA agents — bug reporting, defec
 Reproduce before filing. Document steps, expected vs. actual, environment, severity.
 
 ```bash
-tinytask task create "BUG: <specific description>" \
+tko task create "BUG: <specific description>" \
   -d "Steps to reproduce:\n1. <step>\n2. <step>\n\nExpected: <expected>\nActual: <actual>\n\nEnvironment: <server/build>\nSeverity: <level> — <why>" \
   --assigned-to <developer> \
   --priority <n> \
   --tags "bug,<component>"
-tinytask queue add <defect-id> ready-for-development
-tinytask comment add <defect-id> "Filed by QA during <context>. Reproduced <n> times. <additional notes for developer>."
-tinytask link add <defect-id> "<related-task-or-pr-url>" -d "[related] <description>"
+tko queue add <defect-id> ready-for-development
+tko comment add <defect-id> "Filed by QA during <context>. Reproduced <n> times. <additional notes for developer>."
+tko link add <defect-id> "<related-task-or-pr-url>" -d "[related] <description>"
 ```
 
 For regressions: tag with `regression`, link the introducing PR, reference the last working build.
@@ -51,10 +51,10 @@ One bug per task. Don't combine unrelated issues. If you can't reproduce, note i
 Same pattern for both defect fixes (`ready-for-testing`) and features (`ready-for-qa`):
 
 ```bash
-tinytask queue view --mine                                          # Check your queue
-tinytask task get <id> --json && tinytask comment list <id>          # Read developer's summary + history
-tinytask task update <id> --status working                           # Set working
-tinytask comment add <id> "Starting verification. Will <re-run reproduction steps | test acceptance criteria>."
+tko queue view --mine                                          # Check your queue
+tko task get <id> --json && tko comment list <id>          # Read developer's summary + history
+tko task update <id> --status working                           # Set working
+tko comment add <id> "Starting verification. Will <re-run reproduction steps | test acceptance criteria>."
 ```
 
 - **Defect fixes**: re-run the **original reproduction steps** from the bug report
@@ -74,30 +74,30 @@ tinytask comment add <id> "Starting verification. Will <re-run reproduction step
 
 ```bash
 # Verify: reproduction steps pass / acceptance criteria met, edge cases tested, no regressions
-tinytask comment add <id> "Verified. <results: what was tested, edge cases, regression check>. Closing."
-tinytask task update <id> --status complete
+tko comment add <id> "Verified. <results: what was tested, edge cases, regression check>. Closing."
+tko task update <id> --status complete
 ```
 
 After closing a defect, check for related tasks:
 
 ```bash
-tinytask subtask list <id> && tinytask link list <id>                # Check for related/subtasks
-tinytask comment add <feature-id> "Defect #<id> verified and closed. <summary>."  # Update parent feature if applicable
+tko subtask list <id> && tko link list <id>                # Check for related/subtasks
+tko comment add <feature-id> "Defect #<id> verified and closed. <summary>."  # Update parent feature if applicable
 ```
 
 If related regression tasks exist, verify and close them too. For high-severity bugs, skip archival — keep for audit reference.
 ## Verification Fail → Kickback (C4)
 
 ```bash
-tinytask comment add <id> "Verification FAILED. <what didn't work>.
+tko comment add <id> "Verification FAILED. <what didn't work>.
 Re-tested:
 1. <step>
 2. <step>
 Expected: <expected>
 Actual: <actual>"
-tinytask task update <id> --status idle
-tinytask queue move <id> ready-for-development
-tinytask move <id> <developer> --comment "Kickback: <reason>. Please re-fix and re-submit."
+tko task update <id> --status idle
+tko queue move <id> ready-for-development
+tko move <id> <developer> --comment "Kickback: <reason>. Please re-fix and re-submit."
 ```
 
 If the fix introduced a new distinct issue, file a separate defect task, link it to the original, and kick back.
@@ -114,10 +114,10 @@ If the fix introduced a new distinct issue, file a separate defect task, link it
 ## Task Archival (A5)
 
 ```bash
-tinytask task get <id>                                                # Confirm status is complete
-tinytask subtask list <id>                                            # Verify no active subtasks
-tinytask comment add <id> "Archiving — verified and complete."
-tinytask task archive <id>
+tko task get <id>                                                # Confirm status is complete
+tko subtask list <id>                                            # Verify no active subtasks
+tko comment add <id> "Archiving — verified and complete."
+tko task archive <id>
 ```
 
 Archive subtasks before parents. Prefer `archive` over `delete` (soft-delete, recoverable). Archived tasks don't appear in default list views — use `--include-archived` to see them.
@@ -178,25 +178,25 @@ Comment on every status change, queue move, reassignment, and verification resul
 
 ```bash
 # Bug filing
-tinytask task create "BUG: <desc>" -d "<steps, expected, actual, env>" --assigned-to <developer> --priority <n> --tags "bug,<component>"
-tinytask queue add <defect-id> ready-for-development
-tinytask comment add <defect-id> "Filed by QA. <context>."
+tko task create "BUG: <desc>" -d "<steps, expected, actual, env>" --assigned-to <developer> --priority <n> --tags "bug,<component>"
+tko queue add <defect-id> ready-for-development
+tko comment add <defect-id> "Filed by QA. <context>."
 
 # Verification pickup
-tinytask queue view --mine && tinytask task get <id> --json && tinytask comment list <id>
-tinytask task update <id> --status working
-tinytask comment add <id> "Starting verification."
+tko queue view --mine && tko task get <id> --json && tko comment list <id>
+tko task update <id> --status working
+tko comment add <id> "Starting verification."
 
 # Verification pass → close
-tinytask comment add <id> "Verified. <results>. Closing."
-tinytask task update <id> --status complete
+tko comment add <id> "Verified. <results>. Closing."
+tko task update <id> --status complete
 
 # Verification fail → kickback
-tinytask comment add <id> "Verification FAILED. <details>."
-tinytask task update <id> --status idle && tinytask queue move <id> ready-for-development
-tinytask move <id> <developer> --comment "Kickback: <reason>."
+tko comment add <id> "Verification FAILED. <details>."
+tko task update <id> --status idle && tko queue move <id> ready-for-development
+tko move <id> <developer> --comment "Kickback: <reason>."
 
 # Archival
-tinytask comment add <id> "Archiving — verified and complete."
-tinytask task archive <id>
+tko comment add <id> "Archiving — verified and complete."
+tko task archive <id>
 ```

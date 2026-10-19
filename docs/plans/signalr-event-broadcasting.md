@@ -1,4 +1,4 @@
-# Plan: SignalR Event Broadcasting for TinyTask
+# Plan: SignalR Event Broadcasting for TKO
 
 > **Branch:** `feature/signalr-event-broadcasting`
 > **Author:** tko-sword
@@ -17,7 +17,7 @@ Add the ability to broadcast task events to a SignalR hub so that external clien
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                     TinyTask Server                          │
+│                     TKO Server                          │
 │                                                              │
 │  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐        │
 │  │  MCP    │  │  REST   │  │  SSE    │  │Streamable│       │
@@ -52,9 +52,9 @@ Add the ability to broadcast task events to a SignalR hub so that external clien
 
 ### Key Design Decision: Client Mode
 
-TinyTask acts as a **SignalR client**, not a hub host. The external ASP.NET hub (e.g., Shogun) hosts the hub endpoint. TinyTask connects to it and invokes methods to broadcast events. This fits the existing architecture where TinyTask is a service that other systems consume from.
+TKO acts as a **SignalR client**, not a hub host. The external ASP.NET hub (e.g., Shogun) hosts the hub endpoint. TKO connects to it and invokes methods to broadcast events. This fits the existing architecture where TKO is a service that other systems consume from.
 
-If `TINYTASK_SIGNALR_HUB_URL` is not set, the EventBus still emits events locally (no-op for SignalR). This allows future local subscribers (e.g., SSE event streaming) without requiring a SignalR hub.
+If `TKO_SIGNALR_HUB_URL` is not set, the EventBus still emits events locally (no-op for SignalR). This allows future local subscribers (e.g., SSE event streaming) without requiring a SignalR hub.
 
 ---
 
@@ -232,11 +232,11 @@ import { SignalRBroadcaster } from './events/index.js';
 const eventBus = new EventBus();
 
 // Optionally connect to SignalR hub
-const signalrHubUrl = process.env.TINYTASK_SIGNALR_HUB_URL;
+const signalrHubUrl = process.env.TKO_SIGNALR_HUB_URL;
 if (signalrHubUrl) {
   const broadcaster = new SignalRBroadcaster(signalrHubUrl, {
-    methodName: process.env.TINYTASK_SIGNALR_METHOD || 'BroadcastTaskEvent',
-    reconnectDelay: parseInt(process.env.TINYTASK_SIGNALR_RECONNECT_DELAY || '5000', 10),
+    methodName: process.env.TKO_SIGNALR_METHOD || 'BroadcastTaskEvent',
+    reconnectDelay: parseInt(process.env.TKO_SIGNALR_RECONNECT_DELAY || '5000', 10),
   });
   eventBus.on('*', (event) => broadcaster.broadcast(event));
   await broadcaster.start();
@@ -257,10 +257,10 @@ New environment variables:
 
 | Variable | Default | Description |
 |---|---|---|
-| `TINYTASK_SIGNALR_HUB_URL` | (none) | SignalR hub URL. If unset, broadcasting is disabled (events still emit locally) |
-| `TINYTASK_SIGNALR_METHOD` | `BroadcastTaskEvent` | Hub method name to invoke |
-| `TINYTASK_SIGNALR_RECONNECT_DELAY` | `5000` | Reconnect delay in ms |
-| `TINYTASK_SIGNALR_LOG_LEVEL` | `info` | Broadcaster log level |
+| `TKO_SIGNALR_HUB_URL` | (none) | SignalR hub URL. If unset, broadcasting is disabled (events still emit locally) |
+| `TKO_SIGNALR_METHOD` | `BroadcastTaskEvent` | Hub method name to invoke |
+| `TKO_SIGNALR_RECONNECT_DELAY` | `5000` | Reconnect delay in ms |
+| `TKO_SIGNALR_LOG_LEVEL` | `info` | Broadcaster log level |
 
 Add these to the startup banner in `index.ts` and document in `AGENTS.md`.
 
@@ -325,7 +325,7 @@ Testability. Tests can create a fresh `EventBus` for each test case, subscribe, 
 
 ### 6.3 Why SignalR client, not hub host?
 
-TinyTask is a Node.js service. Hosting a SignalR hub requires ASP.NET. TinyTask should connect to an existing hub (like Shogun's) and invoke methods. This is the standard pattern for cross-platform SignalR integration.
+TKO is a Node.js service. Hosting a SignalR hub requires ASP.NET. TKO should connect to an existing hub (like Shogun's) and invoke methods. This is the standard pattern for cross-platform SignalR integration.
 
 If we later need a Node.js-native push mechanism (e.g., for a web dashboard), we can add a local SSE event stream endpoint that subscribes to the EventBus — no SignalR hub required.
 
@@ -346,7 +346,7 @@ The `@microsoft/signalr` client handles the SignalR protocol negotiation, reconn
 | SignalR hub unreachable → service blocked | Broadcaster is fully async and non-blocking. If connection fails, events are logged and dropped. Service calls never wait on SignalR. |
 | Event handler throws → service call fails | EventBus catches handler errors, logs them, and continues. Service call is unaffected. |
 | Existing tests break | `eventBus` is optional. Existing tests that don't pass it continue to work unchanged. |
-| `@microsoft/signalr` adds bundle size | Only loaded when `TINYTASK_SIGNALR_HUB_URL` is set. Dynamic import in `index.ts` — doesn't affect startup if unused. |
+| `@microsoft/signalr` adds bundle size | Only loaded when `TKO_SIGNALR_HUB_URL` is set. Dynamic import in `index.ts` — doesn't affect startup if unused. |
 | Event ordering across services | Events are emitted synchronously in call order. If ordering matters for downstream consumers, they can use `timestamp` + `taskId` to reorder. |
 
 ---
@@ -356,7 +356,7 @@ The `@microsoft/signalr` client handles the SignalR protocol negotiation, reconn
 - **Local SSE event stream endpoint**: A `/events` SSE endpoint that streams events to browser-based dashboards. Would subscribe to EventBus. Separate PR.
 - **Event persistence**: Storing events in a `task_events` table for replay. Separate PR.
 - **Event filtering**: Allowing clients to subscribe to specific event types or task IDs. Would need a pub/sub layer. Separate PR.
-- **SignalR authentication**: Currently assumes the hub URL is trusted. If auth is needed, add `TINYTASK_SIGNALR_AUTH_TOKEN` env var. Future PR.
+- **SignalR authentication**: Currently assumes the hub URL is trusted. If auth is needed, add `TKO_SIGNALR_AUTH_TOKEN` env var. Future PR.
 - **Batching events**: If volume gets high, batch events before sending. Not needed now — event volume is low (agent-scale, not user-scale).
 
 ---

@@ -18,7 +18,7 @@ The agent-hub client manual revealed several constraints that modify the origina
 | Event types with dot notation: `task.created` | Hub regex `^[a-zA-Z0-9_-]+$` — use hyphen: `task-created` |
 | Single method: `BroadcastTaskEvent(event)` | Hub has 3 delivery methods: `BroadcastMessage(msg)`, `SendToGroup(group, msg)`, `SendToClient(clientId, msg)`. Default to `BroadcastMessage`; optionally join a group and use `SendToGroup` for targeted delivery |
 | No rate limiting awareness | Hub enforces 60 msg/min, burst 10. Broadcaster must queue + drain to avoid violations |
-| `TINYTASK_SIGNALR_METHOD` env var | Method is always `BroadcastMessage` (or `SendToGroup` if group configured). No custom method name needed |
+| `TKO_SIGNALR_METHOD` env var | Method is always `BroadcastMessage` (or `SendToGroup` if group configured). No custom method name needed |
 | Broadcaster connects, invokes, done | Broadcaster must: build `HubConnection`, `start()`, optionally `JoinGroup`, handle `ValidationError`/`Error` server events, handle reconnection via `onreconnected` (rejoin groups) |
 
 ---
@@ -41,7 +41,7 @@ interface HubMessage {
   metadata?: {
     priority?: 'low' | 'normal' | 'high';
     ttl?: number;            // Seconds, 1–86400
-    source?: string;         // e.g. 'tinytask', max 100 chars
+    source?: string;         // e.g. 'tko', max 100 chars
     correlationId?: string;  // Optional, max 100 chars
   };
 }
@@ -105,7 +105,7 @@ export enum TaskEventType {
 | `link-updated` | `taskId`, `linkId`, `before: Partial<LinkData>`, `after: LinkData` |
 | `link-deleted` | `taskId`, `linkId` |
 
-**Factory function:** `createEvent(type, payload, metadata?)` → `HubMessage` — stamps `timestamp`, sets `metadata.source = 'tinytask'`, `metadata.priority = 'normal'` by default.
+**Factory function:** `createEvent(type, payload, metadata?)` → `HubMessage` — stamps `timestamp`, sets `metadata.source = 'tko'`, `metadata.priority = 'normal'` by default.
 
 **Dependencies:** Imports `ParsedTask`, `CommentData`, `LinkData`, `TaskStatus` from `src/types/index.js`.
 
@@ -166,7 +166,7 @@ SignalR client that connects to the external hub and forwards events. Uses `@mic
 
 2. **Delivery method:** Configurable via env:
    - Default: `BroadcastMessage(message)` — broadcast to all connected clients
-   - If `TINYTASK_SIGNALR_GROUP` is set: join the group on connect, use `SendToGroup(groupName, message)`
+   - If `TKO_SIGNALR_GROUP` is set: join the group on connect, use `SendToGroup(groupName, message)`
    - On reconnect (`onreconnected`): rejoin the group
 
 3. **Rate limiting:** Hub enforces 60 msg/min, burst 10. The broadcaster maintains an internal queue:
@@ -184,7 +184,7 @@ SignalR client that connects to the external hub and forwards events. Uses `@mic
 
 5. **Graceful degradation:** If `start()` fails, log error and set state to disconnected. Events are queued. A retry timer attempts reconnection every `reconnectDelay` ms (default 5000).
 
-6. **Dynamic import:** `@microsoft/signalr` is dynamically imported in `index.ts` only when `TINYTASK_SIGNALR_HUB_URL` is set. The broadcaster file itself uses static imports (it's only loaded when needed).
+6. **Dynamic import:** `@microsoft/signalr` is dynamically imported in `index.ts` only when `TKO_SIGNALR_HUB_URL` is set. The broadcaster file itself uses static imports (it's only loaded when needed).
 
 **API:**
 ```typescript
@@ -335,7 +335,7 @@ constructor(private db: DatabaseClient, private eventBus?: EventBus) {}
 **What:**
 1. Import `EventBus` (static) and `SignalRBroadcaster` (dynamic, only if hub URL configured)
 2. Create `EventBus` instance after DB init
-3. If `TINYTASK_SIGNALR_HUB_URL` is set:
+3. If `TKO_SIGNALR_HUB_URL` is set:
    - Dynamic `import('@microsoft/signalr')` is handled inside `SignalRBroadcaster` (or the broadcaster is dynamically imported)
    - Create `SignalRBroadcaster` with options from env vars
    - `await broadcaster.start()`
@@ -347,11 +347,11 @@ constructor(private db: DatabaseClient, private eventBus?: EventBus) {}
 
 | Variable | Default | Description |
 |---|---|---|
-| `TINYTASK_SIGNALR_HUB_URL` | (unset) | Hub URL, e.g. `http://localhost:8080/messagehub`. If unset, no SignalR — events still emit to local EventBus only |
-| `TINYTASK_SIGNALR_GROUP` | (unset) | Group name to join. If set, uses `SendToGroup` instead of `BroadcastMessage` |
-| `TINYTASK_SIGNALR_LOG_LEVEL` | `Information` | SignalR client log level |
-| `TINYTASK_SIGNALR_MAX_QUEUE` | `500` | Max buffered events when disconnected/rate-limited |
-| `TINYTASK_SIGNALR_RECONNECT_DELAY` | `5000` | Retry delay (ms) if initial connection fails |
+| `TKO_SIGNALR_HUB_URL` | (unset) | Hub URL, e.g. `http://localhost:8080/messagehub`. If unset, no SignalR — events still emit to local EventBus only |
+| `TKO_SIGNALR_GROUP` | (unset) | Group name to join. If set, uses `SendToGroup` instead of `BroadcastMessage` |
+| `TKO_SIGNALR_LOG_LEVEL` | `Information` | SignalR client log level |
+| `TKO_SIGNALR_MAX_QUEUE` | `500` | Max buffered events when disconnected/rate-limited |
+| `TKO_SIGNALR_RECONNECT_DELAY` | `5000` | Retry delay (ms) if initial connection fails |
 
 **Done when:**
 - Server starts with and without SignalR configured
@@ -369,11 +369,11 @@ constructor(private db: DatabaseClient, private eventBus?: EventBus) {}
 **What:** Add new env vars to the Environment Variables section:
 
 ```
-- `TINYTASK_SIGNALR_HUB_URL`: SignalR hub URL for event broadcasting (e.g., http://localhost:8080/messagehub). If unset, broadcasting is disabled.
-- `TINYTASK_SIGNALR_GROUP`: Optional group name. If set, events are sent via SendToGroup instead of BroadcastMessage.
-- `TINYTASK_SIGNALR_LOG_LEVEL`: SignalR client log level (default: Information)
-- `TINYTASK_SIGNALR_MAX_QUEUE`: Max buffered events when disconnected or rate-limited (default: 500)
-- `TINYTASK_SIGNALR_RECONNECT_DELAY`: Retry delay in ms for initial connection failure (default: 5000)
+- `TKO_SIGNALR_HUB_URL`: SignalR hub URL for event broadcasting (e.g., http://localhost:8080/messagehub). If unset, broadcasting is disabled.
+- `TKO_SIGNALR_GROUP`: Optional group name. If set, events are sent via SendToGroup instead of BroadcastMessage.
+- `TKO_SIGNALR_LOG_LEVEL`: SignalR client log level (default: Information)
+- `TKO_SIGNALR_MAX_QUEUE`: Max buffered events when disconnected or rate-limited (default: 500)
+- `TKO_SIGNALR_RECONNECT_DELAY`: Retry delay in ms for initial connection failure (default: 5000)
 ```
 
 **Done when:** AGENTS.md updated, no other changes to the file.
@@ -423,7 +423,7 @@ constructor(private db: DatabaseClient, private eventBus?: EventBus) {}
 | 23 | Wildcard `'*'` → receives all events | Wildcard subscription |
 | 24 | Unsubscribe → stops receiving | Unsubscribe function |
 | 25 | Services without EventBus → no crash, no events | Backward compatibility |
-| 26 | All events conform to hub message schema | type matches regex, timestamp is ISO 8601, payload is object, metadata.source = 'tinytask' |
+| 26 | All events conform to hub message schema | type matches regex, timestamp is ISO 8601, payload is object, metadata.source = 'tko' |
 
 **Done when:**
 - All 26 tests pass

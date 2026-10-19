@@ -1,6 +1,6 @@
-# TinyTask MCP Troubleshooting Guide
+# TKO MCP Troubleshooting Guide
 
-This guide helps you diagnose and fix common issues with TinyTask MCP.
+This guide helps you diagnose and fix common issues with TKO MCP.
 
 ## Common Issues
 
@@ -21,13 +21,13 @@ lsof -i :3000
 
 2. Either kill the process or change the port:
 ```bash
-TINYTASK_PORT=3001 npm run start:sse
+TKO_PORT=3001 npm run start:sse
 ```
 
 3. In Docker:
 ```yaml
 environment:
-  - TINYTASK_PORT=3001
+  - TKO_PORT=3001
 ports:
   - "3001:3001"
 ```
@@ -43,7 +43,7 @@ Error: SQLITE_BUSY: database is locked
 1. Ensure only one instance is accessing the database
 2. Check for zombie processes:
 ```bash
-ps aux | grep tinytask
+ps aux | grep tko
 kill <pid>
 ```
 
@@ -88,9 +88,9 @@ npm install
 ```json
 {
   "mcpServers": {
-    "tinytask": {
+    "tko": {
       "command": "node",
-      "args": ["/absolute/path/to/tinytask-mcp/build/index.js"]
+      "args": ["/absolute/path/to/tko-mcp/build/index.js"]
     }
   }
 }
@@ -98,14 +98,14 @@ npm install
 
 2. Test the command directly in terminal:
 ```bash
-node /path/to/tinytask-mcp/build/index.js
+node /path/to/tko-mcp/build/index.js
 ```
 
 3. Check environment variables are set:
 ```json
 {
   "env": {
-    "TINYTASK_MODE": "stdio"
+    "TKO_MODE": "stdio"
   }
 }
 ```
@@ -114,8 +114,8 @@ node /path/to/tinytask-mcp/build/index.js
 ```json
 {
   "env": {
-    "TINYTASK_MODE": "stdio",
-    "DEBUG": "tinytask:*"
+    "TKO_MODE": "stdio",
+    "DEBUG": "tko:*"
   }
 }
 ```
@@ -146,7 +146,7 @@ docker-compose logs -f
 ```json
 {
   "mcpServers": {
-    "tinytask": {
+    "tko": {
       "url": "http://localhost:3000/mcp"
     }
   }
@@ -221,8 +221,8 @@ ls -lh data/tinytask.db
 ```typescript
 // Get old completed tasks
 const tasks = await listTasks();
-const oldTasks = tasks.filter(t => 
-  t.status === 'complete' && 
+const oldTasks = tasks.filter(t =>
+  t.status === 'complete' &&
   new Date(t.updated_at) < Date.now() - 30 * 24 * 60 * 60 * 1000
 );
 
@@ -256,7 +256,7 @@ SELECT * FROM sqlite_master WHERE type='index';
 ps aux | grep node
 
 # Docker
-docker stats tinytask-mcp
+docker stats tko-mcp
 ```
 
 2. Restart server periodically if needed
@@ -294,7 +294,7 @@ chmod 755 data/
 
 3. Run container interactively to see errors:
 ```bash
-docker run -it tinytask-mcp node build/index.js
+docker run -it tko-mcp node build/index.js
 ```
 
 #### Issue: Volume mount not persisting data
@@ -320,10 +320,10 @@ docker-compose up -d
 3. Use named volume instead of bind mount:
 ```yaml
 volumes:
-  - tinytask-data:/app/data
+  - tko-data:/app/data
 
 volumes:
-  tinytask-data:
+  tko-data:
 ```
 
 ---
@@ -437,14 +437,14 @@ Enable detailed logging for debugging:
 ### Environment Variables
 
 ```bash
-# Enable all TinyTask logs
-export DEBUG="tinytask:*"
+# Enable all TKO logs
+export DEBUG="tko:*"
 
 # Enable specific module logs
-export DEBUG="tinytask:server,tinytask:db"
+export DEBUG="tko:server,tko:db"
 
 # Run with debug logging
-DEBUG="tinytask:*" npm run start:sse
+DEBUG="tko:*" npm run start:sse
 ```
 
 ### Log Output
@@ -452,10 +452,10 @@ DEBUG="tinytask:*" npm run start:sse
 Look for these log messages:
 
 ```
-tinytask:server Server starting in sse mode
-tinytask:db Database initialized at ./data/tinytask.db
-tinytask:server HTTP server listening on port 3000
-tinytask:tools Processing tool call: create_task
+tko:server Server starting in sse mode
+tko:db Database initialized at ./data/tinytask.db
+tko:server HTTP server listening on port 3000
+tko:tools Processing tool call: create_task
 ```
 
 ---
@@ -572,10 +572,10 @@ PRAGMA journal_mode=WAL;
 
 ```bash
 # Simple backup
-cp data/tinytask.db data/backups/tinytask-$(date +%Y%m%d).db
+cp data/tinytask.db data/backups/tko-$(date +%Y%m%d).db
 
 # Docker backup
-docker exec tinytask-mcp sqlite3 /app/data/tinytask.db ".backup '/app/data/backup.db'"
+docker exec tko-mcp sqlite3 /app/data/tinytask.db ".backup '/app/data/backup.db'"
 ```
 
 ### Monitoring
@@ -621,7 +621,7 @@ npm run start:sse
 docker-compose down
 
 # Restore backup
-cp data/backups/tinytask-20240101.db data/tinytask.db
+cp data/backups/tko-20240101.db data/tinytask.db
 
 # Start server
 docker-compose up -d

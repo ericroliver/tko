@@ -1,7 +1,7 @@
 # Story: Streamable HTTP Transport Implementation
 
 ## Overview
-Implement Streamable HTTP as the new default HTTP transport for TinyTask MCP, replacing SSE while maintaining backward compatibility through runtime configuration.
+Implement Streamable HTTP as the new default HTTP transport for TKO MCP, replacing SSE while maintaining backward compatibility through runtime configuration.
 
 ## Epic Link
 Technical Design: [`docs/technical/streamable-http-transport-design.md`](../../technical/streamable-http-transport-design.md)
@@ -16,8 +16,8 @@ Technical Design: [`docs/technical/streamable-http-transport-design.md`](../../t
 ## User Stories
 
 ### Story 1.1: Create Streamable HTTP Transport Module
-**As a** developer  
-**I want** a new Streamable HTTP transport implementation  
+**As a** developer
+**I want** a new Streamable HTTP transport implementation
 **So that** the system can use the more efficient unified endpoint approach
 
 **Acceptance Criteria:**
@@ -45,9 +45,9 @@ Technical Design: [`docs/technical/streamable-http-transport-design.md`](../../t
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 
 // Session management
-const sessions = new Map<string, { 
-  transport: StreamableHTTPServerTransport; 
-  server: Server 
+const sessions = new Map<string, {
+  transport: StreamableHTTPServerTransport;
+  server: Server
 }>();
 
 // Unified endpoint handler
@@ -67,16 +67,16 @@ app.use('/mcp', async (req, res) => {
 ---
 
 ### Story 1.2: Create HTTP Transport Router
-**As a** system administrator  
-**I want** the system to automatically select the correct HTTP transport based on configuration  
+**As a** system administrator
+**I want** the system to automatically select the correct HTTP transport based on configuration
 **So that** I can control which transport is used without code changes
 
 **Acceptance Criteria:**
 - [ ] Create `src/server/http.ts` module
 - [ ] Implement `startHttpServer()` function that:
-  - Checks `TINYTASK_ENABLE_SSE` environment variable
-  - Routes to `startSseServer()` if `TINYTASK_ENABLE_SSE=true`
-  - Routes to `startStreamableHttpServer()` if `TINYTASK_ENABLE_SSE=false` or unset
+  - Checks `TKO_ENABLE_SSE` environment variable
+  - Routes to `startSseServer()` if `TKO_ENABLE_SSE=true`
+  - Routes to `startStreamableHttpServer()` if `TKO_ENABLE_SSE=false` or unset
   - Logs which transport is being used
 - [ ] Define `HttpServerOptions` interface (alias for `SseServerOptions`)
 - [ ] Export all necessary types
@@ -94,8 +94,8 @@ export async function startHttpServer(
   linkService: LinkService,
   options?: HttpServerOptions
 ): Promise<void> {
-  const enableSse = process.env.TINYTASK_ENABLE_SSE === 'true';
-  
+  const enableSse = process.env.TKO_ENABLE_SSE === 'true';
+
   if (enableSse) {
     logger.info('🔄 Using SSE transport (legacy mode)');
     return startSseServer(taskService, commentService, linkService, options);
@@ -107,21 +107,21 @@ export async function startHttpServer(
 ```
 
 **Testing Requirements:**
-- Unit test: `TINYTASK_ENABLE_SSE=true` calls `startSseServer()`
-- Unit test: `TINYTASK_ENABLE_SSE=false` calls `startStreamableHttpServer()`
-- Unit test: Unset `TINYTASK_ENABLE_SSE` calls `startStreamableHttpServer()`
+- Unit test: `TKO_ENABLE_SSE=true` calls `startSseServer()`
+- Unit test: `TKO_ENABLE_SSE=false` calls `startStreamableHttpServer()`
+- Unit test: Unset `TKO_ENABLE_SSE` calls `startStreamableHttpServer()`
 
 ---
 
 ### Story 1.3: Update Entry Point for Transport Selection
-**As a** developer  
-**I want** the entry point to use the new HTTP router  
+**As a** developer
+**I want** the entry point to use the new HTTP router
 **So that** transport selection is centralized and consistent
 
 **Acceptance Criteria:**
 - [ ] Update `src/index.ts` to import `startHttpServer` instead of `startSseServer`
 - [ ] Implement mode normalization logic:
-  - Map legacy `'sse'` → `'http'` with internal `TINYTASK_ENABLE_SSE=true`
+  - Map legacy `'sse'` → `'http'` with internal `TKO_ENABLE_SSE=true`
   - Log deprecation warning when `'sse'` is used
 - [ ] Update mode validation:
   - Accept: `['stdio', 'http', 'both', 'sse']`
@@ -133,12 +133,12 @@ export async function startHttpServer(
 **Implementation Details:**
 ```typescript
 // Mode normalization
-let mode = process.env.TINYTASK_MODE || 'both';
+let mode = process.env.TKO_MODE || 'both';
 if (mode === 'sse') {
-  logger.warn('⚠️  TINYTASK_MODE=sse is deprecated. Use TINYTASK_MODE=http with TINYTASK_ENABLE_SSE=true');
+  logger.warn('⚠️  TKO_MODE=sse is deprecated. Use TKO_MODE=http with TKO_ENABLE_SSE=true');
   mode = 'http';
-  if (!process.env.TINYTASK_ENABLE_SSE) {
-    process.env.TINYTASK_ENABLE_SSE = 'true';
+  if (!process.env.TKO_ENABLE_SSE) {
+    process.env.TKO_ENABLE_SSE = 'true';
   }
 }
 
@@ -156,17 +156,17 @@ if (mode === 'http' || mode === 'both') {
 ```
 
 **Testing Requirements:**
-- Integration test: `TINYTASK_MODE=http` starts Streamable HTTP
-- Integration test: `TINYTASK_MODE=http TINYTASK_ENABLE_SSE=true` starts SSE
-- Integration test: `TINYTASK_MODE=sse` starts SSE with deprecation warning
-- Integration test: `TINYTASK_MODE=both` starts stdio + Streamable HTTP
-- Integration test: `TINYTASK_MODE=stdio` starts only stdio
+- Integration test: `TKO_MODE=http` starts Streamable HTTP
+- Integration test: `TKO_MODE=http TKO_ENABLE_SSE=true` starts SSE
+- Integration test: `TKO_MODE=sse` starts SSE with deprecation warning
+- Integration test: `TKO_MODE=both` starts stdio + Streamable HTTP
+- Integration test: `TKO_MODE=stdio` starts only stdio
 
 ---
 
 ### Story 1.4: Update Package Scripts
-**As a** developer  
-**I want** convenient npm scripts for different transport modes  
+**As a** developer
+**I want** convenient npm scripts for different transport modes
 **So that** I can easily test and run different configurations
 
 **Acceptance Criteria:**
@@ -182,12 +182,12 @@ if (mode === 'http' || mode === 'both') {
 {
   "scripts": {
     "start": "node build/index.js",
-    "start:stdio": "TINYTASK_MODE=stdio node build/index.js",
-    "start:http": "TINYTASK_MODE=http node build/index.js",
-    "start:http:sse": "TINYTASK_MODE=http TINYTASK_ENABLE_SSE=true node build/index.js",
-    "start:both": "TINYTASK_MODE=both node build/index.js",
-    "start:both:sse": "TINYTASK_MODE=both TINYTASK_ENABLE_SSE=true node build/index.js",
-    "start:sse": "echo '⚠️  DEPRECATED: Use start:http:sse instead' && TINYTASK_MODE=http TINYTASK_ENABLE_SSE=true node build/index.js"
+    "start:stdio": "TKO_MODE=stdio node build/index.js",
+    "start:http": "TKO_MODE=http node build/index.js",
+    "start:http:sse": "TKO_MODE=http TKO_ENABLE_SSE=true node build/index.js",
+    "start:both": "TKO_MODE=both node build/index.js",
+    "start:both:sse": "TKO_MODE=both TKO_ENABLE_SSE=true node build/index.js",
+    "start:sse": "echo '⚠️  DEPRECATED: Use start:http:sse instead' && TKO_MODE=http TKO_ENABLE_SSE=true node build/index.js"
   }
 }
 ```
@@ -199,8 +199,8 @@ if (mode === 'http' || mode === 'both') {
 ---
 
 ### Story 1.5: Add Streamable HTTP Integration Tests
-**As a** QA engineer  
-**I want** comprehensive tests for Streamable HTTP transport  
+**As a** QA engineer
+**I want** comprehensive tests for Streamable HTTP transport
 **So that** I can verify it works correctly and maintains compatibility
 
 **Acceptance Criteria:**
@@ -236,33 +236,33 @@ if (mode === 'http' || mode === 'both') {
 ---
 
 ### Story 1.6: Add Transport Configuration Tests
-**As a** QA engineer  
-**I want** tests that verify configuration-based transport selection  
+**As a** QA engineer
+**I want** tests that verify configuration-based transport selection
 **So that** I can ensure backward compatibility and correct behavior
 
 **Acceptance Criteria:**
 - [ ] Create `tests/integration/transport-configuration.test.ts`
-- [ ] Test: `TINYTASK_ENABLE_SSE=true` activates SSE transport
-- [ ] Test: `TINYTASK_ENABLE_SSE=false` activates Streamable HTTP transport
-- [ ] Test: Unset `TINYTASK_ENABLE_SSE` defaults to Streamable HTTP
-- [ ] Test: `TINYTASK_MODE=sse` activates SSE with deprecation warning
-- [ ] Test: `TINYTASK_MODE=http` without flag uses Streamable HTTP
-- [ ] Test: `TINYTASK_MODE=both` uses Streamable HTTP by default
-- [ ] Test: `TINYTASK_MODE=both TINYTASK_ENABLE_SSE=true` uses SSE
+- [ ] Test: `TKO_ENABLE_SSE=true` activates SSE transport
+- [ ] Test: `TKO_ENABLE_SSE=false` activates Streamable HTTP transport
+- [ ] Test: Unset `TKO_ENABLE_SSE` defaults to Streamable HTTP
+- [ ] Test: `TKO_MODE=sse` activates SSE with deprecation warning
+- [ ] Test: `TKO_MODE=http` without flag uses Streamable HTTP
+- [ ] Test: `TKO_MODE=both` uses Streamable HTTP by default
+- [ ] Test: `TKO_MODE=both TKO_ENABLE_SSE=true` uses SSE
 
 **Implementation Notes:**
 ```typescript
 describe('Transport Configuration', () => {
-  it('should use SSE when TINYTASK_ENABLE_SSE=true', async () => {
-    process.env.TINYTASK_MODE = 'http';
-    process.env.TINYTASK_ENABLE_SSE = 'true';
+  it('should use SSE when TKO_ENABLE_SSE=true', async () => {
+    process.env.TKO_MODE = 'http';
+    process.env.TKO_ENABLE_SSE = 'true';
     // Start server
     // Verify SSE transport characteristics
   });
 
   it('should use Streamable HTTP by default', async () => {
-    process.env.TINYTASK_MODE = 'http';
-    delete process.env.TINYTASK_ENABLE_SSE;
+    process.env.TKO_MODE = 'http';
+    delete process.env.TKO_ENABLE_SSE;
     // Start server
     // Verify Streamable HTTP transport characteristics
   });
@@ -279,14 +279,14 @@ describe('Transport Configuration', () => {
 ---
 
 ### Story 1.7: Update Documentation
-**As a** user  
-**I want** updated documentation explaining the new transport options  
+**As a** user
+**I want** updated documentation explaining the new transport options
 **So that** I can understand how to configure and migrate my deployment
 
 **Acceptance Criteria:**
 - [ ] Update `README.md`:
   - Add Streamable HTTP as default transport
-  - Document `TINYTASK_ENABLE_SSE` environment variable
+  - Document `TKO_ENABLE_SSE` environment variable
   - Update configuration examples
   - Add migration guide section
 - [ ] Update `docs/technical/architecture.md`:
@@ -300,7 +300,7 @@ describe('Transport Configuration', () => {
   - Add transport selection examples
 - [ ] Update `agents.md`:
   - Update environment variables section
-  - Add `TINYTASK_ENABLE_SSE` to variables list
+  - Add `TKO_ENABLE_SSE` to variables list
   - Update configuration examples
 - [ ] Create `docs/product/streamable-http-migration-guide.md`:
   - Why the change?
@@ -314,7 +314,7 @@ describe('Transport Configuration', () => {
 # Streamable HTTP Migration Guide
 
 ## Overview
-TinyTask MCP now uses Streamable HTTP as the default HTTP transport...
+TKO MCP now uses Streamable HTTP as the default HTTP transport...
 
 ## For Current SSE Users
 ### Option 1: No Changes (Backward Compatible)
@@ -341,14 +341,14 @@ TinyTask MCP now uses Streamable HTTP as the default HTTP transport...
 ---
 
 ### Story 1.8: Update Docker Configuration
-**As a** DevOps engineer  
-**I want** updated Docker configurations reflecting the new transport options  
+**As a** DevOps engineer
+**I want** updated Docker configurations reflecting the new transport options
 **So that** I can deploy with the correct transport configuration
 
 **Acceptance Criteria:**
 - [ ] Update `Dockerfile`:
   - Add comments about transport configuration
-  - Set default `TINYTASK_MODE=http`
+  - Set default `TKO_MODE=http`
   - Remove any SSE-specific configuration
 - [ ] Update `docker-compose.yml`:
   - Add example using Streamable HTTP (default)
@@ -365,17 +365,17 @@ TinyTask MCP now uses Streamable HTTP as the default HTTP transport...
 ```yaml
 version: '3.8'
 services:
-  tinytask:
+  tko:
     build: .
     ports:
       - "3000:3000"
     volumes:
       - ./data:/data
     environment:
-      TINYTASK_MODE: http  # Default: Streamable HTTP
-      # TINYTASK_ENABLE_SSE: 'true'  # Uncomment for legacy SSE mode
-      TINYTASK_PORT: 3000
-      TINYTASK_DB_PATH: /data/tinytask.db
+      TKO_MODE: http  # Default: Streamable HTTP
+      # TKO_ENABLE_SSE: 'true'  # Uncomment for legacy SSE mode
+      TKO_PORT: 3000
+      TKO_DB_PATH: /data/tinytask.db
 ```
 
 **Testing Requirements:**
@@ -387,8 +387,8 @@ services:
 ---
 
 ### Story 1.9: Performance Testing and Comparison
-**As a** performance engineer  
-**I want** comparative performance metrics between SSE and Streamable HTTP  
+**As a** performance engineer
+**I want** comparative performance metrics between SSE and Streamable HTTP
 **So that** I can validate the improvement claims
 
 **Acceptance Criteria:**
@@ -447,15 +447,15 @@ describe('Transport Performance Comparison', () => {
 ---
 
 ### Story 1.10: Backward Compatibility Verification
-**As a** release manager  
-**I want** comprehensive verification that existing deployments won't break  
+**As a** release manager
+**I want** comprehensive verification that existing deployments won't break
 **So that** I can confidently release this feature
 
 **Acceptance Criteria:**
 - [ ] Create `tests/integration/backward-compatibility.test.ts`
 - [ ] Test: Existing stdio configuration unchanged
-- [ ] Test: Existing `TINYTASK_MODE=sse` still works
-- [ ] Test: Existing `TINYTASK_MODE=both` still works
+- [ ] Test: Existing `TKO_MODE=sse` still works
+- [ ] Test: Existing `TKO_MODE=both` still works
 - [ ] Test: All existing tools work with SSE transport
 - [ ] Test: All existing resources work with SSE transport
 - [ ] Test: Database operations identical across transports
@@ -486,11 +486,11 @@ describe('Transport Performance Comparison', () => {
 
 ## Rollback Plan
 If issues are discovered after deployment:
-1. Advise users to set `TINYTASK_ENABLE_SSE=true`
+1. Advise users to set `TKO_ENABLE_SSE=true`
 2. All functionality falls back to SSE transport
 3. No code rollback required due to backward compatibility
 4. Address issues in Streamable HTTP implementation
-5. Remove `TINYTASK_ENABLE_SSE` flag after fix
+5. Remove `TKO_ENABLE_SSE` flag after fix
 
 ## Definition of Done
 - [ ] All stories completed and accepted

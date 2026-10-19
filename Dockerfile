@@ -1,12 +1,12 @@
-# Multi-stage Dockerfile for TinyTask MCP Server
+# Multi-stage Dockerfile for TKO MCP Server
 # Supports multiple transport modes:
 # - stdio: For local MCP client connections
 # - http: For Streamable HTTP transport (default for remote connections)
-# - both: Both stdio and http (default if TINYTASK_MODE not set)
+# - both: Both stdio and http (default if TKO_MODE not set)
 #
 # HTTP Transport Configuration:
 # - By default uses Streamable HTTP (efficient, modern protocol)
-# - Set TINYTASK_ENABLE_SSE=true for legacy SSE transport
+# - Set TKO_ENABLE_SSE=true for legacy SSE transport
 # - Use docker-compose.legacy-sse.yml for SSE-specific deployment
 
 FROM node:20-alpine AS builder

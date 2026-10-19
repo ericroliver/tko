@@ -1,9 +1,9 @@
-# TinyTask SignalR Event Payloads
+# TKO SignalR Event Payloads
 
 > **Version**: 1.0 — July 2025
-> **Audience**: Task Dashboard developers and any consumer listening to the TinyTask SignalR agent hub.
+> **Audience**: Task Dashboard developers and any consumer listening to the TKO SignalR agent hub.
 
-This document describes every event type TinyTask broadcasts to the SignalR agent hub, the
+This document describes every event type TKO broadcasts to the SignalR agent hub, the
 envelope structure, the core context fields present in each payload, and a full field reference
 for every payload.
 
@@ -14,8 +14,8 @@ for every payload.
 | Property | Value |
 |---|---|
 | **Library** | `@microsoft/signalr` |
-| **Hub URL** | Configured via `TINYTASK_SIGNALR_URL` env var |
-| **Target Group** | Configured via `TINYTASK_SIGNALR_GROUP` env var (e.g. `stimuli`) |
+| **Hub URL** | Configured via `TKO_SIGNALR_URL` env var |
+| **Target Group** | Configured via `TKO_SIGNALR_GROUP` env var (e.g. `stimuli`) |
 | **Hub Method (grouped)** | `SendToGroup(group, message)` |
 | **Hub Method (broadcast)** | `BroadcastMessage(message)` — used when no group is configured |
 | **Group Join** | `JoinGroup(group)` — called on connect and on reconnect |
@@ -35,7 +35,7 @@ Every event is wrapped in a `HubMessage` envelope before being sent to the hub.
   "timestamp": "2025-07-29T22:41:00.000Z",
   "payload": { ... },
   "metadata": {
-    "source": "tinytask",
+    "source": "tko",
     "priority": "normal",
     "ttl": 300,
     "correlationId": "abc-123"
@@ -50,13 +50,13 @@ Every event is wrapped in a `HubMessage` envelope before being sent to the hub.
 | `type` | `string` | ✅ | Event type identifier. Matches `^[a-zA-Z0-9_-]+$`, max 50 chars. See [§4 Event Types](#4-event-types). |
 | `timestamp` | `string` | ✅ | ISO 8601 UTC timestamp of when the event was created. |
 | `payload` | `object` | ✅ | Event-specific data. Always includes `taskId` (except `queue-cleared`). See [§5 Payload Reference](#5-payload-reference). |
-| `metadata` | `object` | ❌ | Optional metadata. Defaults to `{ source: "tinytask", priority: "normal" }`. |
+| `metadata` | `object` | ❌ | Optional metadata. Defaults to `{ source: "tko", priority: "normal" }`. |
 
 ### Metadata Fields
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `source` | `string` | `"tinytask"` | Originating system identifier. |
+| `source` | `string` | `"tko"` | Originating system identifier. |
 | `priority` | `"low" \| "normal" \| "high"` | `"normal"` | Message priority. |
 | `ttl` | `number` | *(not set)* | Time-to-live in seconds (1–86400). |
 | `correlationId` | `string` | *(not set)* | Optional correlation/tracing ID. |
@@ -83,7 +83,7 @@ enough context to route or filter events without an additional database lookup.
 
 ## 4. Event Types
 
-All 19 event types broadcast by TinyTask:
+All 19 event types broadcast by TKO:
 
 | # | Event Type | Description | Has Task Context? |
 |---|---|---|---|
@@ -504,7 +504,7 @@ Emitted when a link is added to a task.
   "link": {
     "id": 3,
     "task_id": 42,
-    "url": "https://github.com/ericroliver/tinytask-mcp/pull/12",
+    "url": "https://github.com/ericroliver/tko-mcp/pull/12",
     "description": "Related PR",
     "created_by": "tko-sword",
     "created_at": "2025-07-29T22:41:00.000Z"

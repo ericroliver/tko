@@ -2,13 +2,13 @@
 
 ## Executive Summary
 
-This document describes the architecture for adding comprehensive, environment-controlled forensic logging to the TinyTask MCP server. The goal is to enable deep debugging of agent interactions while maintaining production performance and backward compatibility.
+This document describes the architecture for adding comprehensive, environment-controlled forensic logging to the TKO MCP server. The goal is to enable deep debugging of agent interactions while maintaining production performance and backward compatibility.
 
 ## Problem Statement
 
 The current logging provides minimal visibility:
 ```
-tinytask-mcp | MCP POST message received
+tko-mcp | MCP POST message received
 ```
 
 This is insufficient for debugging agent integration issues such as:
@@ -19,7 +19,7 @@ This is insufficient for debugging agent integration issues such as:
 
 ## Solution Overview
 
-Implement a **hierarchical logging system** with 5 levels controlled by a single environment variable (`TINYTASK_LOG_LEVEL`), where higher levels enable full request/response capture for forensic analysis.
+Implement a **hierarchical logging system** with 5 levels controlled by a single environment variable (`TKO_LOG_LEVEL`), where higher levels enable full request/response capture for forensic analysis.
 
 ### Key Features
 
@@ -43,24 +43,24 @@ Implement a **hierarchical logging system** with 5 levels controlled by a single
 
 ```mermaid
 graph TD
-    A[Environment Variable<br/>TINYTASK_LOG_LEVEL] --> B[Logger Singleton]
-    
+    A[Environment Variable<br/>TKO_LOG_LEVEL] --> B[Logger Singleton]
+
     B --> C[HTTP Layer<br/>SSE Server]
     B --> D[Tool Handler<br/>Layer]
     B --> E[Service Layer]
-    
+
     C --> C1[Request Capture]
     C --> C2[Response Intercept]
     C --> C3[Duration Tracking]
-    
+
     D --> D1[Tool Validation]
     D --> D2[Tool Execution]
     D --> D3[Result/Error Logging]
-    
+
     E --> E1[Database Operations]
     E --> E2[Business Logic]
     E --> E3[Error Context]
-    
+
     C1 --> F[stderr Output]
     C2 --> F
     C3 --> F
@@ -70,7 +70,7 @@ graph TD
     E1 --> F
     E2 --> F
     E3 --> F
-    
+
     F --> G[Docker Logs]
     G --> H[docker-compose logs -f]
 ```
@@ -85,15 +85,15 @@ sequenceDiagram
     participant T as Tool Handler
     participant S as Service
     participant D as Database
-    
+
     A->>H: POST /mcp (create_task)
     H->>L: [TRACE] Log request body
     H->>L: [INFO] "MCP POST message received"
-    
+
     H->>T: Route to tool handler
     T->>L: [DEBUG] "Tool call: create_task"
     T->>L: [TRACE] Full arguments
-    
+
     T->>T: Validate arguments
     alt Validation Success
         T->>L: [DEBUG] "Arguments validated"
@@ -110,7 +110,7 @@ sequenceDiagram
         T->>L: [ERROR] Validation error with args
         T-->>H: error response
     end
-    
+
     H->>L: [TRACE] Log response body
     H->>L: [DEBUG] Duration: 12ms
     H->>A: HTTP Response
@@ -360,17 +360,17 @@ sequenceDiagram
 
 ```bash
 # Set globally
-export TINYTASK_LOG_LEVEL=trace
+export TKO_LOG_LEVEL=trace
 
 # Or per-command
-TINYTASK_LOG_LEVEL=debug npm run dev
+TKO_LOG_LEVEL=debug npm run dev
 ```
 
 ### Docker Compose
 
 ```yaml
 environment:
-  TINYTASK_LOG_LEVEL: trace  # error|warn|info|debug|trace
+  TKO_LOG_LEVEL: trace  # error|warn|info|debug|trace
 ```
 
 ### MCP Client Config (stdio mode)
@@ -378,12 +378,12 @@ environment:
 ```json
 {
   "mcpServers": {
-    "tinytask": {
+    "tko": {
       "command": "node",
       "args": ["/path/to/build/index.js"],
       "env": {
-        "TINYTASK_MODE": "stdio",
-        "TINYTASK_LOG_LEVEL": "debug"
+        "TKO_MODE": "stdio",
+        "TKO_LOG_LEVEL": "debug"
       }
     }
   }
@@ -438,13 +438,13 @@ environment:
    ```bash
    docker-compose down
    # Edit docker-compose.yml
-   # Change: TINYTASK_LOG_LEVEL: trace
+   # Change: TKO_LOG_LEVEL: trace
    docker-compose up -d
    ```
 
 2. **Watch logs in real-time**:
    ```bash
-   docker-compose logs -f tinytask
+   docker-compose logs -f tko
    ```
 
 3. **Reproduce the issue** with the agent
@@ -466,7 +466,7 @@ environment:
    ```bash
    docker-compose down
    # Edit docker-compose.yml
-   # Change: TINYTASK_LOG_LEVEL: info
+   # Change: TKO_LOG_LEVEL: info
    docker-compose up -d
    ```
 
@@ -583,7 +583,7 @@ environment:
 | `src/tools/task-tools.ts` | MODIFY | Add detailed logging |
 | `src/tools/comment-tools.ts` | MODIFY | Add detailed logging |
 | `src/tools/link-tools.ts` | MODIFY | Add detailed logging |
-| `docker-compose.yml` | MODIFY | Add TINYTASK_LOG_LEVEL |
+| `docker-compose.yml` | MODIFY | Add TKO_LOG_LEVEL |
 | `README.md` | MODIFY | Add logging documentation |
 | `tests/unit/logger.test.ts` | NEW | Logger tests |
 

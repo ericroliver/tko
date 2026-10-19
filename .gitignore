@@ -138,7 +138,7 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# TinyTask MCP specific
+# TKO MCP specific
 build/
 data/
 *.db
@@ -148,7 +148,7 @@ data/
 
 # Single Executable Application build artifacts
 *.blob
-tinytask-cli/deploy-local.sh
+tko-cli/deploy-local.sh
 
 # Temporary PR files
 .pr-body.md

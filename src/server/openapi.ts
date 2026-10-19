@@ -1,5 +1,5 @@
 /**
- * OpenAPI 3.0 specification generator for TinyTask REST adapter
+ * OpenAPI 3.0 specification generator for TKO REST adapter
  *
  * Manually constructs an OpenAPI 3.0 spec from the REST endpoints defined in rest.ts,
  * using Zod input schemas (from tool-definitions.ts) and response schemas (from response-schemas.ts).
@@ -1033,18 +1033,18 @@ function buildPaths(): Record<string, Record<string, JsonSchema>> {
 // ─── Full spec assembly ─────────────────────────────────────
 
 /**
- * Generate the complete OpenAPI 3.0 specification for the TinyTask REST adapter.
+ * Generate the complete OpenAPI 3.0 specification for the TKO REST adapter.
  */
 export function generateOpenApiSpec(): Record<string, unknown> {
   return {
     openapi: '3.0.3',
     info: {
-      title: 'TinyTask REST API',
+      title: 'TKO REST API',
       description:
-        'Thin REST adapter for TinyTask MCP server. Maps all MCP tools to RESTful endpoints for Shogun test coverage. Each endpoint delegates directly to the service layer with no additional business logic.',
+        'Thin REST adapter for TKO MCP server. Maps all MCP tools to RESTful endpoints for Shogun test coverage. Each endpoint delegates directly to the service layer with no additional business logic.',
       version: '1.0.0',
       contact: {
-        name: 'TinyTask',
+        name: 'TKO',
       },
     },
     servers: [

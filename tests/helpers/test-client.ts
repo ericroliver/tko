@@ -1,5 +1,5 @@
 /**
- * Test client helper for interacting with TinyTask services
+ * Test client helper for interacting with TKO services
  */
 import { TaskService } from '../../src/services/task-service.js';
 import { CommentService } from '../../src/services/comment-service.js';

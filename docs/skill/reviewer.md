@@ -16,7 +16,7 @@ description: Code reviewer task management skill for developer-to-developer code
 | Status discipline | `working` on review start → `idle` on review completion — **never `complete`** |
 | CLI reference | See `SKILL.md` for full command syntax |
 
-> **Agent identity:** Set `TKO_AGENT` in your environment. Used as `created_by` for tasks, comments, links. Alternatively, pass `--created-by <agent>` per command, or `tinytask config set agent <your-agent>`.
+> **Agent identity:** Set `TKO_AGENT` in your environment. Used as `created_by` for tasks, comments, links. Alternatively, pass `--created-by <agent>` per command, or `tko config set agent <your-agent>`.
 
 ## Your Queue
 
@@ -30,11 +30,11 @@ description: Code reviewer task management skill for developer-to-developer code
 ## Review Pickup (B5)
 
 ```bash
-tinytask queue view --mine                                          # Check your queue
-tinytask task get <id> --json && tinytask comment list <id>          # Read developer's completion comment + history
-tinytask link list <id>                                             # Find the PR/branch link
-tinytask task update <id> --status working                           # Set working
-tinytask comment add <id> "Starting code review."
+tko queue view --mine                                          # Check your queue
+tko task get <id> --json && tko comment list <id>          # Read developer's completion comment + history
+tko link list <id>                                             # Find the PR/branch link
+tko task update <id> --status working                           # Set working
+tko comment add <id> "Starting code review."
 ```
 
 Read the developer's completion comment first — it tells you what to focus on. Review the linked PR or branch diff.
@@ -53,22 +53,22 @@ Read the developer's completion comment first — it tells you what to focus on.
 ## Changes Requested (B5)
 
 ```bash
-tinytask comment add <id> "Review: changes requested.
+tko comment add <id> "Review: changes requested.
 1. <specific issue with file/line reference>
 2. <specific issue>
 <additional feedback>"
-tinytask task update <id> --status idle
-tinytask queue move <id> ready-for-development
-tinytask move <id> <developer> --comment "Changes requested. See review comment. Please address and re-submit."
+tko task update <id> --status idle
+tko queue move <id> ready-for-development
+tko move <id> <developer> --comment "Changes requested. See review comment. Please address and re-submit."
 ```
 
 ## Review Approved (B5)
 
 ```bash
-tinytask comment add <id> "Code review passed. <what was checked, any minor notes>. Approving for QA."
-tinytask task update <id> --status idle
-tinytask queue move <id> ready-for-qa
-tinytask move <id> <qa-agent> --comment "Review approved. Ready for QA verification."
+tko comment add <id> "Code review passed. <what was checked, any minor notes>. Approving for QA."
+tko task update <id> --status idle
+tko queue move <id> ready-for-qa
+tko move <id> <qa-agent> --comment "Review approved. Ready for QA verification."
 ```
 
 ## Expedited Review
@@ -76,9 +76,9 @@ tinytask move <id> <qa-agent> --comment "Review approved. Ready for QA verificat
 For genuinely trivial changes (typo fixes, comment updates, one-line changes), skip code review and go directly to QA:
 
 ```bash
-tinytask comment add <id> "Trivial change: <description>. Skipping code review, going directly to QA."
-tinytask task update <id> --status idle
-tinytask queue move <id> ready-for-qa
+tko comment add <id> "Trivial change: <description>. Skipping code review, going directly to QA."
+tko task update <id> --status idle
+tko queue move <id> ready-for-qa
 ```
 
 ## Reviewing Parent Tasks with Multiple Subtasks
@@ -88,10 +88,10 @@ When an entire parent task needs review, aggregate the subtask reviews:
 ```bash
 # Move all completed subtasks to review, assign to same reviewer for consistency
 for sub_id in <sub1-id> <sub2-id> <sub3-id>; do
-  tinytask queue move "$sub_id" ready-for-code-review
-  tinytask task update "$sub_id" --assigned-to <your-agent>
+  tko queue move "$sub_id" ready-for-code-review
+  tko task update "$sub_id" --assigned-to <your-agent>
 done
-tinytask comment add <parent-id> "All subtasks moved to ready-for-code-review. Reviewing in dependency order: <ordering>."
+tko comment add <parent-id> "All subtasks moved to ready-for-code-review. Reviewing in dependency order: <ordering>."
 ```
 
 Review in dependency order — schema before endpoints, utilities before consumers. Handle each subtask individually (approve or request changes).
@@ -124,29 +124,29 @@ Review in dependency order — schema before endpoints, utilities before consume
 
 ```bash
 # Review pickup
-tinytask queue view --mine && tinytask task get <id> --json && tinytask comment list <id>
-tinytask link list <id>
-tinytask task update <id> --status working
-tinytask comment add <id> "Starting code review."
+tko queue view --mine && tko task get <id> --json && tko comment list <id>
+tko link list <id>
+tko task update <id> --status working
+tko comment add <id> "Starting code review."
 
 # Changes requested
-tinytask comment add <id> "Review: changes requested. 1. <issue> 2. <issue>"
-tinytask task update <id> --status idle && tinytask queue move <id> ready-for-development
-tinytask move <id> <developer> --comment "Changes requested. See review comment."
+tko comment add <id> "Review: changes requested. 1. <issue> 2. <issue>"
+tko task update <id> --status idle && tko queue move <id> ready-for-development
+tko move <id> <developer> --comment "Changes requested. See review comment."
 
 # Review approved
-tinytask comment add <id> "Review passed. <notes>. Approving for QA."
-tinytask task update <id> --status idle && tinytask queue move <id> ready-for-qa
-tinytask move <id> <qa-agent> --comment "Approved. Ready for QA."
+tko comment add <id> "Review passed. <notes>. Approving for QA."
+tko task update <id> --status idle && tko queue move <id> ready-for-qa
+tko move <id> <qa-agent> --comment "Approved. Ready for QA."
 
 # Expedited (trivial changes only)
-tinytask comment add <id> "Trivial change: <desc>. Skipping review."
-tinytask task update <id> --status idle && tinytask queue move <id> ready-for-qa
+tko comment add <id> "Trivial change: <desc>. Skipping review."
+tko task update <id> --status idle && tko queue move <id> ready-for-qa
 
 # Parent with multiple subtasks
 for sub_id in <sub1> <sub2> <sub3>; do
-  tinytask queue move "$sub_id" ready-for-code-review
-  tinytask task update "$sub_id" --assigned-to <your-agent>
+  tko queue move "$sub_id" ready-for-code-review
+  tko task update "$sub_id" --assigned-to <your-agent>
 done
-tinytask comment add <parent-id> "All subtasks in review. Order: <dependency ordering>."
+tko comment add <parent-id> "All subtasks in review. Order: <dependency ordering>."
 ```

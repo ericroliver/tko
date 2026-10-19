@@ -935,9 +935,9 @@ describe('Event Broadcasting', () => {
         expect(typeof event.payload).toBe('object');
         expect(event.payload).not.toBeNull();
 
-        // metadata: source = 'tinytask', priority = 'normal'
+        // metadata: source = 'tko', priority = 'normal'
         expect(event.metadata).toBeDefined();
-        expect(event.metadata!.source).toBe('tinytask');
+        expect(event.metadata!.source).toBe('tko');
         expect(event.metadata!.priority).toBe('normal');
       }
     });

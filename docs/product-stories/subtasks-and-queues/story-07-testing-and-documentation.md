@@ -4,8 +4,8 @@
 Comprehensive testing and documentation for subtask and queue management features to ensure quality, maintainability, and usability.
 
 ## User Story
-**As a** TinyTask developer and user  
-**I want** comprehensive tests and documentation  
+**As a** TKO developer and user
+**I want** comprehensive tests and documentation
 **So that** features work reliably and are easy to understand and use
 
 ## Business Value
@@ -108,12 +108,12 @@ describe('Queue Management', () => {
       queue_name: 'dev',
       assigned_to: 'Vaela',
     });
-    
+
     await taskService.create({
       title: 'Dev Task 2',
       queue_name: 'dev',
     });
-    
+
     await taskService.create({
       title: 'QA Task 1',
       queue_name: 'qa',

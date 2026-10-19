@@ -19,7 +19,7 @@ export interface HttpServerOptions extends SseServerOptions, StreamableHttpServe
 
 /**
  * Start HTTP transport with appropriate implementation
- * based on TINYTASK_ENABLE_SSE environment variable
+ * based on TKO_ENABLE_SSE environment variable
  *
  * @param taskService - Task management service
  * @param commentService - Comment management service
@@ -34,7 +34,7 @@ export async function startHttpServer(
   queueService: import('../services/queue-service.js').QueueService,
   options?: HttpServerOptions
 ): Promise<HttpServer> {
-  const enableSse = process.env.TINYTASK_ENABLE_SSE === 'true';
+  const enableSse = (process.env.TKO_ENABLE_SSE ?? process.env.TINYTASK_ENABLE_SSE) === 'true';
 
   if (enableSse) {
     logger.info('🔄 Using SSE transport (legacy mode)');

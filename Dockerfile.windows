@@ -1,6 +1,6 @@
 # escape=`
 # =============================================================================
-# TinyTask MCP Server - Windows containers
+# TKO MCP Server - Windows containers
 # Multistage: servercore:ltsc2022 (builder) -> nanoserver:ltsc2022 (runtime)
 #
 # Node.js publishes NO official Windows container images, so Node 20 LTS is
@@ -9,7 +9,7 @@
 # has PowerShell + Expand-Archive + msiexec. The nanoserver runtime receives a
 # lean copy: node.exe, VC runtime DLLs, compiled app and prod node_modules.
 #
-# Build:   docker build -f Dockerfile.windows -t tinytask-mcp:latest .
+# Build:   docker build -f Dockerfile.windows -t tko-mcp:latest .
 #
 # Differences vs the Linux Dockerfile:
 #   - no dumb-init (does not exist on Windows); node receives signals directly
@@ -33,7 +33,7 @@ ENV PATH="C:\node;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Win
 COPY package*.json tsconfig.json ./
 COPY src ./src
 
-# Full deps for the TypeScript build. --ignore-scripts skips tinytask's
+# Full deps for the TypeScript build. --ignore-scripts skips tko's
 # "prepare" hook, which runs the Unix-only copy-assets script (mkdir -p / cp).
 RUN npm ci --ignore-scripts
 

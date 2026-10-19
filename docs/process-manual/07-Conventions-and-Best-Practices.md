@@ -1,13 +1,13 @@
 # Conventions & Best Practices
 
 > **Prerequisite:** Read [00-Foundation.md](./00-Foundation.md) for core concepts, data model, roles, and queue rules.
-> **Scope:** Naming conventions, tagging standards, prioritization guidelines, comment etiquette, queue discipline, subtask and dependency norms, and operational best practices for all TinyTask agents.
+> **Scope:** Naming conventions, tagging standards, prioritization guidelines, comment etiquette, queue discipline, subtask and dependency norms, and operational best practices for all TKO agents.
 
 ---
 
 ## 1. Introduction
 
-This document consolidates the conventions, standards, and best practices that govern day-to-day operations in the TinyTask system. While the Foundation document defines the data model and rules, and the scenario documents provide step-by-step workflows, this document is the **normative reference** for how tasks should be named, tagged, prioritized, commented on, and managed at an operational level.
+This document consolidates the conventions, standards, and best practices that govern day-to-day operations in the TKO system. While the Foundation document defines the data model and rules, and the scenario documents provide step-by-step workflows, this document is the **normative reference** for how tasks should be named, tagged, prioritized, commented on, and managed at an operational level.
 
 Every agent — developer, tester, or coordinator — should internalize these conventions. They are not optional guidelines; they are the shared agreement that makes multi-agent collaboration work.
 
@@ -108,7 +108,7 @@ Related: #20260724_01 (task list performance investigation)
 |---|---|---|
 | `api` | REST API endpoints | Tasks involving HTTP endpoints |
 | `mcp` | MCP protocol layer | Tasks involving MCP tools, resources, or transport |
-| `cli` | Command-line interface | Tasks involving the `tinytask` CLI |
+| `cli` | Command-line interface | Tasks involving the `tko` CLI |
 | `database` | SQLite / data layer | Schema changes, migrations, queries |
 | `auth` | Authentication / authorization | Login, registration, sessions, tokens |
 | `bug` | Defect | All bug/defect tasks (set by QA when filing) |
@@ -149,15 +149,15 @@ Related: #20260724_01 (task list performance investigation)
 
 ```bash
 # High priority: blocks other work
-tinytask task create "Fix database migration failing on staging" \
+tko task create "Fix database migration failing on staging" \
   --priority 8 --tags "bug,database" --assigned-to tko-sword
 
 # Medium priority: normal feature work
-tinytask task create "Add pagination to task list endpoint" \
+tko task create "Add pagination to task list endpoint" \
   --priority 5 --tags "api" --assigned-to tko-sword
 
 # Low priority: nice-to-have
-tinytask task create "Update README with latest CLI examples" \
+tko task create "Update README with latest CLI examples" \
   --priority 2 --tags "documentation,cli" --assigned-to tko-sword
 ```
 
@@ -165,8 +165,8 @@ tinytask task create "Update README with latest CLI examples" \
 
 ```bash
 # After 3 kickback cycles, escalate
-tinytask task update 20260724_30 --priority 9
-tinytask comment add 20260724_30 "ESCALATION: 3 kickback cycles. Raising to urgent."
+tko task update 20260724_30 --priority 9
+tko comment add 20260724_30 "ESCALATION: 3 kickback cycles. Raising to urgent."
 ```
 
 ### 4.3 Priority Discipline
@@ -250,19 +250,19 @@ tinytask comment add 20260724_30 "ESCALATION: 3 kickback cycles. Raising to urge
 
 - **Regularly check your queue** at the start of each session:
   ```bash
-  tinytask queue view --mine
+  tko queue view --mine
   ```
 
 - **Check queue statistics** to understand workload distribution:
   ```bash
-  tinytask queue stats ready-for-development
+  tko queue stats ready-for-development
   ```
 
 - **Clear stale tasks** from queues periodically. Tasks that have been `idle` for a long time should be reviewed, re-prioritized, or archived.
 
-- **Don't clear queues blindly.** `tinytask queue clear <queue> --yes` removes queue assignments but doesn't archive tasks. Always verify contents before clearing:
+- **Don't clear queues blindly.** `tko queue clear <queue> --yes` removes queue assignments but doesn't archive tasks. Always verify contents before clearing:
   ```bash
-  tinytask queue tasks <queue> --json
+  tko queue tasks <queue> --json
   ```
 
 ---
@@ -354,7 +354,7 @@ Actual: <actual>
 | Wall of text | *(500 words of unstructured prose)* | Break into sections with headers or numbered lists |
 | Unlinked reference | "See the other task" | "See #20260724_05 for schema design" |
 | Deleting with responses | Deleting a comment that was answered | Update the comment with a correction note instead |
-| Comment instead of update | "I'm assigning this to tko-shield" | Use `tinytask task update --assigned-to tko-shield` then add a comment explaining why |
+| Comment instead of update | "I'm assigning this to tko-shield" | Use `tko task update --assigned-to tko-shield` then add a comment explaining why |
 
 ---
 
@@ -381,7 +381,7 @@ Create subtasks when a task is too large to complete in a **single focused work 
 
 - **Regularly view the tree** to stay oriented:
   ```bash
-  tinytask subtask tree <parent-id> --recursive
+  tko subtask tree <parent-id> --recursive
   ```
 
 - **The parent should not be marked `complete` until all subtasks are complete.**
@@ -421,7 +421,7 @@ Use formal dependencies (`blocked_by_task_id`) only for **true hard dependencies
 
 ### 9.3 CLI Limitation
 
-The `tinytask` CLI does not currently expose a `--blocked-by` flag. To set `blocked_by_task_id`:
+The `tko` CLI does not currently expose a `--blocked-by` flag. To set `blocked_by_task_id`:
 
 - **Via MCP tool** (preferred for agents): `update_task({ id, blocked_by_task_id })`
 - **Via REST API**: `PATCH /api/v1/tasks/<id>` with `{"blocked_by_task_id": "<blocking-id>"}`
@@ -445,7 +445,7 @@ While the link model is URL-based with no formal `type` field, use the following
 ### 10.2 Linking Rules
 
 1. **Always provide a meaningful description.** A bare URL with no description is unhelpful.
-2. **Link both directions** when connecting two TinyTask tasks. Add a link on each task pointing to the other.
+2. **Link both directions** when connecting two TKO tasks. Add a link on each task pointing to the other.
 3. **Use links for reference relationships, not blocking.** For true blocking, use `blocked_by_task_id`.
 4. **Update or remove stale links.** If a PR is superseded or a document is moved, update the link.
 5. **Link PRs and external references** (issue trackers, design docs, CI runs) to provide verifiable context.
@@ -457,7 +457,7 @@ While the link model is URL-based with no formal `type` field, use the following
 | Pull request | Full GitHub/GitLab PR URL | `https://github.com/org/repo/pull/42` |
 | External issue | Full tracker URL | `https://jira.example.com/browse/PROJ-123` |
 | Documentation | Full doc URL | `https://docs.example.com/api-spec` |
-| Another TinyTask task | `tasks/<task-id>` | `tasks/20260724_05` |
+| Another TKO task | `tasks/<task-id>` | `tasks/20260724_05` |
 | CI/CD pipeline | Full pipeline URL | `https://ci.example.com/job/12345` |
 
 ---
@@ -511,8 +511,8 @@ If the defect is a regression (something that previously worked is now broken):
 - Tag with `regression` in addition to `bug`
 
 ```bash
-tinytask comment add <defect-id> "Regression: was working in build f1e0d2a. Broke after PR #42."
-tinytask link add <defect-id> "https://github.com/org/repo/pull/42" -d "PR that introduced the regression"
+tko comment add <defect-id> "Regression: was working in build f1e0d2a. Broke after PR #42."
+tko link add <defect-id> "https://github.com/org/repo/pull/42" -d "PR that introduced the regression"
 ```
 
 ---
@@ -678,17 +678,17 @@ When cleaning up multiple completed tasks (e.g., at end of sprint):
 
 ```bash
 # Always verify the set first
-tinytask task list --status complete --json | jq -r '.[].id'
+tko task list --status complete --json | jq -r '.[].id'
 
 # Then archive each
-for task_id in $(tinytask task list --status complete --json | jq -r '.[].id'); do
-  tinytask task archive "$task_id"
+for task_id in $(tko task list --status complete --json | jq -r '.[].id'); do
+  tko task archive "$task_id"
 done
 ```
 
 **Before batch operations**, export a backup:
 ```bash
-tinytask task list --include-archived --json > backup.json
+tko task list --include-archived --json > backup.json
 ```
 
 ---
@@ -701,8 +701,8 @@ tinytask task list --include-archived --json > backup.json
 |---|---|---|
 | `table` (default) | Interactive use, human reading | Default; no action needed |
 | `json` | Scripting, piping to `jq`, programmatic use | `--json` flag |
-| `csv` | Spreadsheet export, reporting | `tinytask config set outputFormat csv` or `TINYTASK_FORMAT=csv` |
-| `compact` | Minimal output, quick scans | `tinytask config set outputFormat compact` or `TINYTASK_FORMAT=compact` |
+| `csv` | Spreadsheet export, reporting | `tko config set outputFormat csv` or `TKO_FORMAT=csv` |
+| `compact` | Minimal output, quick scans | `tko config set outputFormat compact` or `TKO_FORMAT=compact` |
 
 > **Note:** `csv` and `compact` formats are set via config or environment variable — there are no dedicated `--csv` or `--compact` CLI flags. Use `--json` for one-off scripting.
 
@@ -712,21 +712,21 @@ When using the CLI in scripts:
 
 - **Use `--json` for parsing**:
   ```bash
-  tinytask task list --json | jq -r '.[] | .id'
+  tko task list --json | jq -r '.[] | .id'
   ```
 
 - **Use `--yes` to skip confirmations** in non-interactive scripts:
   ```bash
-  tinytask link delete 5 --yes
-  tinytask queue clear triage --yes
+  tko link delete 5 --yes
+  tko queue clear triage --yes
   ```
 
 - **Always verify before destructive bulk operations**:
   ```bash
   # Review first
-  tinytask queue tasks triage --json
+  tko queue tasks triage --json
   # Then act
-  tinytask queue clear triage --yes
+  tko queue clear triage --yes
   ```
 
 ### 16.3 Profile Usage
@@ -734,8 +734,8 @@ When using the CLI in scripts:
 Use profiles for different environments (staging, production, local):
 
 ```bash
-tinytask config profile add staging --url http://staging:3000/mcp --agent tko-sword
-tinytask --profile staging task list
+tko config profile add staging --url http://staging:3000/mcp --agent tko-sword
+tko --profile staging task list
 ```
 
 ---
@@ -868,4 +868,4 @@ This section consolidates the most frequently cited mistakes from across all sce
 
 ---
 
-*This document is part of the TinyTask Process Manual. See [00-Foundation.md](./00-Foundation.md) for core concepts and [other scenario documents](.) for specialized workflows.*
+*This document is part of the TKO Process Manual. See [00-Foundation.md](./00-Foundation.md) for core concepts and [other scenario documents](.) for specialized workflows.*

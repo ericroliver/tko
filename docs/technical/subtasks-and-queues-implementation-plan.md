@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the implementation plan for adding two key features to TinyTask:
+This document outlines the implementation plan for adding two key features to TKO:
 1. **Subtasks**: Hierarchical task relationships with parent-child structure
 2. **Queue Management**: Team-level queue organization separate from individual agent assignment
 
@@ -181,33 +181,33 @@ export interface QueueStats {
 // src/services/task-service.ts
 
 export class TaskService {
-  
+
   // ENHANCED: Create task with parent_task_id and queue_name support
   create(params: CreateTaskParams): ParsedTask {
     // Validate parent_task_id exists if provided
     // Inherit queue_name from parent if not specified
     // Insert with new fields
   }
-  
+
   // ENHANCED: Update task with parent_task_id and queue_name support
   update(id: number, updates: UpdateTaskParams): ParsedTask {
     // Validate parent_task_id exists if changed
     // Prevent circular references (task can't be its own parent)
   }
-  
+
   // NEW: Get subtasks for a parent task
   getSubtasks(parentId: number, recursive = false): ParsedTask[] {
     // Get immediate children
     // If recursive, get all descendants
   }
-  
+
   // NEW: Get task with all subtasks
   getWithSubtasks(id: number, recursive = false): TaskWithSubtasks {
     // Get task
     // Get subtasks (recursive or not)
     // Include subtask count
   }
-  
+
   // NEW: Get tasks by queue
   getQueueTasks(queueName: string, filters?: {
     assigned_to?: string;
@@ -218,26 +218,26 @@ export class TaskService {
     // Apply additional filters
     // Optionally include or exclude subtasks
   }
-  
+
   // NEW: Get queue statistics
   getQueueStats(queueName: string): QueueStats {
     // Count tasks by status
     // Count assigned vs unassigned
     // List unique agents
   }
-  
+
   // NEW: Get unassigned tasks in queue
   getUnassignedInQueue(queueName: string): ParsedTask[] {
     // Filter by queue_name and assigned_to IS NULL
   }
-  
+
   // ENHANCED: List tasks with queue and parent filtering
   list(filters: TaskFilters = {}): ParsedTask[] {
     // Add queue_name filter
     // Add parent_task_id filter
     // Add option to exclude subtasks (only top-level)
   }
-  
+
   // ENHANCED: Delete with subtask awareness
   delete(id: number, force = false): void {
     // Check if task has subtasks
@@ -251,26 +251,26 @@ export class TaskService {
 
 ```sql
 -- Get all subtasks of task #5
-SELECT * FROM tasks 
-WHERE parent_task_id = 5 
+SELECT * FROM tasks
+WHERE parent_task_id = 5
 AND archived_at IS NULL
 ORDER BY priority DESC, created_at ASC;
 
 -- Get all tasks in 'dev' queue
-SELECT * FROM tasks 
-WHERE queue_name = 'dev' 
+SELECT * FROM tasks
+WHERE queue_name = 'dev'
 AND archived_at IS NULL
 ORDER BY priority DESC, created_at ASC;
 
 -- Get unassigned tasks in 'qa' queue
-SELECT * FROM tasks 
-WHERE queue_name = 'qa' 
-AND assigned_to IS NULL 
+SELECT * FROM tasks
+WHERE queue_name = 'qa'
+AND assigned_to IS NULL
 AND archived_at IS NULL
 ORDER BY priority DESC, created_at ASC;
 
 -- Get queue statistics
-SELECT 
+SELECT
   queue_name,
   COUNT(*) as total,
   SUM(CASE WHEN status = 'idle' THEN 1 ELSE 0 END) as idle,
@@ -279,7 +279,7 @@ SELECT
   SUM(CASE WHEN assigned_to IS NULL THEN 1 ELSE 0 END) as unassigned,
   SUM(CASE WHEN assigned_to IS NOT NULL THEN 1 ELSE 0 END) as assigned
 FROM tasks
-WHERE queue_name = 'dev' 
+WHERE queue_name = 'dev'
 AND archived_at IS NULL;
 
 -- Get recursive subtasks (requires CTE)

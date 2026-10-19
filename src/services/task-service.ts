@@ -998,11 +998,13 @@ export class TaskService {
   /**
    * Resolve the column projection for list-style queries.
    * Descriptions are omitted unless explicitly requested via the filter or the
-   * TINYTASK_LIST_INCLUDE_DESCRIPTION=true environment escape hatch.
+   * TKO_LIST_INCLUDE_DESCRIPTION=true environment escape hatch.
    */
   private resolveListColumns(includeDescription?: boolean): string {
     const wantDescription =
-      includeDescription ?? process.env.TINYTASK_LIST_INCLUDE_DESCRIPTION === 'true';
+      includeDescription ??
+      (process.env.TKO_LIST_INCLUDE_DESCRIPTION ??
+        process.env.TINYTASK_LIST_INCLUDE_DESCRIPTION) === 'true';
     return wantDescription ? '*' : TaskService.TASK_SUMMARY_COLUMNS;
   }
 

@@ -1,11 +1,13 @@
-# TinyTask
+# TKO
+
+Formerly TinyTask. See [the rename migration guide](docs/tko-migration.md) for existing deployments.
 
 ## NOTE:
 This is the simplest task management system I could create. I need this for experimentation in another research project exploring agentic team workflows, collaboration, etc. Probably the biggest gaps are that there is no auth or the concept of users. Tasks are assigned to arbitrary names and the name becomes the queue of work for the name. This project was written entirely using AI (specifically RooCode and Anthropic). From start to finish the initial project took just a few hours and cost about $15.50 in tokens.
 
 ## Description
 
-A minimal task management system designed for LLM agent collaboration. TinyTask provides both:
+A minimal task management system designed for LLM agent collaboration. TKO provides both:
 - **MCP Server**: Model Context Protocol server for agent integration
 - **CLI Client**: Command-line interface for direct task management
 
@@ -25,40 +27,41 @@ A minimal task management system designed for LLM agent collaboration. TinyTask 
 
 ## Quick Start
 
-### TinyTask CLI
+### TKO CLI
 
-The command-line interface provides direct access to all TinyTask features:
+The command-line interface provides direct access to all TKO features:
 
 ```bash
 # Install globally
-cd tinytask-cli
+cd tko-cli
 npm install
 npm run build
 npm link
 
 # Or use standalone executables (no Node.js required)
-npm run package  # Creates binaries in dist/binaries/
+npm run package-linux  # dist/tko-linux; install as tko
+# Also: npm run package-mac / npm run package-windows
 
 # Basic usage
-tinytask task create "My first task" --assigned-to me
-tinytask task list
-tinytask task get 1
+tko task create "My first task" --assigned-to me
+tko task list
+tko task get 1
 
 # Subtask management
-tinytask subtask create 1 "Subtask title" --assigned-to alice
-tinytask subtask list 1
+tko subtask create 1 "Subtask title" --assigned-to alice
+tko subtask list 1
 
 # Queue management
-tinytask queue list
-tinytask queue stats dev
-tinytask queue tasks dev --status idle
+tko queue list
+tko queue stats dev
+tko queue tasks dev --status idle
 ```
 
-See [tinytask-cli/README.md](tinytask-cli/README.md) for complete CLI documentation.
+See [tko-cli/README.md](tko-cli/README.md) for complete CLI documentation.
 
 ### MCP Server - Docker (Recommended)
 
-The easiest way to run TinyTask MCP server is using Docker:
+The easiest way to run TKO MCP server is using Docker:
 
 > **Note**: Docker Compose v2+ is required. The `version` field has been removed from `docker-compose.yml` for v2+ compatibility. If you're using Docker Compose v1.x, please upgrade to v2.0 or later.
 
@@ -114,12 +117,12 @@ For local development with MCP clients like Claude Desktop:
 ```json
 {
   "mcpServers": {
-    "tinytask": {
+    "tko": {
       "command": "node",
-      "args": ["/path/to/tinytask/build/index.js"],
+      "args": ["/path/to/tko/build/index.js"],
       "env": {
-        "TINYTASK_MODE": "stdio",
-        "TINYTASK_DB_PATH": "/path/to/data/tinytask.db"
+        "TKO_MODE": "stdio",
+        "TKO_DB_PATH": "/path/to/data/tinytask.db"
       }
     }
   }
@@ -133,7 +136,7 @@ For HTTP-based access using the Streamable HTTP transport (recommended):
 ```json
 {
   "mcpServers": {
-    "tinytask": {
+    "tko": {
       "url": "http://localhost:3000/mcp"
     }
   }
@@ -142,15 +145,15 @@ For HTTP-based access using the Streamable HTTP transport (recommended):
 
 ### SSE Mode (Legacy)
 
-If you explicitly enable SSE via `TINYTASK_ENABLE_SSE=true`, the endpoint is the same, but you may want a different client profile to track the legacy transport:
+If you explicitly enable SSE via `TKO_ENABLE_SSE=true`, the endpoint is the same, but you may want a different client profile to track the legacy transport:
 
 ```json
 {
   "mcpServers": {
-    "tinytask-sse": {
+    "tko-sse": {
       "url": "http://localhost:3000/mcp",
       "headers": {
-        "X-Tinytask-Transport": "sse"
+        "X-Tko-Transport": "sse"
       }
     }
   }
@@ -160,16 +163,16 @@ If you explicitly enable SSE via `TINYTASK_ENABLE_SSE=true`, the endpoint is the
 
 ## Environment Variables
 
-- `TINYTASK_MODE`: Server mode (`stdio`, `http`, or `both`) - default: `both`
-- `TINYTASK_ENABLE_SSE`: Force legacy SSE transport when `true` (default: `false`)
-- `TINYTASK_PORT`: HTTP server port - default: `3000`
-- `TINYTASK_HOST`: HTTP server host - default: `0.0.0.0`
-- `TINYTASK_DB_PATH`: Path to SQLite database file - default: `./data/tinytask.db`
-- `TINYTASK_LOG_LEVEL`: Logging level - default: `info`
+- `TKO_MODE`: Server mode (`stdio`, `http`, or `both`) - default: `both`
+- `TKO_ENABLE_SSE`: Force legacy SSE transport when `true` (default: `false`)
+- `TKO_PORT`: HTTP server port - default: `3000`
+- `TKO_HOST`: HTTP server host - default: `0.0.0.0`
+- `TKO_DB_PATH`: Path to SQLite database file - default: `./data/tinytask.db`
+- `TKO_LOG_LEVEL`: Logging level - default: `info`
 
 ## Logging Configuration
 
-TinyTask supports multiple logging levels for debugging and troubleshooting agent interactions.
+TKO supports multiple logging levels for debugging and troubleshooting agent interactions.
 
 ### Log Levels
 
@@ -187,7 +190,7 @@ Edit `docker-compose.yml`:
 
 ```yaml
 environment:
-  TINYTASK_LOG_LEVEL: trace  # Change from 'info' to enable forensic logging
+  TKO_LOG_LEVEL: trace  # Change from 'info' to enable forensic logging
 ```
 
 Then restart:
@@ -195,17 +198,17 @@ Then restart:
 ```bash
 docker-compose down
 docker-compose up -d
-docker-compose logs -f tinytask  # Watch logs in real-time
+docker-compose logs -f tko  # Watch logs in real-time
 ```
 
 #### Local Development
 
 ```bash
 # Set for single run
-TINYTASK_LOG_LEVEL=debug npm run dev
+TKO_LOG_LEVEL=debug npm run dev
 
 # Or export for session
-export TINYTASK_LOG_LEVEL=trace
+export TKO_LOG_LEVEL=trace
 npm run dev
 ```
 
@@ -214,12 +217,12 @@ npm run dev
 ```json
 {
   "mcpServers": {
-    "tinytask": {
+    "tko": {
       "command": "node",
-      "args": ["/path/to/tinytask/build/index.js"],
+      "args": ["/path/to/tko/build/index.js"],
       "env": {
-        "TINYTASK_MODE": "stdio",
-        "TINYTASK_LOG_LEVEL": "debug"
+        "TKO_MODE": "stdio",
+        "TKO_LOG_LEVEL": "debug"
       }
     }
   }
@@ -230,7 +233,7 @@ npm run dev
 
 If an agent (like goose) is having issues creating tasks or performing operations:
 
-1. **Enable forensic logging** by setting `TINYTASK_LOG_LEVEL=trace`
+1. **Enable forensic logging** by setting `TKO_LOG_LEVEL=trace`
 2. **Reproduce the issue** with the agent
 3. **Review the logs** for:
    - Full request body showing what the agent sent
@@ -245,7 +248,7 @@ If an agent (like goose) is having issues creating tasks or performing operation
    - Session management problems in SSE mode
    - Encoding issues in request bodies
 
-5. **Return to normal logging** after troubleshooting by setting `TINYTASK_LOG_LEVEL=info`
+5. **Return to normal logging** after troubleshooting by setting `TKO_LOG_LEVEL=info`
 
 ### Performance Impact
 
@@ -257,7 +260,7 @@ If an agent (like goose) is having issues creating tasks or performing operation
 
 ### Tools
 
-TinyTask exposes the following tools for LLM agents via MCP:
+TKO exposes the following tools for LLM agents via MCP:
 
 #### Task Tools
 - `create_task` - Create a new task (supports `parent_task_id` and `queue_name`)
@@ -301,7 +304,7 @@ TinyTask exposes the following tools for LLM agents via MCP:
 
 ### Resources
 
-TinyTask provides the following resources via MCP:
+TKO provides the following resources via MCP:
 
 #### Task Resources
 - `task://{id}` - Full task details with comments and links
@@ -324,16 +327,16 @@ For detailed API documentation, see [API Documentation](docs/technical/mcp-api-d
 
 ## HTTP Transport Selection
 
-TinyTask now uses Streamable HTTP as the default HTTP transport. The legacy SSE transport can still be enabled via configuration for environments that rely on it.
+TKO now uses Streamable HTTP as the default HTTP transport. The legacy SSE transport can still be enabled via configuration for environments that rely on it.
 
-| Scenario | `TINYTASK_MODE` | `TINYTASK_ENABLE_SSE` | Result |
+| Scenario | `TKO_MODE` | `TKO_ENABLE_SSE` | Result |
 | --- | --- | --- | --- |
 | Default HTTP deployment | `http` | _unset_ / `false` | Streamable HTTP (unified `/mcp` endpoint)
 | Mixed stdio + HTTP | `both` | _unset_ / `false` | stdio + Streamable HTTP
 | Legacy SSE (HTTP only) | `http` | `true` | SSE (deprecated)
 | Legacy SSE + stdio | `both` | `true` | stdio + SSE
 
-When `TINYTASK_MODE=stdio`, no HTTP transport is started regardless of `TINYTASK_ENABLE_SSE`.
+When `TKO_MODE=stdio`, no HTTP transport is started regardless of `TKO_ENABLE_SSE`.
 
 The routing logic lives in [src/server/http.ts](src/server/http.ts:1). It delegates to the Streamable HTTP implementation in [src/server/streamable-http.ts](src/server/streamable-http.ts:1) by default and falls back to the SSE implementation in [src/server/sse.ts](src/server/sse.ts:1) when the legacy flag is enabled.
 
@@ -341,7 +344,7 @@ Refer to the [docs/product/streamable-http-migration-guide.md](docs/product/stre
 
 ## Architecture
 
-TinyTask follows a layered architecture:
+TKO follows a layered architecture:
 
 1. **CLI Layer** (optional): Command-line interface for direct interaction
 2. **Transport Layer**: Handles stdio, Streamable HTTP, and SSE communication
@@ -418,10 +421,10 @@ const queueTasks = get_queue_tasks({
 })
 
 // Claim and test
-update_task({ 
-  id: queueTasks.tasks[0].id, 
-  assigned_to: "qa-agent", 
-  status: "working" 
+update_task({
+  id: queueTasks.tasks[0].id,
+  assigned_to: "qa-agent",
+  status: "working"
 })
 
 // Complete testing
@@ -469,22 +472,22 @@ move_task_to_queue({
 
 ```bash
 # Create epic with subtasks
-tinytask task create "Add dark mode" --queue product -p 10
-tinytask subtask create 1 "Design UI" --queue product
-tinytask subtask create 1 "Implement" --queue dev
-tinytask subtask create 1 "Test" --queue qa
+tko task create "Add dark mode" --queue product -p 10
+tko subtask create 1 "Design UI" --queue product
+tko subtask create 1 "Implement" --queue dev
+tko subtask create 1 "Test" --queue qa
 
 # Check queue status
-tinytask queue list
-tinytask queue stats dev
-tinytask queue tasks dev --status idle
+tko queue list
+tko queue stats dev
+tko queue tasks dev --status idle
 
 # Claim and work on task
-tinytask task update 2 --assigned-to me --status working
-tinytask task get 2
+tko task update 2 --assigned-to me --status working
+tko task get 2
 
 # Track progress
-tinytask subtask list 1 --tree
+tko subtask list 1 --tree
 ```
 
 For more examples, see [Example Workflows](docs/examples/workflows.md)

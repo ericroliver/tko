@@ -16,7 +16,7 @@ description: Developer task management skill for development agents — task pic
 | Status discipline | `working` on start → `idle` on completion — **never `complete`** |
 | CLI reference | See `SKILL.md` for full command syntax |
 
-> **Agent identity:** Set `TKO_AGENT` in your environment. Used as `created_by` for tasks, comments, links. Alternatively, pass `--created-by <agent>` per command, or `tinytask config set agent <your-agent>`.
+> **Agent identity:** Set `TKO_AGENT` in your environment. Used as `created_by` for tasks, comments, links. Alternatively, pass `--created-by <agent>` per command, or `tko config set agent <your-agent>`.
 
 ## Your Queues
 
@@ -31,23 +31,23 @@ description: Developer task management skill for development agents — task pic
 ## Task Pickup & Start
 
 ```bash
-tinytask queue view --mine                                          # Check your queue
-tinytask task get <id> --json && tinytask comment list <id>          # Review task + history
-tinytask task update <id> --status working                           # Set working
-tinytask comment add <id> "Started work. <approach>. Branch: <branch>."
+tko queue view --mine                                          # Check your queue
+tko task get <id> --json && tko comment list <id>          # Review task + history
+tko task update <id> --status working                           # Set working
+tko comment add <id> "Started work. <approach>. Branch: <branch>."
 ```
 
-If unassigned in a shared queue: `tinytask signup --agent <your-agent>`
+If unassigned in a shared queue: `tko signup --agent <your-agent>`
 
 ## Feature Handoff (A3)
 
 ```bash
 # Verify: acceptance criteria met, tests pass, lint clean, code formatted
-tinytask comment add <id> "Implementation complete. <what, how tested, QA focus areas>. Branch: <branch>. PR: #<n>."
-tinytask link add <id> "<pr-url>" -d "PR: <description>"
-tinytask task update <id> --status idle
-tinytask queue move <id> ready-for-qa
-tinytask move <id> <qa-agent> --comment "Handing off to QA for verification."
+tko comment add <id> "Implementation complete. <what, how tested, QA focus areas>. Branch: <branch>. PR: #<n>."
+tko link add <id> "<pr-url>" -d "PR: <description>"
+tko task update <id> --status idle
+tko queue move <id> ready-for-qa
+tko move <id> <qa-agent> --comment "Handing off to QA for verification."
 ```
 
 ## Defect Fix Handoff (C3)
@@ -55,11 +55,11 @@ tinytask move <id> <qa-agent> --comment "Handing off to QA for verification."
 Same pattern as feature handoff, but: queue → `ready-for-testing`, assignee → task **creator** (check `created_by`).
 
 ```bash
-tinytask comment add <id> "Fix complete. Root cause: <cause>. Changes: <list>. Tests: <details>. Branch: <branch>. Commit: <hash>."
-tinytask link add <id> "<pr-url>" -d "Fix PR"
-tinytask task update <id> --status idle
-tinytask queue move <id> ready-for-testing
-tinytask move <id> <creator> --comment "Defect fixed. Please re-test with original reproduction steps."
+tko comment add <id> "Fix complete. Root cause: <cause>. Changes: <list>. Tests: <details>. Branch: <branch>. Commit: <hash>."
+tko link add <id> "<pr-url>" -d "Fix PR"
+tko task update <id> --status idle
+tko queue move <id> ready-for-testing
+tko move <id> <creator> --comment "Defect fixed. Please re-test with original reproduction steps."
 ```
 
 ## Code Review Prep (B5)
@@ -67,11 +67,11 @@ tinytask move <id> <creator> --comment "Defect fixed. Please re-test with origin
 Self-review first (`git diff main...<branch> --stat`), then:
 
 ```bash
-tinytask comment add <id> "Implementation complete. <details>. Reviewer focus: <areas>. Branch: <branch>. PR: #<n>."
-tinytask link add <id> "<pr-url>" -d "PR: <description>"
-tinytask task update <id> --status idle
-tinytask queue move <id> ready-for-code-review
-tinytask move <id> <reviewer> --comment "Ready for review. Focus on <areas>."
+tko comment add <id> "Implementation complete. <details>. Reviewer focus: <areas>. Branch: <branch>. PR: #<n>."
+tko link add <id> "<pr-url>" -d "PR: <description>"
+tko task update <id> --status idle
+tko queue move <id> ready-for-code-review
+tko move <id> <reviewer> --comment "Ready for review. Focus on <areas>."
 ```
 
 For trivial changes, skip review — go directly to `ready-for-qa`. When in doubt, request review. See `reviewer.md` for the review process.
@@ -82,33 +82,33 @@ When a task is too large for one session:
 
 ```bash
 # Create subtasks under parent
-tinytask subtask create <parent-id> "Subtask title" -d "Desc" --assigned-to <agent> --priority <n>
-tinytask queue add <subtask-id> ready-for-development
+tko subtask create <parent-id> "Subtask title" -d "Desc" --assigned-to <agent> --priority <n>
+tko queue add <subtask-id> ready-for-development
 
 # Document the breakdown
-tinytask comment add <parent-id> "Decomposed into: <list of subtasks>. Dependencies: <ordering notes>."
+tko comment add <parent-id> "Decomposed into: <list of subtasks>. Dependencies: <ordering notes>."
 
 # Verify the tree
-tinytask subtask tree <parent-id> --recursive
+tko subtask tree <parent-id> --recursive
 ```
 
 Rules: each subtask independently completable and verifiable. Don't over-decompose (<15 min = no subtask). Don't under-decompose (spans multiple components = still too large).
 
 ## Working with Subtask Trees (B2)
 
-- View: `tinytask subtask tree <parent-id> --recursive`
+- View: `tko subtask tree <parent-id> --recursive`
 - Work in dependency order — check sibling status before starting dependent subtasks
 - Completed subtasks follow the full handoff lifecycle (set idle, move to `ready-for-qa`)
 - Hand off the parent when all subtasks are done — don't leave it in `working`
-- Reparent: `tinytask subtask move <subtask-id> <new-parent-id>` (omit new parent for top-level)
+- Reparent: `tko subtask move <subtask-id> <new-parent-id>` (omit new parent for top-level)
 
 ## Parallel Development (B3)
 
 Use the parent task's comment thread as a coordination hub:
 
 ```bash
-tinytask comment add <parent-id> "COORDINATION PLAN: <agent>: #<id> (<work>). Deps: <ordering>. Shared files: <sequence>."
-tinytask comment add <parent-id> "DEPENDENCY CLEARED: #<id> done. #<dependent-id> can start."
+tko comment add <parent-id> "COORDINATION PLAN: <agent>: #<id> (<work>). Deps: <ordering>. Shared files: <sequence>."
+tko comment add <parent-id> "DEPENDENCY CLEARED: #<id> done. #<dependent-id> can start."
 ```
 
 If two subtasks modify the same file, sequence them — don't work on shared files simultaneously.
@@ -117,25 +117,25 @@ If two subtasks modify the same file, sequence them — don't work on shared fil
 
 ```bash
 # Document progress before pausing
-tinytask comment add <id> "Pausing for <reason>. Progress: <X% done>. Remaining: <list>. Branch: <branch>. Commit: <hash>."
-tinytask task update <id> --status idle
+tko comment add <id> "Pausing for <reason>. Progress: <X% done>. Remaining: <list>. Branch: <branch>. Commit: <hash>."
+tko task update <id> --status idle
 
 # Pick up urgent task (standard pickup), complete it, then resume:
-tinytask comment list <id>                    # Re-read your progress note
-tinytask task update <id> --status working
-tinytask comment add <id> "Resuming. Picking up from <where you left off>."
+tko comment list <id>                    # Re-read your progress note
+tko task update <id> --status working
+tko comment add <id> "Resuming. Picking up from <where you left off>."
 ```
 
-If pausing a subtask, notify the parent: `tinytask comment add <parent-id> "Subtask #<id> paused for <reason>."`
+If pausing a subtask, notify the parent: `tko comment add <parent-id> "Subtask #<id> paused for <reason>."`
 
 ## Defect Fix Pickup (C2)
 
 ```bash
-tinytask queue view --mine                                         # Look for BUG: prefixed tasks
-tinytask task get <defect-id> --json && tinytask comment list <defect-id> && tinytask link list <defect-id>
+tko queue view --mine                                         # Look for BUG: prefixed tasks
+tko task get <defect-id> --json && tko comment list <defect-id> && tko link list <defect-id>
 # Reproduce locally before setting working
-tinytask task update <defect-id> --status working
-tinytask comment add <defect-id> "Confirmed reproduction. <root cause hypothesis>. Branch: fix/<name>."
+tko task update <defect-id> --status working
+tko comment add <defect-id> "Confirmed reproduction. <root cause hypothesis>. Branch: fix/<name>."
 # Implement fix, add a test that fails before / passes after, run full suite
 ```
 
@@ -150,9 +150,9 @@ update_task({ id: <blocked-id>, blocked_by_task_id: <blocking-id> })
 ```
 
 ```bash
-tinytask comment add <blocked-id> "Blocked by #<blocking-id>. <reason>."
-tinytask comment add <blocking-id> "Task #<blocked-id> is waiting on this. Please notify when complete."
-tinytask task update <blocked-id> --queue blocked
+tko comment add <blocked-id> "Blocked by #<blocking-id>. <reason>."
+tko comment add <blocking-id> "Task #<blocked-id> is waiting on this. Please notify when complete."
+tko task update <blocked-id> --queue blocked
 ```
 
 When the blocking task completes, manually move the unblocked task back to `ready-for-development` and notify.
@@ -221,34 +221,34 @@ See `AGENTS.md` for full standards. Key rules:
 
 ```bash
 # Pickup
-tinytask queue view --mine && tinytask task get <id> --json && tinytask comment list <id>
-tinytask task update <id> --status working
-tinytask comment add <id> "Started. <approach>. Branch: <branch>."
+tko queue view --mine && tko task get <id> --json && tko comment list <id>
+tko task update <id> --status working
+tko comment add <id> "Started. <approach>. Branch: <branch>."
 
 # Feature handoff → QA
-tinytask comment add <id> "Implementation complete. <details>. Branch: <branch>. PR: #<n>."
-tinytask task update <id> --status idle && tinytask queue move <id> ready-for-qa
-tinytask move <id> <qa-agent> --comment "Ready for QA."
+tko comment add <id> "Implementation complete. <details>. Branch: <branch>. PR: #<n>."
+tko task update <id> --status idle && tko queue move <id> ready-for-qa
+tko move <id> <qa-agent> --comment "Ready for QA."
 
 # Defect fix handoff → Tester (same pattern, queue → ready-for-testing, assignee → creator)
-tinytask comment add <id> "Fix complete. <root cause, changes, tests>. Commit: <hash>."
-tinytask task update <id> --status idle && tinytask queue move <id> ready-for-testing
-tinytask move <id> <creator> --comment "Fixed. Please re-test."
+tko comment add <id> "Fix complete. <root cause, changes, tests>. Commit: <hash>."
+tko task update <id> --status idle && tko queue move <id> ready-for-testing
+tko move <id> <creator> --comment "Fixed. Please re-test."
 
 # Code review handoff (queue → ready-for-code-review, assignee → reviewer)
-tinytask comment add <id> "Ready for review. Focus: <areas>. PR: #<n>."
-tinytask task update <id> --status idle && tinytask queue move <id> ready-for-code-review
-tinytask move <id> <reviewer> --comment "Ready for review."
+tko comment add <id> "Ready for review. Focus: <areas>. PR: #<n>."
+tko task update <id> --status idle && tko queue move <id> ready-for-code-review
+tko move <id> <reviewer> --comment "Ready for review."
 
 # Subtask decomposition
-tinytask subtask create <parent-id> "Title" -d "Desc" --assigned-to <agent> --priority <n>
-tinytask queue add <sub-id> ready-for-development
-tinytask comment add <parent-id> "Decomposed: <list>. Deps: <ordering>."
+tko subtask create <parent-id> "Title" -d "Desc" --assigned-to <agent> --priority <n>
+tko queue add <sub-id> ready-for-development
+tko comment add <parent-id> "Decomposed: <list>. Deps: <ordering>."
 
 # Context switch
-tinytask comment add <id> "Pausing for <reason>. <X%> done. Remaining: <list>. Branch: <b>. Commit: <h>."
-tinytask task update <id> --status idle
+tko comment add <id> "Pausing for <reason>. <X%> done. Remaining: <list>. Branch: <b>. Commit: <h>."
+tko task update <id> --status idle
 # ... handle urgent task ...
-tinytask comment list <id> && tinytask task update <id> --status working
-tinytask comment add <id> "Resuming from <where>."
+tko comment list <id> && tko task update <id> --status working
+tko comment add <id> "Resuming from <where>."
 ```

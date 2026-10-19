@@ -1,6 +1,6 @@
 # Example Agent Workflows
 
-This document provides detailed examples of how multiple LLM agents can collaborate using TinyTask MCP.
+This document provides detailed examples of how multiple LLM agents can collaborate using TKO MCP.
 
 ## Workflow 1: Feature Development
 
@@ -431,7 +431,7 @@ const queue2 = await mcpClient.callTool('get_my_queue', {
 });
 
 // All agents work concurrently without conflicts
-// TinyTask handles concurrent access safely
+// TKO handles concurrent access safely
 ```
 
 ---

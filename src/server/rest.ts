@@ -1,5 +1,5 @@
 /**
- * REST API adapter for TinyTask
+ * REST API adapter for TKO
  *
  * Thin Express router that maps all MCP tools/resources to RESTful endpoints.
  * Delegates directly to existing services — no business logic here.

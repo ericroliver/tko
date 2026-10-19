@@ -21,7 +21,7 @@
 
 ### When to Use
 
-You need to create a new unit of work — a feature, a bug, a research item, or any actionable task. This is the starting point for all work in TinyTask.
+You need to create a new unit of work — a feature, a bug, a research item, or any actionable task. This is the starting point for all work in TKO.
 
 ### Who Can Perform
 
@@ -29,8 +29,8 @@ Any agent can create a task. The creator is recorded in the `created_by` field.
 
 ### Prerequisites
 
-- The `tinytask` CLI is installed and configured (`tinytask config init` has been run).
-- The server URL is set (`tinytask config set url http://your-server/mcp`).
+- The `tko` CLI is installed and configured (`tko config init` has been run).
+- The server URL is set (`tko config set url http://your-server/mcp`).
 - You know which queue and agent the task should be routed to.
 
 ### Step-by-Step Process
@@ -49,7 +49,7 @@ Before running any commands, decide:
 #### Step 2: Create the Task
 
 ```bash
-tinytask task create "Implement pagination on task list endpoint" \
+tko task create "Implement pagination on task list endpoint" \
   -d "Add limit/offset pagination to GET /tasks. Default limit 50, max 200. Return total count in response header." \
   --assigned-to tko-sword \
   --priority 7 \
@@ -63,13 +63,13 @@ The CLI returns the created task with its auto-generated ID (e.g., `20260724_01`
 If you didn't specify `--queue` during creation, move the task to the appropriate queue:
 
 ```bash
-tinytask queue add 20260724_01 ready-for-development
+tko queue add 20260724_01 ready-for-development
 ```
 
 Or use the update command:
 
 ```bash
-tinytask task update 20260724_01 --queue ready-for-development
+tko task update 20260724_01 --queue ready-for-development
 ```
 
 #### Step 4: Add an Initial Comment (Optional but Recommended)
@@ -77,7 +77,7 @@ tinytask task update 20260724_01 --queue ready-for-development
 Provide context for the assignee:
 
 ```bash
-tinytask comment add 20260724_01 "Created for sprint 3. See API spec doc for pagination contract. Assignee should review before starting."
+tko comment add 20260724_01 "Created for sprint 3. See API spec doc for pagination contract. Assignee should review before starting."
 ```
 
 #### Step 5: Verify
@@ -85,7 +85,7 @@ tinytask comment add 20260724_01 "Created for sprint 3. See API spec doc for pag
 Confirm the task was created correctly:
 
 ```bash
-tinytask task get 20260724_01
+tko task get 20260724_01
 ```
 
 Check that `status` is `idle`, `assigned_to` is correct, and `queue_name` is the intended queue.
@@ -97,21 +97,21 @@ Check that `status` is `idle`, `assigned_to` is correct, and `queue_name` is the
 Tasks can be created unassigned for a queue to pick up:
 
 ```bash
-tinytask task create "Investigate SQLite WAL mode performance" \
+tko task create "Investigate SQLite WAL mode performance" \
   -d "Benchmark WAL vs journal mode for concurrent read/write scenarios." \
   --queue ready-for-development \
   --priority 5 \
   --tags "database,research"
 ```
 
-Agents can then self-assign via `tinytask signup`.
+Agents can then self-assign via `tko signup`.
 
 #### Creating a Subtask
 
 If the task is part of a larger effort, specify a parent:
 
 ```bash
-tinytask subtask create 20260724_01 "Write unit tests for pagination" \
+tko subtask create 20260724_01 "Write unit tests for pagination" \
   -d "Cover edge cases: offset beyond results, negative offset, limit=0." \
   --assigned-to tko-sword
 ```
@@ -147,13 +147,13 @@ The agent assigned to the task (`assigned_to` field). For unassigned tasks, any 
 #### Step 1: Check Your Queue
 
 ```bash
-tinytask queue view --mine
+tko queue view --mine
 ```
 
 Or explicitly:
 
 ```bash
-tinytask queue view tko-sword
+tko queue view tko-sword
 ```
 
 Review the list of tasks assigned to you. Identify tasks with status `idle` that are ready to be worked.
@@ -163,13 +163,13 @@ Review the list of tasks assigned to you. Identify tasks with status `idle` that
 Before starting, read the full task:
 
 ```bash
-tinytask task get 20260724_01 --json
+tko task get 20260724_01 --json
 ```
 
 Also review prior comments and history:
 
 ```bash
-tinytask comment list 20260724_01
+tko comment list 20260724_01
 ```
 
 #### Step 3: Self-Assign if Needed
@@ -177,7 +177,7 @@ tinytask comment list 20260724_01
 If the task is unassigned (e.g., you found it in a shared queue and want to claim it):
 
 ```bash
-tinytask signup --agent tko-sword
+tko signup --agent tko-sword
 ```
 
 This assigns the next available idle task in your queue to you.
@@ -185,7 +185,7 @@ This assigns the next available idle task in your queue to you.
 #### Step 4: Set Status to Working
 
 ```bash
-tinytask task update 20260724_01 --status working
+tko task update 20260724_01 --status working
 ```
 
 This signals to other agents that the task is actively being worked on.
@@ -195,7 +195,7 @@ This signals to other agents that the task is actively being worked on.
 Document that you've started and any initial findings:
 
 ```bash
-tinytask comment add 20260724_01 "Started work. Reviewing the existing endpoint and will implement offset/limit params."
+tko comment add 20260724_01 "Started work. Reviewing the existing endpoint and will implement offset/limit params."
 ```
 
 ### Variations
@@ -205,7 +205,7 @@ tinytask comment add 20260724_01 "Started work. Reviewing the existing endpoint 
 If multiple agents share a queue (e.g., `ready-for-development`), use `signup` to claim the next available task:
 
 ```bash
-tinytask signup
+tko signup
 ```
 
 The system assigns the next idle task in your default queue to you.
@@ -215,8 +215,8 @@ The system assigns the next idle task in your default queue to you.
 If you previously set a task back to `idle` (e.g., to wait for a dependency) and are now resuming:
 
 ```bash
-tinytask task update 20260724_01 --status working
-tinytask comment add 20260724_01 "Resuming work — dependency #20260720_03 is now complete."
+tko task update 20260724_01 --status working
+tko comment add 20260724_01 "Resuming work — dependency #20260720_03 is now complete."
 ```
 
 ### Common Mistakes to Avoid
@@ -257,7 +257,7 @@ Before handing off, ensure:
 Document what was done, what was tested, and any notes for QA:
 
 ```bash
-tinytask comment add 20260724_01 "Implementation complete. Added limit/offset params to GET /tasks. Default limit=50, max=200. Total count returned in X-Total-Count header. All unit tests passing. Ready for QA."
+tko comment add 20260724_01 "Implementation complete. Added limit/offset params to GET /tasks. Default limit=50, max=200. Total count returned in X-Total-Count header. All unit tests passing. Ready for QA."
 ```
 
 #### Step 3: Add Relevant Links
@@ -265,7 +265,7 @@ tinytask comment add 20260724_01 "Implementation complete. Added limit/offset pa
 If there's a PR, commit, or external reference:
 
 ```bash
-tinytask link add 20260724_01 "https://github.com/org/tinytask/pull/42" -d "Pull request with implementation"
+tko link add 20260724_01 "https://github.com/org/tko/pull/42" -d "Pull request with implementation"
 ```
 
 #### Step 4: Set Status Back to Idle
@@ -273,7 +273,7 @@ tinytask link add 20260724_01 "https://github.com/org/tinytask/pull/42" -d "Pull
 Developers should **never** mark a task `complete`. Set it back to `idle`:
 
 ```bash
-tinytask task update 20260724_01 --status idle
+tko task update 20260724_01 --status idle
 ```
 
 #### Step 5: Move to the Handoff Queue
@@ -281,13 +281,13 @@ tinytask task update 20260724_01 --status idle
 Move the task to the queue for the next stage:
 
 ```bash
-tinytask queue move 20260724_01 ready-for-qa
+tko queue move 20260724_01 ready-for-qa
 ```
 
 Or equivalently:
 
 ```bash
-tinytask task update 20260724_01 --queue ready-for-qa
+tko task update 20260724_01 --queue ready-for-qa
 ```
 
 #### Step 6: Reassign if Needed
@@ -295,19 +295,19 @@ tinytask task update 20260724_01 --queue ready-for-qa
 If the QA agent is different from the current assignee:
 
 ```bash
-tinytask task update 20260724_01 --assigned-to tko-shield
+tko task update 20260724_01 --assigned-to tko-shield
 ```
 
 Or use the move command with a comment:
 
 ```bash
-tinytask move 20260724_01 tko-shield --comment "Implementation done, handing off to QA for verification"
+tko move 20260724_01 tko-shield --comment "Implementation done, handing off to QA for verification"
 ```
 
 #### Step 7: Verify
 
 ```bash
-tinytask task get 20260724_01
+tko task get 20260724_01
 ```
 
 Confirm: `status` = `idle`, `queue_name` = `ready-for-qa`, `assigned_to` = `tko-shield`.
@@ -319,10 +319,10 @@ Confirm: `status` = `idle`, `queue_name` = `ready-for-qa`, `assigned_to` = `tko-
 When fixing a defect reported by QA, the handoff goes to `ready-for-testing` instead of `ready-for-qa`, and the task is reassigned to the original reporter:
 
 ```bash
-tinytask task update 20260724_01 --status idle
-tinytask queue move 20260724_01 ready-for-testing
-tinytask task update 20260724_01 --assigned-to tko-shield
-tinytask comment add 20260724_01 "Defect fixed. Please re-test and verify."
+tko task update 20260724_01 --status idle
+tko queue move 20260724_01 ready-for-testing
+tko task update 20260724_01 --assigned-to tko-shield
+tko comment add 20260724_01 "Defect fixed. Please re-test and verify."
 ```
 
 See [Scenario Group C](./03-Scenario-Group-C-QA-and-Bug-Workflows.md) for the full bug fix cycle.
@@ -362,19 +362,19 @@ Any agent can reassign a task, but coordination is expected — don't pull a tas
 Explain why the task is being moved:
 
 ```bash
-tinytask comment add 20260724_01 "Reassigning to tko-shield — this requires MCP protocol knowledge which is their specialty."
+tko comment add 20260724_01 "Reassigning to tko-shield — this requires MCP protocol knowledge which is their specialty."
 ```
 
 #### Step 2: Reassign the Task
 
 ```bash
-tinytask task update 20260724_01 --assigned-to tko-shield
+tko task update 20260724_01 --assigned-to tko-shield
 ```
 
 Or use the move command (which also supports a comment):
 
 ```bash
-tinytask move 20260724_01 tko-shield --comment "Transferring to shield for MCP expertise"
+tko move 20260724_01 tko-shield --comment "Transferring to shield for MCP expertise"
 ```
 
 #### Step 3: Move to the Correct Queue (if applicable)
@@ -382,7 +382,7 @@ tinytask move 20260724_01 tko-shield --comment "Transferring to shield for MCP e
 If the reassignment also changes the stage of work:
 
 ```bash
-tinytask queue move 20260724_01 ready-for-testing
+tko queue move 20260724_01 ready-for-testing
 ```
 
 #### Step 4: Set Status Appropriately
@@ -390,7 +390,7 @@ tinytask queue move 20260724_01 ready-for-testing
 If the task was `working` and is now being handed off, set to `idle`:
 
 ```bash
-tinytask task update 20260724_01 --status idle
+tko task update 20260724_01 --status idle
 ```
 
 If the new assignee is picking it up immediately, they will set it to `working` (see A2).
@@ -398,7 +398,7 @@ If the new assignee is picking it up immediately, they will set it to `working` 
 #### Step 5: Verify
 
 ```bash
-tinytask task get 20260724_01
+tko task get 20260724_01
 ```
 
 ### Variations
@@ -409,7 +409,7 @@ If multiple tasks need to move to the same agent, repeat the process or script i
 
 ```bash
 for task_id in 20260724_01 20260724_02 20260724_03; do
-  tinytask move "$task_id" tko-shield --comment "Bulk reassignment: shifting to QA queue"
+  tko move "$task_id" tko-shield --comment "Bulk reassignment: shifting to QA queue"
 done
 ```
 
@@ -418,10 +418,10 @@ done
 If the assignee can't proceed because they're blocked by another task:
 
 ```bash
-tinytask task update 20260724_01 --blocked-by-task-id 20260720_03
-tinytask comment add 20260724_01 "Blocked by #20260720_03. Reassigning back to queue for re-prioritization."
-tinytask task update 20260724_01 --status idle
-tinytask task update 20260724_01 --assigned-to null
+tko task update 20260724_01 --blocked-by-task-id 20260720_03
+tko comment add 20260724_01 "Blocked by #20260720_03. Reassigning back to queue for re-prioritization."
+tko task update 20260724_01 --status idle
+tko task update 20260724_01 --assigned-to null
 ```
 
 See [Scenario Group D](./04-Scenario-Group-D-Task-Organization-and-Dependencies.md) for dependency management.
@@ -454,7 +454,7 @@ Any agent can archive a task, but typically the QA agent archives after verifica
 #### Step 1: Confirm the Task Is Complete
 
 ```bash
-tinytask task get 20260724_01
+tko task get 20260724_01
 ```
 
 Verify `status` = `complete` and `completed_at` is set.
@@ -462,7 +462,7 @@ Verify `status` = `complete` and `completed_at` is set.
 #### Step 2: Check for Active Subtasks
 
 ```bash
-tinytask subtask list 20260724_01
+tko subtask list 20260724_01
 ```
 
 Ensure no subtasks are still `idle` or `working`. If any are, resolve them first.
@@ -472,19 +472,19 @@ Ensure no subtasks are still `idle` or `working`. If any are, resolve them first
 Document that the task is being archived:
 
 ```bash
-tinytask comment add 20260724_01 "Verified and complete. Archiving."
+tko comment add 20260724_01 "Verified and complete. Archiving."
 ```
 
 #### Step 4: Archive the Task
 
 ```bash
-tinytask task archive 20260724_01
+tko task archive 20260724_01
 ```
 
 #### Step 5: Verify
 
 ```bash
-tinytask task get 20260724_01
+tko task get 20260724_01
 ```
 
 The task should now have `archived_at` set. It will no longer appear in default `task list` output.
@@ -492,7 +492,7 @@ The task should now have `archived_at` set. It will no longer appear in default 
 To see archived tasks:
 
 ```bash
-tinytask task list --include-archived
+tko task list --include-archived
 ```
 
 ### Variations
@@ -502,8 +502,8 @@ tinytask task list --include-archived
 If a task was cancelled (not completed), it can still be archived to clean up the active list:
 
 ```bash
-tinytask comment add 20260724_01 "Cancelling — requirements changed. No longer needed."
-tinytask task archive 20260724_01
+tko comment add 20260724_01 "Cancelling — requirements changed. No longer needed."
+tko task archive 20260724_01
 ```
 
 #### Archiving a Parent Task with Subtasks
@@ -512,14 +512,14 @@ When archiving a parent task, ensure all subtasks are completed or archived firs
 
 ```bash
 # Check subtasks
-tinytask subtask tree 20260724_01
+tko subtask tree 20260724_01
 
 # Archive each completed subtask
-tinytask task archive 20260724_02
-tinytask task archive 20260724_03
+tko task archive 20260724_02
+tko task archive 20260724_03
 
 # Archive the parent
-tinytask task archive 20260724_01
+tko task archive 20260724_01
 ```
 
 ### Common Mistakes to Avoid
@@ -539,25 +539,25 @@ Create → Assign → Start → Work → Handoff → Verify → Archive
 
 ```bash
 # 1. Create
-tinytask task create "Task title" -d "Desc" --assigned-to tko-sword --queue ready-for-development
+tko task create "Task title" -d "Desc" --assigned-to tko-sword --queue ready-for-development
 
 # 2. Start
-tinytask task update <id> --status working
-tinytask comment add <id> "Started work"
+tko task update <id> --status working
+tko comment add <id> "Started work"
 
 # 3. Handoff (developer)
-tinytask comment add <id> "Implementation complete. Ready for QA."
-tinytask task update <id> --status idle
-tinytask queue move <id> ready-for-qa
-tinytask task update <id> --assigned-to tko-shield
+tko comment add <id> "Implementation complete. Ready for QA."
+tko task update <id> --status idle
+tko queue move <id> ready-for-qa
+tko task update <id> --assigned-to tko-shield
 
 # 4. Verify (tester)
-tinytask task update <id> --status working
-tinytask comment add <id> "Verified. All checks pass."
-tinytask task update <id> --status complete
+tko task update <id> --status working
+tko comment add <id> "Verified. All checks pass."
+tko task update <id> --status complete
 
 # 5. Archive
-tinytask task archive <id>
+tko task archive <id>
 ```
 
 ---
@@ -571,9 +571,9 @@ tinytask task archive <id>
 | Task dependencies, blocked tasks, and organization | [Scenario Group D](./04-Scenario-Group-D-Task-Organization-and-Dependencies.md) |
 | Comments, cross-queue handoffs, coordination | [Scenario Group E](./05-Scenario-Group-E-Collaboration-and-Communication.md) |
 | Core concepts: task model, queues, lifecycle | [00-Foundation.md](./00-Foundation.md) — Sections 2, 3, 5 |
-| Task commands | See `tinytask task --help` |
-| Queue management commands | See `tinytask queue --help` |
-| Comment commands | See `tinytask comment --help` |
+| Task commands | See `tko task --help` |
+| Queue management commands | See `tko queue --help` |
+| Comment commands | See `tko comment --help` |
 
 ### Key Handoff Points
 
@@ -586,4 +586,4 @@ tinytask task archive <id>
 
 ---
 
-*This document is part of the TinyTask Process Manual. See [00-Foundation.md](./00-Foundation.md) for core concepts and [other scenario documents](.) for specialized workflows.*
+*This document is part of the TKO Process Manual. See [00-Foundation.md](./00-Foundation.md) for core concepts and [other scenario documents](.) for specialized workflows.*

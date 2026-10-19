@@ -40,8 +40,8 @@ The developer assigned to the parent task. The developer decides the decompositi
 Before creating subtasks, read the full task description and identify natural work boundaries:
 
 ```bash
-tinytask task get 20260724_10 --json
-tinytask comment list 20260724_10
+tko task get 20260724_10 --json
+tko comment list 20260724_10
 ```
 
 Ask yourself:
@@ -70,7 +70,7 @@ Task #20260724_10: Implement user authentication
 Create each subtask under the parent:
 
 ```bash
-tinytask subtask create 20260724_10 "Design database schema" \
+tko subtask create 20260724_10 "Design database schema" \
   -d "Create users and sessions tables. Include indexes for email and session_token." \
   --assigned-to tko-sword \
   --priority 8 \
@@ -78,7 +78,7 @@ tinytask subtask create 20260724_10 "Design database schema" \
 ```
 
 ```bash
-tinytask subtask create 20260724_10 "Implement password hashing utility" \
+tko subtask create 20260724_10 "Implement password hashing utility" \
   -d "Create bcrypt-based hashing module. Support configurable rounds (default 12)." \
   --assigned-to tko-sword \
   --priority 7 \
@@ -86,7 +86,7 @@ tinytask subtask create 20260724_10 "Implement password hashing utility" \
 ```
 
 ```bash
-tinytask subtask create 20260724_10 "Build login API endpoint" \
+tko subtask create 20260724_10 "Build login API endpoint" \
   -d "POST /auth/login. Validate credentials, issue session token. Return 401 on failure." \
   --assigned-to tko-sword \
   --priority 7 \
@@ -99,7 +99,7 @@ For subtasks that themselves need further breakdown, nest sub-subtasks:
 
 ```bash
 # First, get the subtask ID from the previous creation (e.g., 20260724_12)
-tinytask subtask create 20260724_12 "Write integration tests for login endpoint" \
+tko subtask create 20260724_12 "Write integration tests for login endpoint" \
   -d "Cover: valid login, invalid password, missing user, rate limiting." \
   --assigned-to tko-sword \
   --tags "testing,integration"
@@ -110,7 +110,7 @@ tinytask subtask create 20260724_12 "Write integration tests for login endpoint"
 Add a comment to the parent task explaining the breakdown:
 
 ```bash
-tinytask comment add 20260724_10 "Decomposed into subtasks: schema design, password hashing, login endpoint, registration endpoint, session middleware. Schema and hashing are prerequisites for the API endpoints. Tests will be nested under each endpoint subtask."
+tko comment add 20260724_10 "Decomposed into subtasks: schema design, password hashing, login endpoint, registration endpoint, session middleware. Schema and hashing are prerequisites for the API endpoints. Tests will be nested under each endpoint subtask."
 ```
 
 #### Step 6: Assign Subtasks to Queues
@@ -118,16 +118,16 @@ tinytask comment add 20260724_10 "Decomposed into subtasks: schema design, passw
 Place each subtask in the appropriate queue:
 
 ```bash
-tinytask queue add 20260724_11 ready-for-development
-tinytask queue add 20260724_12 ready-for-development
-tinytask queue add 20260724_13 ready-for-development
+tko queue add 20260724_11 ready-for-development
+tko queue add 20260724_12 ready-for-development
+tko queue add 20260724_13 ready-for-development
 ```
 
 Or assign them directly to different agents for parallel work:
 
 ```bash
-tinytask task update 20260724_12 --assigned-to tko-shield
-tinytask queue add 20260724_12 ready-for-development
+tko task update 20260724_12 --assigned-to tko-shield
+tko queue add 20260724_12 ready-for-development
 ```
 
 #### Step 7: Verify the Tree
@@ -135,7 +135,7 @@ tinytask queue add 20260724_12 ready-for-development
 Confirm the structure is correct:
 
 ```bash
-tinytask subtask tree 20260724_10 --recursive
+tko subtask tree 20260724_10 --recursive
 ```
 
 Expected output:
@@ -158,9 +158,9 @@ Task #20260724_10: Implement user authentication [ready-for-development] (tko-sw
 If you're working alone, the decomposition is still valuable for progress tracking. Keep all subtasks assigned to yourself and work through them sequentially:
 
 ```bash
-tinytask subtask create 20260724_10 "Step 1: Set up project structure" --assigned-to tko-sword
-tinytask subtask create 20260724_10 "Step 2: Implement core logic" --assigned-to tko-sword
-tinytask subtask create 20260724_10 "Step 3: Add error handling" --assigned-to tko-sword
+tko subtask create 20260724_10 "Step 1: Set up project structure" --assigned-to tko-sword
+tko subtask create 20260724_10 "Step 2: Implement core logic" --assigned-to tko-sword
+tko subtask create 20260724_10 "Step 3: Add error handling" --assigned-to tko-sword
 ```
 
 #### Decomposing with External Dependencies
@@ -168,7 +168,7 @@ tinytask subtask create 20260724_10 "Step 3: Add error handling" --assigned-to t
 If some subtasks depend on work tracked in separate tasks, document the dependency in a comment:
 
 ```bash
-tinytask comment add 20260724_13 "Depends on #20260724_12 (password hashing) and #20260724_11 (schema). Do not start until both are complete."
+tko comment add 20260724_13 "Depends on #20260724_12 (password hashing) and #20260724_11 (schema). Do not start until both are complete."
 ```
 
 See [Scenario Group D](./04-Scenario-Group-D-Task-Organization-and-Dependencies.md) for formal dependency tracking.
@@ -204,7 +204,7 @@ Any developer working on tasks within the hierarchy. The lead developer (typical
 Start by getting a complete picture of the hierarchy:
 
 ```bash
-tinytask subtask tree 20260724_10 --recursive
+tko subtask tree 20260724_10 --recursive
 ```
 
 This shows the parent, all subtasks, and nested sub-subtasks with their status and assignee.
@@ -214,7 +214,7 @@ This shows the parent, all subtasks, and nested sub-subtasks with their status a
 Filter the tree to see only tasks assigned to you:
 
 ```bash
-tinytask task list --assigned-to tko-sword --parent 20260724_10
+tko task list --assigned-to tko-sword --parent 20260724_10
 ```
 
 This lists your direct subtasks under the parent. For nested assignments, use `--recursive` or check specific branches.
@@ -225,14 +225,14 @@ Start with subtasks that have no dependencies. Mark each as `working` when you b
 
 ```bash
 # Start with the schema design (no dependencies)
-tinytask task update 20260724_11 --status working
-tinytask comment add 20260724_11 "Starting schema design."
+tko task update 20260724_11 --status working
+tko comment add 20260724_11 "Starting schema design."
 
 # ... do the work ...
 
-tinytask comment add 20260724_11 "Schema complete. Users and sessions tables created with appropriate indexes."
-tinytask task update 20260724_11 --status idle
-tinytask queue move 20260724_11 ready-for-qa
+tko comment add 20260724_11 "Schema complete. Users and sessions tables created with appropriate indexes."
+tko task update 20260724_11 --status idle
+tko queue move 20260724_11 ready-for-qa
 ```
 
 #### Step 4: Handle Dependencies Between Siblings
@@ -241,11 +241,11 @@ When a subtask depends on a sibling, wait for the sibling to be completed before
 
 ```bash
 # Check status of the dependency
-tinytask task get 20260724_12
+tko task get 20260724_12
 
 # If still in progress, work on an independent subtask instead
-tinytask task update 20260724_17 --status working
-tinytask comment add 20260724_17 "Starting session middleware (no dependencies on other subtasks)."
+tko task update 20260724_17 --status working
+tko comment add 20260724_17 "Starting session middleware (no dependencies on other subtasks)."
 ```
 
 #### Step 5: Move Subtasks Between Parents
@@ -254,10 +254,10 @@ If you discover that a subtask belongs under a different parent (or should be to
 
 ```bash
 # Move subtask to a different parent
-tinytask subtask move 20260724_15 20260724_14
+tko subtask move 20260724_15 20260724_14
 
 # Or make it top-level
-tinytask subtask move 20260724_15
+tko subtask move 20260724_15
 ```
 
 #### Step 6: Track Overall Progress
@@ -265,13 +265,13 @@ tinytask subtask move 20260724_15
 Periodically review the tree to assess progress:
 
 ```bash
-tinytask subtask tree 20260724_10 --recursive
+tko subtask tree 20260724_10 --recursive
 ```
 
 The tree shows status indicators. You can also get a count of remaining work:
 
 ```bash
-tinytask subtask list 20260724_10 --recursive --json | jq '[.[] | select(.status != "complete")] | length'
+tko subtask list 20260724_10 --recursive --json | jq '[.[] | select(.status != "complete")] | length'
 ```
 
 #### Step 7: Complete the Parent Task
@@ -280,14 +280,14 @@ Once all subtasks are complete (or handed off to QA), the parent task can be pre
 
 ```bash
 # Verify all subtasks are done
-tinytask subtask list 20260724_10 --recursive
+tko subtask list 20260724_10 --recursive
 
 # Add a summary comment
-tinytask comment add 20260724_10 "All subtasks complete. Login, registration, and session middleware implemented. Ready for QA."
+tko comment add 20260724_10 "All subtasks complete. Login, registration, and session middleware implemented. Ready for QA."
 
 # Set parent to idle and handoff
-tinytask task update 20260724_10 --status idle
-tinytask queue move 20260724_10 ready-for-qa
+tko task update 20260724_10 --status idle
+tko queue move 20260724_10 ready-for-qa
 ```
 
 ### Variations
@@ -297,16 +297,16 @@ tinytask queue move 20260724_10 ready-for-qa
 As subtasks are verified and completed, you can archive them to keep the tree clean:
 
 ```bash
-tinytask task archive 20260724_11
+tko task archive 20260724_11
 ```
 
 Archived subtasks won't appear in the default tree view but can be included:
 
 ```bash
-tinytask subtask tree 20260724_10 --recursive
+tko subtask tree 20260724_10 --recursive
 # Archived subtasks are excluded by default
 
-tinytask subtask list 20260724_10 --include-archived
+tko subtask list 20260724_10 --include-archived
 ```
 
 #### Handling a Subtask That Grows in Scope
@@ -314,7 +314,7 @@ tinytask subtask list 20260724_10 --include-archived
 If a subtask turns out to be larger than expected, decompose it further:
 
 ```bash
-tinytask subtask create 20260724_13 "Extract token validation into shared module" \
+tko subtask create 20260724_13 "Extract token validation into shared module" \
   -d "Login and registration both need token validation. Extracting to avoid duplication." \
   --assigned-to tko-sword
 ```
@@ -352,16 +352,16 @@ Distribute independent subtasks across available developers:
 
 ```bash
 # Assign schema work to tko-sword
-tinytask task update 20260724_11 --assigned-to tko-sword
-tinytask queue add 20260724_11 ready-for-development
+tko task update 20260724_11 --assigned-to tko-sword
+tko queue add 20260724_11 ready-for-development
 
 # Assign password hashing to tko-shield
-tinytask task update 20260724_12 --assigned-to tko-shield
-tinytask queue add 20260724_12 ready-for-development
+tko task update 20260724_12 --assigned-to tko-shield
+tko queue add 20260724_12 ready-for-development
 
 # Assign session middleware to tko-sword (independent of schema)
-tinytask task update 20260724_17 --assigned-to tko-sword
-tinytask queue add 20260724_17 ready-for-development
+tko task update 20260724_17 --assigned-to tko-sword
+tko queue add 20260724_17 ready-for-development
 ```
 
 #### Step 2: Coordinate via Comments on the Parent Task
@@ -369,7 +369,7 @@ tinytask queue add 20260724_17 ready-for-development
 Use the parent task's comment thread as a coordination channel:
 
 ```bash
-tinytask comment add 20260724_10 "Parallel work starting. tko-sword on schema + session middleware. tko-shield on password hashing. API endpoints will start once schema and hashing are done."
+tko comment add 20260724_10 "Parallel work starting. tko-sword on schema + session middleware. tko-shield on password hashing. API endpoints will start once schema and hashing are done."
 ```
 
 #### Step 3: Each Agent Picks Up Their Subtask
@@ -378,12 +378,12 @@ Each developer follows the standard pickup process (see [A2](./01-Scenario-Group
 
 ```bash
 # tko-sword picks up schema work
-tinytask task update 20260724_11 --status working
-tinytask comment add 20260724_11 "Starting schema design."
+tko task update 20260724_11 --status working
+tko comment add 20260724_11 "Starting schema design."
 
 # tko-shield picks up password hashing
-tinytask task update 20260724_12 --status working
-tinytask comment add 20260724_12 "Starting bcrypt utility implementation."
+tko task update 20260724_12 --status working
+tko comment add 20260724_12 "Starting bcrypt utility implementation."
 ```
 
 #### Step 4: Communicate Progress
@@ -392,12 +392,12 @@ As each developer completes their subtask, they add a completion comment and not
 
 ```bash
 # tko-sword completes schema
-tinytask comment add 20260724_11 "Schema complete. Migration file created and tested."
-tinytask task update 20260724_11 --status idle
-tinytask queue move 20260724_11 ready-for-qa
+tko comment add 20260724_11 "Schema complete. Migration file created and tested."
+tko task update 20260724_11 --status idle
+tko queue move 20260724_11 ready-for-qa
 
 # Notify that dependency is resolved
-tinytask comment add 20260724_10 "Schema subtask (#20260724_11) is done. API endpoint subtasks can now start."
+tko comment add 20260724_10 "Schema subtask (#20260724_11) is done. API endpoint subtasks can now start."
 ```
 
 #### Step 5: Pick Up Dependent Subtasks as Dependencies Clear
@@ -406,8 +406,8 @@ Once a dependency is resolved, the developer assigned to the dependent subtask c
 
 ```bash
 # Now that schema is done, start the login endpoint
-tinytask task update 20260724_13 --status working
-tinytask comment add 20260724_13 "Schema dependency resolved. Starting login endpoint implementation."
+tko task update 20260724_13 --status working
+tko comment add 20260724_13 "Schema dependency resolved. Starting login endpoint implementation."
 ```
 
 #### Step 6: Monitor the Tree for Conflicts
@@ -415,7 +415,7 @@ tinytask comment add 20260724_13 "Schema dependency resolved. Starting login end
 The lead developer should periodically check the tree to ensure no two agents are working on the same file or component:
 
 ```bash
-tinytask subtask tree 20260724_10 --recursive
+tko subtask tree 20260724_10 --recursive
 ```
 
 If conflicts arise, coordinate via comments to reassign or sequence the work.
@@ -427,7 +427,7 @@ If conflicts arise, coordinate via comments to reassign or sequence the work.
 When two subtasks both need to modify a shared module, coordinate who goes first:
 
 ```bash
-tinytask comment add 20260724_13 "tko-sword taking the first pass on the shared auth module. tko-shield, please wait until I'm done before starting #20260724_14 to avoid merge conflicts."
+tko comment add 20260724_13 "tko-sword taking the first pass on the shared auth module. tko-shield, please wait until I'm done before starting #20260724_14 to avoid merge conflicts."
 ```
 
 #### Splitting a Subtask Mid-Development
@@ -437,7 +437,7 @@ If a subtask is taking longer than expected, split it to enable parallel work:
 ```bash
 # Original subtask is the full login flow
 # Split: one agent does the endpoint, another does the validation logic
-tinytask subtask create 20260724_13 "Extract input validation logic" \
+tko subtask create 20260724_13 "Extract input validation logic" \
   -d "Move email/password validation into a separate module for reuse by registration." \
   --assigned-to tko-shield
 ```
@@ -474,7 +474,7 @@ Any developer who is currently working on a task and needs to temporarily switch
 Before pausing, capture exactly where you are so you can resume efficiently:
 
 ```bash
-tinytask comment add 20260724_13 "Pausing work to handle urgent production issue (#20260724_20). Current state: login endpoint is 80% done. POST /auth/login accepts credentials and validates against the database. Still need to: (1) generate session token, (2) add rate limiting, (3) write error response for locked accounts. Branch: feature/login-endpoint. Last commit: a3f2b1c."
+tko comment add 20260724_13 "Pausing work to handle urgent production issue (#20260724_20). Current state: login endpoint is 80% done. POST /auth/login accepts credentials and validates against the database. Still need to: (1) generate session token, (2) add rate limiting, (3) write error response for locked accounts. Branch: feature/login-endpoint. Last commit: a3f2b1c."
 ```
 
 #### Step 2: Set the Task Back to Idle
@@ -482,7 +482,7 @@ tinytask comment add 20260724_13 "Pausing work to handle urgent production issue
 Signal that you're no longer actively working on it:
 
 ```bash
-tinytask task update 20260724_13 --status idle
+tko task update 20260724_13 --status idle
 ```
 
 #### Step 3: Pick Up the Urgent Task
@@ -490,9 +490,9 @@ tinytask task update 20260724_13 --status idle
 Follow the standard pickup process for the new task:
 
 ```bash
-tinytask task get 20260724_20 --json
-tinytask task update 20260724_20 --status working
-tinytask comment add 20260724_20 "Picking up urgent production issue. Paused #20260724_13 to handle this."
+tko task get 20260724_20 --json
+tko task update 20260724_20 --status working
+tko comment add 20260724_20 "Picking up urgent production issue. Paused #20260724_13 to handle this."
 ```
 
 #### Step 4: Complete the Urgent Task
@@ -501,9 +501,9 @@ Work through the urgent task following the normal lifecycle (see [A2](./01-Scena
 
 ```bash
 # After fixing the issue
-tinytask comment add 20260724_20 "Fixed the production issue. The session table was missing an index causing slow lookups. Added migration and verified locally."
-tinytask task update 20260724_20 --status idle
-tinytask queue move 20260724_20 ready-for-qa
+tko comment add 20260724_20 "Fixed the production issue. The session table was missing an index causing slow lookups. Added migration and verified locally."
+tko task update 20260724_20 --status idle
+tko queue move 20260724_20 ready-for-qa
 ```
 
 #### Step 5: Resume the Paused Task
@@ -512,11 +512,11 @@ Return to the original task, review your context comment, and resume:
 
 ```bash
 # Re-read your progress comment
-tinytask comment list 20260724_13
+tko comment list 20260724_13
 
 # Set back to working
-tinytask task update 20260724_13 --status working
-tinytask comment add 20260724_13 "Resuming work. Picking up from session token generation. Production issue #20260724_20 is resolved."
+tko task update 20260724_13 --status working
+tko comment add 20260724_13 "Resuming work. Picking up from session token generation. Production issue #20260724_20 is resolved."
 ```
 
 #### Step 6: Verify No State Was Lost
@@ -538,10 +538,10 @@ If you're interrupted multiple times, each pause should get its own context comm
 
 ```bash
 # First interruption
-tinytask comment add 20260724_13 "Pausing for #20260724_20. Progress: 80% done, need token gen + rate limiting."
+tko comment add 20260724_13 "Pausing for #20260724_20. Progress: 80% done, need token gen + rate limiting."
 
 # After resuming and being interrupted again
-tinytask comment add 20260724_13 "Pausing again for #20260724_21. Progress: 90% done, only rate limiting left."
+tko comment add 20260724_13 "Pausing again for #20260724_21. Progress: 90% done, only rate limiting left."
 ```
 
 #### Handing Off a Paused Task
@@ -549,9 +549,9 @@ tinytask comment add 20260724_13 "Pausing again for #20260724_21. Progress: 90% 
 If you won't be able to resume the task yourself, hand it off with full context:
 
 ```bash
-tinytask comment add 20260724_13 "Handing off to tko-shield. Task is 80% done. See my earlier comment for details on remaining work. Branch: feature/login-endpoint."
-tinytask task update 20260724_13 --assigned-to tko-shield
-tinytask task update 20260724_13 --status idle
+tko comment add 20260724_13 "Handing off to tko-shield. Task is 80% done. See my earlier comment for details on remaining work. Branch: feature/login-endpoint."
+tko task update 20260724_13 --assigned-to tko-shield
+tko task update 20260724_13 --status idle
 ```
 
 See [B5](#b5-development-handoff--code-review-prep) for the full handoff workflow.
@@ -561,7 +561,7 @@ See [B5](#b5-development-handoff--code-review-prep) for the full handoff workflo
 When pausing a subtask, also update the parent task to note the impact on the overall effort:
 
 ```bash
-tinytask comment add 20260724_10 "Subtask #20260724_13 (login endpoint) paused for urgent production issue. This may delay the overall authentication feature by a few hours."
+tko comment add 20260724_10 "Subtask #20260724_13 (login endpoint) paused for urgent production issue. This may delay the overall authentication feature by a few hours."
 ```
 
 ### Common Mistakes to Avoid
@@ -612,7 +612,7 @@ Look for:
 Document what was implemented, how it was tested, and what the reviewer should focus on:
 
 ```bash
-tinytask comment add 20260724_13 "Implementation complete. POST /auth/login now:
+tko comment add 20260724_13 "Implementation complete. POST /auth/login now:
 1. Validates email/password against the users table
 2. Generates a session token using the hashing utility from #20260724_12
 3. Stores session in the sessions table
@@ -627,19 +627,19 @@ Reviewer focus: Please check the rate limiting implementation (sliding window ap
 #### Step 3: Add the PR Link
 
 ```bash
-tinytask link add 20260724_13 "https://github.com/org/tinytask/pull/42" -d "Pull request: Login endpoint implementation"
+tko link add 20260724_13 "https://github.com/org/tko/pull/42" -d "Pull request: Login endpoint implementation"
 ```
 
 #### Step 4: Set Status to Idle
 
 ```bash
-tinytask task update 20260724_13 --status idle
+tko task update 20260724_13 --status idle
 ```
 
 #### Step 5: Move to the Code Review Queue
 
 ```bash
-tinytask queue move 20260724_13 ready-for-code-review
+tko queue move 20260724_13 ready-for-code-review
 ```
 
 #### Step 6: Assign the Reviewer
@@ -647,13 +647,13 @@ tinytask queue move 20260724_13 ready-for-code-review
 Assign to a specific developer for review:
 
 ```bash
-tinytask task update 20260724_13 --assigned-to tko-shield
+tko task update 20260724_13 --assigned-to tko-shield
 ```
 
 Or use the move command with a comment:
 
 ```bash
-tinytask move 20260724_13 tko-shield --comment "Ready for code review. Please check rate limiting and token security. See my completion comment for details."
+tko move 20260724_13 tko-shield --comment "Ready for code review. Please check rate limiting and token security. See my completion comment for details."
 ```
 
 #### Step 7: Notify the Reviewer (Optional but Recommended)
@@ -661,7 +661,7 @@ tinytask move 20260724_13 tko-shield --comment "Ready for code review. Please ch
 If the reviewer needs a heads-up, add a comment or coordinate via the parent task:
 
 ```bash
-tinytask comment add 20260724_10 "Subtask #20260724_13 (login endpoint) is ready for code review by tko-shield. This is on the critical path — the registration endpoint depends on the same patterns."
+tko comment add 20260724_10 "Subtask #20260724_13 (login endpoint) is ready for code review by tko-shield. This is on the critical path — the registration endpoint depends on the same patterns."
 ```
 
 #### Step 8: Reviewer Picks Up the Task
@@ -669,33 +669,33 @@ tinytask comment add 20260724_10 "Subtask #20260724_13 (login endpoint) is ready
 The reviewing developer follows the standard pickup process:
 
 ```bash
-tinytask task get 20260724_13 --json
-tinytask comment list 20260724_13
-tinytask task update 20260724_13 --status working
-tinytask comment add 20260724_13 "Starting code review."
+tko task get 20260724_13 --json
+tko comment list 20260724_13
+tko task update 20260724_13 --status working
+tko comment add 20260724_13 "Starting code review."
 ```
 
 After reviewing, the reviewer adds feedback:
 
 ```bash
 # If changes are needed
-tinytask comment add 20260724_13 "Review complete with feedback:
+tko comment add 20260724_13 "Review complete with feedback:
 1. Rate limiting: consider using a fixed window instead of sliding for simplicity
 2. Token generation: use crypto.randomBytes instead of Math.random
 3. Add a test for expired token refresh
 
 Please address these and re-submit."
-tinytask task update 20260724_13 --assigned-to tko-sword
-tinytask queue move 20260724_13 ready-for-development
-tinytask task update 20260724_13 --status idle
+tko task update 20260724_13 --assigned-to tko-sword
+tko queue move 20260724_13 ready-for-development
+tko task update 20260724_13 --status idle
 ```
 
 ```bash
 # If approved
-tinytask comment add 20260724_13 "Code review passed. Implementation looks solid. Approving for QA handoff."
-tinytask task update 20260724_13 --status idle
-tinytask queue move 20260724_13 ready-for-qa
-tinytask task update 20260724_13 --assigned-to tko-shield
+tko comment add 20260724_13 "Code review passed. Implementation looks solid. Approving for QA handoff."
+tko task update 20260724_13 --status idle
+tko queue move 20260724_13 ready-for-qa
+tko task update 20260724_13 --assigned-to tko-shield
 ```
 
 ### Variations
@@ -706,18 +706,18 @@ When the entire parent task needs review before QA, aggregate the subtask review
 
 ```bash
 # Move all completed subtasks to review
-tinytask queue move 20260724_11 ready-for-code-review
-tinytask queue move 20260724_12 ready-for-code-review
-tinytask queue move 20260724_13 ready-for-code-review
-tinytask queue move 20260724_14 ready-for-code-review
-tinytask queue move 20260724_17 ready-for-code-review
+tko queue move 20260724_11 ready-for-code-review
+tko queue move 20260724_12 ready-for-code-review
+tko queue move 20260724_13 ready-for-code-review
+tko queue move 20260724_14 ready-for-code-review
+tko queue move 20260724_17 ready-for-code-review
 
 # Assign all to the same reviewer for consistency
 for task_id in 20260724_11 20260724_12 20260724_13 20260724_14 20260724_17; do
-  tinytask task update "$task_id" --assigned-to tko-shield
+  tko task update "$task_id" --assigned-to tko-shield
 done
 
-tinytask comment add 20260724_10 "All subtasks moved to ready-for-code-review for tko-shield. Please review in dependency order: schema → hashing → endpoints → middleware."
+tko comment add 20260724_10 "All subtasks moved to ready-for-code-review for tko-shield. Please review in dependency order: schema → hashing → endpoints → middleware."
 ```
 
 #### Expedited Review (No Code Review Queue)
@@ -725,9 +725,9 @@ tinytask comment add 20260724_10 "All subtasks moved to ready-for-code-review fo
 For small fixes or trivial changes, you may skip the code review queue and go directly to QA:
 
 ```bash
-tinytask comment add 20260724_13 "Trivial fix: corrected typo in error message. Skipping code review, going directly to QA."
-tinytask task update 20260724_13 --status idle
-tinytask queue move 20260724_13 ready-for-qa
+tko comment add 20260724_13 "Trivial fix: corrected typo in error message. Skipping code review, going directly to QA."
+tko task update 20260724_13 --status idle
+tko queue move 20260724_13 ready-for-qa
 ```
 
 Use this only for genuinely trivial changes. When in doubt, request a review.
@@ -748,39 +748,39 @@ Use this only for genuinely trivial changes. When in doubt, request a review.
 
 ```bash
 # 1. Decompose parent task
-tinytask subtask create <parent-id> "Subtask title" -d "Desc" --assigned-to <agent> --priority <n>
-tinytask queue add <subtask-id> ready-for-development
+tko subtask create <parent-id> "Subtask title" -d "Desc" --assigned-to <agent> --priority <n>
+tko queue add <subtask-id> ready-for-development
 
 # 2. Assign to different agents for parallel work
-tinytask task update <subtask-id> --assigned-to <other-agent>
+tko task update <subtask-id> --assigned-to <other-agent>
 
 # 3. View the tree
-tinytask subtask tree <parent-id> --recursive
+tko subtask tree <parent-id> --recursive
 
 # 4. Coordinate via parent comments
-tinytask comment add <parent-id> "Parallel work: agent A on subtask X, agent B on subtask Y"
+tko comment add <parent-id> "Parallel work: agent A on subtask X, agent B on subtask Y"
 
 # 5. Notify when dependencies clear
-tinytask comment add <parent-id> "Subtask X complete, subtask Y can now start"
+tko comment add <parent-id> "Subtask X complete, subtask Y can now start"
 ```
 
 ### Context Switching
 
 ```bash
 # 1. Document progress
-tinytask comment add <task-id> "Pausing. Progress: 80% done, remaining: token gen, rate limiting. Branch: feature/x. Commit: a3f2b1c."
+tko comment add <task-id> "Pausing. Progress: 80% done, remaining: token gen, rate limiting. Branch: feature/x. Commit: a3f2b1c."
 
 # 2. Set to idle
-tinytask task update <task-id> --status idle
+tko task update <task-id> --status idle
 
 # 3. Pick up urgent task
-tinytask task update <urgent-id> --status working
-tinytask comment add <urgent-id> "Starting urgent work. Paused <task-id>."
+tko task update <urgent-id> --status working
+tko comment add <urgent-id> "Starting urgent work. Paused <task-id>."
 
 # 4. After urgent task is done, resume
-tinytask comment list <task-id>
-tinytask task update <task-id> --status working
-tinytask comment add <task-id> "Resuming. Picking up from token generation."
+tko comment list <task-id>
+tko task update <task-id> --status working
+tko comment add <task-id> "Resuming. Picking up from token generation."
 ```
 
 ### Code Review Handoff
@@ -790,23 +790,23 @@ tinytask comment add <task-id> "Resuming. Picking up from token generation."
 git diff main...<branch> --stat
 
 # 2. Write completion comment
-tinytask comment add <task-id> "Implementation complete. <details>. Reviewer focus: <areas>. Branch: <branch>. PR: #<n>."
+tko comment add <task-id> "Implementation complete. <details>. Reviewer focus: <areas>. Branch: <branch>. PR: #<n>."
 
 # 3. Link the PR
-tinytask link add <task-id> "https://github.com/org/repo/pull/<n>" -d "PR description"
+tko link add <task-id> "https://github.com/org/repo/pull/<n>" -d "PR description"
 
 # 4. Move to review
-tinytask task update <task-id> --status idle
-tinytask queue move <task-id> ready-for-code-review
-tinytask move <task-id> <reviewer> --comment "Ready for review. Focus on <areas>."
+tko task update <task-id> --status idle
+tko queue move <task-id> ready-for-code-review
+tko move <task-id> <reviewer> --comment "Ready for review. Focus on <areas>."
 
 # 5. After review (approved)
-tinytask queue move <task-id> ready-for-qa
-tinytask task update <task-id> --assigned-to <qa-agent>
+tko queue move <task-id> ready-for-qa
+tko task update <task-id> --assigned-to <qa-agent>
 
 # 5. After review (changes requested)
-tinytask queue move <task-id> ready-for-development
-tinytask task update <task-id> --assigned-to <original-dev>
+tko queue move <task-id> ready-for-development
+tko task update <task-id> --assigned-to <original-dev>
 ```
 
 ---
@@ -819,8 +819,8 @@ tinytask task update <task-id> --assigned-to <original-dev>
 | QA verification and bug fix workflows | [Scenario Group C](./03-Scenario-Group-C-QA-and-Bug-Workflows.md) |
 | Task dependencies, blocked tasks, and organization | [Scenario Group D](./04-Scenario-Group-D-Task-Organization-and-Dependencies.md) |
 | Comments, cross-queue handoffs, coordination | [Scenario Group E](./05-Scenario-Group-E-Collaboration-and-Communication.md) |
-| Subtask creation commands | See `tinytask subtask create --help` |
-| Queue management commands | See `tinytask queue --help` |
+| Subtask creation commands | See `tko subtask create --help` |
+| Queue management commands | See `tko queue --help` |
 
 ### Key Handoff Points
 
@@ -835,4 +835,4 @@ tinytask task update <task-id> --assigned-to <original-dev>
 
 ---
 
-*This document is part of the TinyTask Process Manual. See [00-Foundation.md](./00-Foundation.md) for core concepts and [other scenario documents](.) for specialized workflows.*
+*This document is part of the TKO Process Manual. See [00-Foundation.md](./00-Foundation.md) for core concepts and [other scenario documents](.) for specialized workflows.*

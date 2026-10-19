@@ -1,13 +1,13 @@
 # SSE Timeout Analysis
 
-**Issue**: Agents interacting with the TinyTask MCP server experience timeouts on the first or second tool interaction after periods of inactivity. The client times out after ~300 seconds, retries, and then succeeds immediately.
+**Issue**: Agents interacting with the TKO MCP server experience timeouts on the first or second tool interaction after periods of inactivity. The client times out after ~300 seconds, retries, and then succeeds immediately.
 
-**Date**: 2026-01-04  
+**Date**: 2026-01-04
 **Status**: Analysis Complete - Awaiting Solution Approval
 
 ## Problem Statement
 
-Clients connecting to the TinyTask MCP SSE server experience the following behavior:
+Clients connecting to the TKO MCP SSE server experience the following behavior:
 1. Initial connection and handshake work fine (initialize, notifications/initialized, ping)
 2. First tool call (tools/list or tools/call) appears to succeed on the server (logs show "Request processed successfully" in 0-1ms)
 3. Client never receives response and times out after ~300 seconds
@@ -21,10 +21,10 @@ Clients connecting to the TinyTask MCP SSE server experience the following behav
 1. **SSE Connection Lifecycle**: Connections close approximately every 2 minutes (120 seconds)
    - Example: Session `95a1c8bc-b608-4b4b-9127-544c4466b72b` closed at 16:23:10.683, new session at 16:23:12.693
 
-2. **Timeout Pattern**: 
+2. **Timeout Pattern**:
    ```
    16:21:10.268 - Request ID 5 times out (notifications/cancelled)
-   16:26:10.299 - Request ID 6 times out (notifications/cancelled) 
+   16:26:10.299 - Request ID 6 times out (notifications/cancelled)
    16:31:13.227 - Request ID 7 times out (notifications/cancelled)
    ```
    Roughly 5-minute intervals between timeouts
@@ -192,17 +192,17 @@ app.post('/mcp', async (req, res) => {
 app.post('/mcp', async (req, res) => {
   const startTime = Date.now();
   logger.info(`MCP POST message received`);
-  
+
   // Log response state before processing
   logger.trace('Response state before processing', {
     headersSent: res.headersSent,
     finished: res.finished,
     writableEnded: res.writableEnded
   });
-  
+
   try {
     await transport.handlePostMessage(req, res);
-    
+
     // Log response state after processing
     logger.debug('Response state after processing', {
       headersSent: res.headersSent,
@@ -210,10 +210,10 @@ app.post('/mcp', async (req, res) => {
       writableEnded: res.writableEnded,
       statusCode: res.statusCode
     });
-    
+
     const duration = Date.now() - startTime;
     logger.debug(`Request processed successfully`, { duration: `${duration}ms` });
-    
+
     // Verify response was sent
     if (!res.headersSent) {
       logger.error('Response headers were not sent!', { sessionId });
@@ -244,13 +244,13 @@ app.post('/mcp', async (req, res) => {
 ```typescript
 app.get('/mcp', async (req, res) => {
   logger.info(`New SSE connection from ${req.ip}`);
-  
+
   const transport = new SSEServerTransport('/mcp', res);
   const sessionId = transport.sessionId;
   transports.set(sessionId, transport);
-  
+
   await server.connect(transport);
-  
+
   // Send keepalive comments every 30 seconds
   const keepaliveInterval = setInterval(() => {
     if (!res.writableEnded) {
@@ -260,7 +260,7 @@ app.get('/mcp', async (req, res) => {
       clearInterval(keepaliveInterval);
     }
   }, 30000);
-  
+
   req.on('close', () => {
     clearInterval(keepaliveInterval);
     logger.info(`SSE connection closed: ${sessionId}`);

@@ -1,10 +1,10 @@
 # Streamable HTTP Transport Design
 
 ## Overview
-This document outlines the design for adding Streamable HTTP transport support to TinyTask MCP, replacing SSE as the default HTTP transport while maintaining backward compatibility via runtime configuration.
+This document outlines the design for adding Streamable HTTP transport support to TKO MCP, replacing SSE as the default HTTP transport while maintaining backward compatibility via runtime configuration.
 
 ## Problem Statement
-The current TinyTask MCP server uses SSE (Server-Sent Events) for HTTP transport, which requires:
+The current TKO MCP server uses SSE (Server-Sent Events) for HTTP transport, which requires:
 - Two separate endpoints (GET for event stream, POST for messages)
 - Long-lived persistent connections per client
 - Complex dual-channel management logic
@@ -40,27 +40,27 @@ graph TB
     subgraph "Entry Point"
         INDEX[src/index.ts]
     end
-    
+
     subgraph "Transports"
         STDIO[src/server/stdio.ts<br/>StdioServerTransport]
         SSE[src/server/sse.ts<br/>SSEServerTransport]
     end
-    
+
     subgraph "Services"
         TASK[TaskService]
         COMMENT[CommentService]
         LINK[LinkService]
     end
-    
-    INDEX -->|TINYTASK_MODE=stdio| STDIO
-    INDEX -->|TINYTASK_MODE=sse| SSE
-    INDEX -->|TINYTASK_MODE=both| STDIO
-    INDEX -->|TINYTASK_MODE=both| SSE
-    
+
+    INDEX -->|TKO_MODE=stdio| STDIO
+    INDEX -->|TKO_MODE=sse| SSE
+    INDEX -->|TKO_MODE=both| STDIO
+    INDEX -->|TKO_MODE=both| SSE
+
     STDIO --> TASK
     STDIO --> COMMENT
     STDIO --> LINK
-    
+
     SSE --> TASK
     SSE --> COMMENT
     SSE --> LINK
@@ -73,40 +73,40 @@ graph TB
     subgraph "Entry Point"
         INDEX[src/index.ts<br/>Enhanced Mode Logic]
     end
-    
+
     subgraph "Transports"
         STDIO[src/server/stdio.ts<br/>StdioServerTransport]
         HTTP[src/server/http.ts<br/>NEW: Transport Router]
         SHTTP[src/server/streamable-http.ts<br/>NEW: StreamableHTTPServerTransport]
         SSE[src/server/sse.ts<br/>SSEServerTransport]
     end
-    
+
     subgraph "Services"
         TASK[TaskService]
         COMMENT[CommentService]
         LINK[LinkService]
     end
-    
+
     INDEX -->|mode=stdio| STDIO
     INDEX -->|mode=http| HTTP
     INDEX -->|mode=both| STDIO
     INDEX -->|mode=both| HTTP
-    
-    HTTP -->|TINYTASK_ENABLE_SSE=true| SSE
-    HTTP -->|TINYTASK_ENABLE_SSE=false<br/>or unset| SHTTP
-    
+
+    HTTP -->|TKO_ENABLE_SSE=true| SSE
+    HTTP -->|TKO_ENABLE_SSE=false<br/>or unset| SHTTP
+
     STDIO --> TASK
     SSE --> TASK
     SHTTP --> TASK
-    
+
     STDIO --> COMMENT
     SSE --> COMMENT
     SHTTP --> COMMENT
-    
+
     STDIO --> LINK
     SSE --> LINK
     SHTTP --> LINK
-    
+
     style SHTTP fill:#4CAF50
     style HTTP fill:#2196F3
 ```
@@ -116,22 +116,22 @@ graph TB
 ### Environment Variables
 
 #### Existing Variables (No Change)
-- `TINYTASK_MODE`: Server mode (`stdio`, `http`, `both`)
+- `TKO_MODE`: Server mode (`stdio`, `http`, `both`)
   - **Change:** `sse` value deprecated but still supported for backward compatibility
-  - Maps internally to `http` mode with `TINYTASK_ENABLE_SSE=true`
-- `TINYTASK_PORT`: HTTP server port (default: `3000`)
-- `TINYTASK_HOST`: HTTP server host (default: `0.0.0.0`)
-- `TINYTASK_DB_PATH`: Database path (default: `./data/tinytask.db`)
-- `TINYTASK_LOG_LEVEL`: Logging level (default: `info`)
+  - Maps internally to `http` mode with `TKO_ENABLE_SSE=true`
+- `TKO_PORT`: HTTP server port (default: `3000`)
+- `TKO_HOST`: HTTP server host (default: `0.0.0.0`)
+- `TKO_DB_PATH`: Database path (default: `./data/tinytask.db`)
+- `TKO_LOG_LEVEL`: Logging level (default: `info`)
 
 #### New Variables
-- `TINYTASK_ENABLE_SSE`: Enable legacy SSE transport (default: `false`)
+- `TKO_ENABLE_SSE`: Enable legacy SSE transport (default: `false`)
   - `true`: Use SSE transport for HTTP mode
   - `false` or unset: Use Streamable HTTP transport for HTTP mode (default)
 
 ### Configuration Matrix
 
-| TINYTASK_MODE | TINYTASK_ENABLE_SSE | Active Transports | Notes |
+| TKO_MODE | TKO_ENABLE_SSE | Active Transports | Notes |
 |---------------|---------------------|-------------------|-------|
 | `stdio` | any | Stdio only | ENABLE_SSE ignored |
 | `http` | `true` | HTTP (SSE) | Legacy SSE mode |
@@ -144,28 +144,28 @@ graph TB
 
 #### For Users Currently Using SSE
 ```bash
-# Option 1: No change needed if using TINYTASK_MODE=sse (logs deprecation warning)
-TINYTASK_MODE=sse node build/index.js
+# Option 1: No change needed if using TKO_MODE=sse (logs deprecation warning)
+TKO_MODE=sse node build/index.js
 
 # Option 2: Explicitly enable SSE (recommended for clarity)
-TINYTASK_MODE=http TINYTASK_ENABLE_SSE=true node build/index.js
+TKO_MODE=http TKO_ENABLE_SSE=true node build/index.js
 
 # Option 3: Migrate to new default (Streamable HTTP)
-TINYTASK_MODE=http node build/index.js
+TKO_MODE=http node build/index.js
 ```
 
 #### For Users Currently Using Both Mode
 ```bash
 # Old way (still works, uses SSE)
-TINYTASK_MODE=both node build/index.js
+TKO_MODE=both node build/index.js
 
 # Explicitly use SSE
-TINYTASK_MODE=both TINYTASK_ENABLE_SSE=true node build/index.js
+TKO_MODE=both TKO_ENABLE_SSE=true node build/index.js
 
 # Migrate to Streamable HTTP (new default)
-TINYTASK_MODE=both node build/index.js
+TKO_MODE=both node build/index.js
 # or
-TINYTASK_MODE=both TINYTASK_ENABLE_SSE=false node build/index.js
+TKO_MODE=both TKO_ENABLE_SSE=false node build/index.js
 ```
 
 ## Implementation Plan
@@ -210,7 +210,7 @@ TINYTASK_MODE=both TINYTASK_ENABLE_SSE=false node build/index.js
 ```typescript
 /**
  * Start HTTP transport with appropriate implementation
- * based on TINYTASK_ENABLE_SSE environment variable
+ * based on TKO_ENABLE_SSE environment variable
  */
 export async function startHttpServer(
   taskService: TaskService,
@@ -218,8 +218,8 @@ export async function startHttpServer(
   linkService: LinkService,
   options?: HttpServerOptions
 ): Promise<void> {
-  const enableSse = process.env.TINYTASK_ENABLE_SSE === 'true';
-  
+  const enableSse = process.env.TKO_ENABLE_SSE === 'true';
+
   if (enableSse) {
     logger.info('Using SSE transport (legacy mode)');
     return startSseServer(taskService, commentService, linkService, options);
@@ -236,7 +236,7 @@ export async function startHttpServer(
 
 **Changes:**
 1. **Mode normalization**
-   - Map `sse` → `http` + set `TINYTASK_ENABLE_SSE=true` internally
+   - Map `sse` → `http` + set `TKO_ENABLE_SSE=true` internally
    - Log deprecation warning for `sse` mode
 
 2. **Mode validation**
@@ -262,13 +262,13 @@ export async function startHttpServer(
 {
   "scripts": {
     "start": "node build/index.js",
-    "start:stdio": "TINYTASK_MODE=stdio node build/index.js",
-    "start:http": "TINYTASK_MODE=http node build/index.js",
-    "start:http:sse": "TINYTASK_MODE=http TINYTASK_ENABLE_SSE=true node build/index.js",
-    "start:both": "TINYTASK_MODE=both node build/index.js",
-    "start:both:sse": "TINYTASK_MODE=both TINYTASK_ENABLE_SSE=true node build/index.js",
-    
-    "start:sse": "echo 'DEPRECATED: Use start:http:sse instead' && TINYTASK_MODE=http TINYTASK_ENABLE_SSE=true node build/index.js"
+    "start:stdio": "TKO_MODE=stdio node build/index.js",
+    "start:http": "TKO_MODE=http node build/index.js",
+    "start:http:sse": "TKO_MODE=http TKO_ENABLE_SSE=true node build/index.js",
+    "start:both": "TKO_MODE=both node build/index.js",
+    "start:both:sse": "TKO_MODE=both TKO_ENABLE_SSE=true node build/index.js",
+
+    "start:sse": "echo 'DEPRECATED: Use start:http:sse instead' && TKO_MODE=http TKO_ENABLE_SSE=true node build/index.js"
   }
 }
 ```
@@ -309,8 +309,8 @@ export async function startStreamableHttpServer(
   options?: HttpServerOptions
 ): Promise<void> {
   const app = express();
-  const port = options?.port ?? parseInt(process.env.TINYTASK_PORT || '3000');
-  const host = options?.host ?? process.env.TINYTASK_HOST ?? '0.0.0.0';
+  const port = options?.port ?? parseInt(process.env.TKO_PORT || '3000');
+  const host = options?.host ?? process.env.TKO_HOST ?? '0.0.0.0';
 
   // Session management
   const sessions = new Map<string, { transport: StreamableHTTPServerTransport; server: Server }>();
@@ -328,30 +328,30 @@ export async function startStreamableHttpServer(
   app.use('/mcp', async (req, res) => {
     // Extract or create session ID from Mcp-Session-Id header
     let sessionId = req.headers['mcp-session-id'] as string;
-    
+
     let session = sessions.get(sessionId);
-    
+
     if (!session) {
       // Create new session
       const transport = new StreamableHTTPServerTransport();
       const server = createMcpServer(taskService, commentService, linkService);
       await server.connect(transport);
-      
+
       sessionId = generateSessionId(); // Use UUID or similar
       session = { transport, server };
       sessions.set(sessionId, session);
-      
+
       // Set session ID in response
       res.setHeader('Mcp-Session-Id', sessionId);
     }
-    
+
     // Let transport handle the request/response
     await session.transport.handleRequest(req, res);
   });
 
   // Start server
   app.listen(port, host, () => {
-    logger.info(`TinyTask MCP server running on Streamable HTTP`);
+    logger.info(`TKO MCP server running on Streamable HTTP`);
     logger.info(`URL: http://${host}:${port}/mcp`);
   });
 }
@@ -372,9 +372,9 @@ sequenceDiagram
     HTTP Server->>MCP Server: Create & Connect
     MCP Server->>Transport: connect(transport)
     HTTP Server-->>Client: Mcp-Session-Id: abc123
-    
+
     Note over Client,Services: Subsequent requests use session ID
-    
+
     Client->>HTTP Server: POST /mcp<br/>Mcp-Session-Id: abc123
     HTTP Server->>Transport: Lookup session
     Transport->>MCP Server: Handle message
@@ -408,10 +408,10 @@ sequenceDiagram
 ### Configuration Tests
 
 #### Test File: `tests/integration/transport-configuration.test.ts`
-- `TINYTASK_ENABLE_SSE=true` activates SSE
-- `TINYTASK_ENABLE_SSE=false` activates Streamable HTTP
-- Unset `TINYTASK_ENABLE_SSE` defaults to Streamable HTTP
-- Legacy `TINYTASK_MODE=sse` still works (with warning)
+- `TKO_ENABLE_SSE=true` activates SSE
+- `TKO_ENABLE_SSE=false` activates Streamable HTTP
+- Unset `TKO_ENABLE_SSE` defaults to Streamable HTTP
+- Legacy `TKO_MODE=sse` still works (with warning)
 
 ### Backward Compatibility Tests
 
@@ -458,11 +458,11 @@ sequenceDiagram
 ### For Current SSE Users
 
 #### Immediate Action (No Code Changes)
-Your current setup will continue to work. The system will automatically enable SSE mode when it detects `TINYTASK_MODE=sse`.
+Your current setup will continue to work. The system will automatically enable SSE mode when it detects `TKO_MODE=sse`.
 
 **You will see a deprecation warning:**
 ```
-⚠️  TINYTASK_MODE=sse is deprecated. Please use TINYTASK_MODE=http with TINYTASK_ENABLE_SSE=true
+⚠️  TKO_MODE=sse is deprecated. Please use TKO_MODE=http with TKO_ENABLE_SSE=true
 ```
 
 #### Recommended Action (Update Configuration)
@@ -470,23 +470,23 @@ Update your configuration to be explicit about using SSE:
 
 **Before:**
 ```bash
-TINYTASK_MODE=sse
-TINYTASK_PORT=3000
+TKO_MODE=sse
+TKO_PORT=3000
 ```
 
 **After:**
 ```bash
-TINYTASK_MODE=http
-TINYTASK_ENABLE_SSE=true
-TINYTASK_PORT=3000
+TKO_MODE=http
+TKO_ENABLE_SSE=true
+TKO_PORT=3000
 ```
 
 #### Future Action (Migrate to Streamable HTTP)
-When ready, simply remove the `TINYTASK_ENABLE_SSE` flag:
+When ready, simply remove the `TKO_ENABLE_SSE` flag:
 
 ```bash
-TINYTASK_MODE=http
-TINYTASK_PORT=3000
+TKO_MODE=http
+TKO_PORT=3000
 ```
 
 **Benefits of migrating:**
@@ -499,8 +499,8 @@ TINYTASK_PORT=3000
 Simply use the default configuration:
 
 ```bash
-TINYTASK_MODE=http  # or 'both' for stdio + http
-TINYTASK_PORT=3000
+TKO_MODE=http  # or 'both' for stdio + http
+TKO_PORT=3000
 ```
 
 This will automatically use Streamable HTTP transport.
@@ -556,5 +556,5 @@ This will automatically use Streamable HTTP transport.
 - [MCP Specification - Transports](https://modelcontextprotocol.io/docs/concepts/transports)
 - [MCP SDK TypeScript Documentation](https://github.com/modelcontextprotocol/typescript-sdk)
 - [Streamable HTTP vs SSE Comparison](https://blog.fka.dev)
-- Current TinyTask Implementation: [`src/server/sse.ts`](src/server/sse.ts:1)
+- Current TKO Implementation: [`src/server/sse.ts`](src/server/sse.ts:1)
 - Current Entry Point: [`src/index.ts`](src/index.ts:1)
