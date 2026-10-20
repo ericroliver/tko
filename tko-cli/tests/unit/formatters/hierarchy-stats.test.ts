@@ -70,7 +70,7 @@ describe.each([false, true])('hierarchy and stats (color=%s)', (color) => {
       'Unassigned:',
     ])
       expect(output).toContain(label);
-    expect(output).toMatch(/Total Tasks:\s+6/);
+    expect(output.replace(/\u001b\[[0-9;]*m/g, '')).toMatch(/Total Tasks:\s+6/);
     expect(output).toContain('alice, bob');
   });
   it('handles an empty queue without phantom status or agent rows', () => {
@@ -80,7 +80,7 @@ describe.each([false, true])('hierarchy and stats (color=%s)', (color) => {
       assigned_tasks: 0,
       unassigned_tasks: 0,
     });
-    expect(output).toMatch(/Total Tasks:\s+0/);
+    expect(output.replace(/\u001b\[[0-9;]*m/g, '')).toMatch(/Total Tasks:\s+0/);
     expect(output).not.toContain('Idle:');
     expect(output).not.toContain('Agents:');
   });
