@@ -70,11 +70,22 @@ jobs:
       - run: node --test scripts/release-version.test.mjs
       - run: npm ci
       - run: npm run lint
-      - run: npm test
+      - run: npm run test:coverage
       - run: npm ci
         working-directory: tko-cli
-      - run: npm run lint && npm run build && npm test
+      - run: npm run lint && npm run build && npm run test:coverage
         working-directory: tko-cli
+
+      - name: Upload server and CLI coverage reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: coverage-reports
+          path: |
+            coverage/
+            tko-cli/coverage/
+          if-no-files-found: warn
+          retention-days: 14
 
   client:
     needs: [validate, test]

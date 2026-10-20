@@ -1,4 +1,4 @@
-import { Command } from 'commander';
+import { Command, InvalidArgumentError } from 'commander';
 import chalk from 'chalk';
 import { ensureConnected } from '../../client/connection.js';
 import { createFormatter } from '../../formatters/index.js';
@@ -6,15 +6,35 @@ import { loadConfig } from '../../config/loader.js';
 import { TaskFilters } from '../../client/mcp-client.js';
 import { projectTaskFields } from '../../utils/fields.js';
 
+const VALID_STATUSES = ['idle', 'working', 'complete'];
+
+function parseIncludedStatuses(value: string): string[] {
+  const statuses = value
+    .split(',')
+    .map((status) => status.trim())
+    .filter(Boolean);
+  if (statuses.length === 0 || statuses.some((status) => !VALID_STATUSES.includes(status))) {
+    throw new InvalidArgumentError('Expected comma-separated statuses: idle, working, complete.');
+  }
+  return statuses;
+}
+
 const VALID_FORMATS = ['table', 'json', 'csv', 'compact'];
 
 export function createTaskListCommand(program: Command): void {
   program
     .command('list')
     .alias('ls')
-    .description('List tasks')
+    .description(
+      'List tasks (completed tasks are hidden unless --includeStatus complete is supplied)'
+    )
     .option('-a, --assigned-to <agent>', 'Filter by assignee')
     .option('-s, --status <status>', 'Filter by status (comma-separated, e.g., idle,working)')
+    .option(
+      '--includeStatus <status>',
+      'Include statuses hidden by default (comma-separated; use complete to show completed tasks)',
+      parseIncludedStatuses
+    )
     .option('--excludeStatus <status>', 'Exclude statuses (comma-separated, e.g., complete)')
     .option('-q, --queue <name>', 'Filter by queue')
     .option('--parent <id>', 'Filter by parent task ID', parseInt)
@@ -62,12 +82,19 @@ export function createTaskListCommand(program: Command): void {
             .filter(Boolean);
           filters.status = statuses.length === 1 ? statuses[0] : statuses;
         }
+        // Apply on the server so pagination and totals use the same filtered set.
+        // Explicit exclusions win over --includeStatus; --status still narrows results.
+        const excludedStatuses = new Set<NonNullable<TaskFilters['exclude_status']>[number]>(
+          options.includeStatus?.includes('complete') ? [] : ['complete']
+        );
         if (options.excludeStatus) {
-          filters.exclude_status = options.excludeStatus
+          const explicitExclusions = options.excludeStatus
             .split(',')
             .map((s: string) => s.trim())
             .filter(Boolean);
+          for (const status of explicitExclusions) excludedStatuses.add(status);
         }
+        if (excludedStatuses.size > 0) filters.exclude_status = [...excludedStatuses];
         if (options.queue) filters.queue_name = options.queue;
         if (options.parent !== undefined) filters.parent_task_id = options.parent;
         if (options.excludeSubtasks) filters.exclude_subtasks = true;
