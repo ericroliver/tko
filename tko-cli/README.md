@@ -587,6 +587,19 @@ tko-cli/
 └── README.md
 ```
 
+### Completed tasks in task lists
+
+`task list` (including `t ls`) hides completed tasks by default. Filtering happens on the server before pagination, so the returned count and page contents stay consistent.
+
+```bash
+tko t ls                                           # idle and working
+tko t ls --includeStatus complete                  # also include complete
+tko t ls --includeStatus complete --status complete # only complete
+tko t ls --includeStatus complete --excludeStatus working
+```
+
+`--status` narrows the result; it does not bypass the completed-task opt-in. Explicit `--excludeStatus` wins over `--includeStatus`. `--include-archived` does not imply `--includeStatus complete`. Queue commands and the server API keep their existing defaults.
+
 ## License
 
 ISC
